@@ -8,7 +8,7 @@ import {
   useEffect,
   useRef,
 } from "react"
-import { useAnimationFrame } from "motion/react"
+import { useAnimationFrame } from "framer-motion"
 
 import { cn } from "@/lib/utils"
 import { useMousePositionRef } from "@/hooks/use-mouse-position-ref"
@@ -45,7 +45,7 @@ const Floating = ({
       }
     >()
   )
-  const mousePositionRef = useMousePositionRef(containerRef!)
+  const mousePositionRef = useMousePositionRef(containerRef)
 
   const registerElement = useCallback(
     (id: string, element: HTMLDivElement, depth: number) => {
@@ -121,7 +121,7 @@ export const FloatingElement = ({
 
     context.registerElement(idRef.current, elementRef.current, nonNullDepth)
     return () => context.unregisterElement(idRef.current)
-  }, [depth])
+  }, [depth, context])
 
   return (
     <div

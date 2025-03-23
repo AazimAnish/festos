@@ -2,8 +2,98 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Calendas and Azeret Mono fonts */
+@font-face {
+  font-family: 'Calendas';
+  src: url('/fonts/Calendas-Plus-Regular.woff2') format('woff2'),
+       url('/fonts/Calendas-Plus-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Calendas';
+  src: url('/fonts/Calendas-Plus-Italic.woff2') format('woff2'),
+       url('/fonts/Calendas-Plus-Italic.woff') format('woff');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Calendas';
+  src: url('/fonts/Calendas-Plus-Bold.woff2') format('woff2'),
+       url('/fonts/Calendas-Plus-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Azeret Mono';
+  src: url('/fonts/AzeretMono-Regular.woff2') format('woff2'),
+       url('/fonts/AzeretMono-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Azeret Mono';
+  src: url('/fonts/AzeretMono-Medium.woff2') format('woff2'),
+       url('/fonts/AzeretMono-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Azeret Mono', monospace;
+}
+
+/* Hide scrollbar utility */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari and Opera */
+}
+
+/* Card glow and glassmorphism effects */
+.card-glass {
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 4px 30px rgba(0, 0, 0, 0.1),
+    0 0 20px rgba(255, 255, 255, 0.05) inset;
+  position: relative;
+}
+
+.card-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.text-glow {
+  text-shadow: 0 0 15px rgba(255, 126, 120, 0.5);
+}
+
+.accent-glow {
+  box-shadow: 0 0 20px rgba(255, 126, 120, 0.25);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 25px rgba(255, 126, 120, 0.3);
 }
 
 @layer base {
