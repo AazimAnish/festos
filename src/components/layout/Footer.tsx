@@ -64,7 +64,7 @@ const FooterLinkColumn = ({ title, links }: FooterLinkColumnProps) => (
 
 export function Footer() {
   return (
-    <footer className="relative bg-black/30 dark:bg-white/10 backdrop-blur-md border-t border-white/10 dark:border-black/10 pt-16 pb-8 overflow-hidden">
+    <footer className="relative pt-16 pb-8 overflow-hidden">
       {/* Animated decoration elements */}
       <motion.div 
         className="absolute top-20 left-10 w-32 h-32 rounded-full opacity-20 bg-gradient-to-r from-purple-500 to-[#ff4b43]"

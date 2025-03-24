@@ -59,25 +59,25 @@ export function Navbar({ theme, setTheme }: NavbarProps) {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-4 py-4 md:py-3",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-4 py-6 md:py-5",
         isScrolled
-          ? "bg-black/50 dark:bg-white/10 backdrop-blur-md border-b border-white/10 dark:border-black/10"
+          ? "bg-black/30 dark:bg-white/5 backdrop-blur-md border-b border-white/10 dark:border-black/10"
           : "bg-transparent"
       )}
     >
-      <div className="max-w-7xl mx-auto flex items-center">
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Left Side - Logo */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 py-2">
           <Link href="/" className="text-white dark:text-gray-900 text-2xl font-calendas">
             <span className="text-[#ff4b43]">Festos</span>
           </Link>
         </div>
 
-        {/* Center - Navigation */}
-        <div className="flex-1 flex justify-center">
+        {/* Center - Navigation (Absolute positioned to ensure center alignment) */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 top-1/2 -translate-y-1/2 w-auto z-10">
           <ExpandableTabs
             tabs={navTabs}
-            className="bg-transparent border-white/10 dark:border-black/10"
+            className="bg-transparent border-white/10 dark:border-black/10 py-3"
             activeColor="text-[#ff4b43]"
           />
         </div>
@@ -86,7 +86,7 @@ export function Navbar({ theme, setTheme }: NavbarProps) {
         <div className="flex-shrink-0 flex items-center gap-6">
           {/* Connect Wallet Button - desktop only */}
           <motion.button
-            className="hidden md:block px-5 py-2 rounded-lg bg-[#ff4b43] text-white font-medium hover:bg-[#ff6c66] transition-colors font-azeret-mono accent-glow hover-glow"
+            className="hidden md:block px-5 py-3 rounded-lg bg-[#ff4b43] text-white font-medium hover:bg-[#ff6c66] transition-colors font-azeret-mono accent-glow hover-glow"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -97,41 +97,43 @@ export function Navbar({ theme, setTheme }: NavbarProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <motion.button
-                className="p-2 rounded-lg card-glass dark:bg-white/10 hover:bg-white/20 dark:hover:bg-black/20 text-white dark:text-gray-900"
+                className="p-3 rounded-lg card-glass dark:bg-white/10 hover:bg-white/20 dark:hover:bg-black/20 text-white dark:text-gray-900"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <ThemeIcon size={20} />
               </motion.button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="card-glass backdrop-blur-md border-white/10 dark:border-black/10 bg-black/80 dark:bg-white/80 text-white dark:text-gray-900">
-              <DropdownMenuItem
-                className="flex items-center gap-2 hover:bg-white/10 dark:hover:bg-black/10 cursor-pointer"
-                onClick={() => setTheme("light")}
-              >
-                <Sun size={16} />
-                <span>Light</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="flex items-center gap-2 hover:bg-white/10 dark:hover:bg-black/10 cursor-pointer"
-                onClick={() => setTheme("dark")}
-              >
-                <Moon size={16} />
-                <span>Dark</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="flex items-center gap-2 hover:bg-white/10 dark:hover:bg-black/10 cursor-pointer"
-                onClick={() => setTheme("system")}
-              >
-                <Laptop size={16} />
-                <span>System</span>
-              </DropdownMenuItem>
+            <DropdownMenuContent align="end" className="card-glass backdrop-blur-md border-white/10 dark:border-black/10 bg-black/25 dark:bg-white/25 text-white dark:text-gray-900 relative">
+              <div className="relative z-10">
+                <DropdownMenuItem
+                  className="flex items-center gap-2 hover:bg-white/10 dark:hover:bg-black/10 cursor-pointer py-3 px-4"
+                  onClick={() => setTheme("light")}
+                >
+                  <Sun size={16} />
+                  <span>Light</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="flex items-center gap-2 hover:bg-white/10 dark:hover:bg-black/10 cursor-pointer py-3 px-4"
+                  onClick={() => setTheme("dark")}
+                >
+                  <Moon size={16} />
+                  <span>Dark</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="flex items-center gap-2 hover:bg-white/10 dark:hover:bg-black/10 cursor-pointer py-3 px-4"
+                  onClick={() => setTheme("system")}
+                >
+                  <Laptop size={16} />
+                  <span>System</span>
+                </DropdownMenuItem>
+              </div>
             </DropdownMenuContent>
           </DropdownMenu>
 
           {/* Mobile Menu Button */}
           <motion.button
-            className="md:hidden text-white dark:text-gray-900 p-2"
+            className="md:hidden text-white dark:text-gray-900 p-3"
             onClick={toggleMobileMenu}
             whileTap={{ scale: 0.9 }}
           >
@@ -144,20 +146,20 @@ export function Navbar({ theme, setTheme }: NavbarProps) {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            className="fixed inset-0 top-[72px] bg-black/90 dark:bg-white/90 backdrop-blur-md z-40 md:hidden card-glass overflow-hidden"
+            className="fixed inset-0 top-[72px] bg-black/25 dark:bg-white/25 backdrop-blur-md z-40 md:hidden card-glass overflow-hidden"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "100vh" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <nav className="flex flex-col items-center pt-10 px-4">
+            <nav className="flex flex-col items-center pt-10 px-4 relative z-10">
               {navTabs.filter(tab => tab.type !== "separator").map((tab, index) => {
                 const TabIcon = tab.icon as LucideIcon
                 return (
                   <motion.a
                     key={tab.title}
                     href="#"
-                    className="flex items-center py-4 text-white/80 dark:text-gray-800/80 hover:text-[#ff4b43] dark:hover:text-[#ff4b43] font-azeret-mono text-lg w-full justify-center"
+                    className="flex items-center py-5 text-white/80 dark:text-gray-800/80 hover:text-[#ff4b43] dark:hover:text-[#ff4b43] font-azeret-mono text-lg w-full justify-center"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{
                       opacity: 1,
@@ -173,7 +175,7 @@ export function Navbar({ theme, setTheme }: NavbarProps) {
               })}
 
               <motion.button
-                className="mt-8 px-8 py-3 rounded-lg bg-[#ff4b43] text-white font-medium hover:bg-[#ff6c66] transition-colors font-azeret-mono accent-glow hover-glow w-full max-w-[250px]"
+                className="mt-8 px-8 py-4 rounded-lg bg-[#ff4b43] text-white font-medium hover:bg-[#ff6c66] transition-colors font-azeret-mono accent-glow hover-glow w-full max-w-[250px]"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{
                   opacity: 1,

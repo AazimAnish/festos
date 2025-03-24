@@ -60,6 +60,12 @@ interface AnimatedGradientBackgroundProps {
     * @default 0
     */
    topOffset?: number;
+
+   /**
+    * Noise opacity for the noise overlay.
+    * @default 5
+    */
+   noiseOpacity?: number;
 }
 
 /**
@@ -90,6 +96,7 @@ const AnimatedGradientBackground: React.FC<AnimatedGradientBackgroundProps> = ({
    containerStyle = {},
    topOffset = 0,
    containerClassName = "",
+   noiseOpacity = 0.2,
 }) => {
 
 
@@ -156,6 +163,14 @@ const AnimatedGradientBackground: React.FC<AnimatedGradientBackgroundProps> = ({
             ref={containerRef}
             style={containerStyle}
             className="absolute inset-0 transition-transform"
+         />
+         <div 
+            className="absolute inset-0 pointer-events-none z-[1]"
+            style={{
+               backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='5' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+               opacity: noiseOpacity,
+               mixBlendMode: 'overlay'
+            }}
          />
       </motion.div>
    );

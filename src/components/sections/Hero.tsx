@@ -1,21 +1,29 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { motion, stagger, useAnimate } from "framer-motion"
 import { Search } from "lucide-react"
+import Image from "next/image"
+import { useTheme } from "next-themes"
 
 import Floating, {
   FloatingElement,
 } from "@/components/ui/parallax-floating"
 
-import { exampleImages } from "@/utils/demo-images"
 import { Button } from "@/components/ui/button"
+
+// Import the background images
+import darkBgImage from "../../../public/images/dark.jpg"
+import lightBgImage from "../../../public/images/light.jpg"
 
 const Hero = () => {
   const [scope, animate] = useAnimate()
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    animate("img", { opacity: [0, 1] }, { duration: 0.5, delay: stagger(0.15) })
+    setMounted(true)
+    animate(".float-item", { opacity: [0, 1] }, { duration: 0.5, delay: stagger(0.15) })
     animate(".avalanche-badge", { opacity: 1, y: 0 }, { duration: 0.8, delay: 0.5 })
     animate(".hero-text", { opacity: 1, y: 0 }, { duration: 0.8, delay: 1 })
     animate(".search-bar", { opacity: 1, y: 0 }, { duration: 0.8, delay: 1.2 })
@@ -27,14 +35,74 @@ const Hero = () => {
       className="relative flex w-full h-screen justify-center items-center overflow-hidden"
       ref={scope}
     >
+      {/* Background Images - display only when mounted to avoid hydration mismatch */}
+      {mounted && (
+        <div className="absolute inset-0 w-full h-full" style={{ zIndex: 0 }}>
+          {/* Dark mode background */}
+          {resolvedTheme === 'dark' && (
+            <div className="absolute inset-0 transition-opacity duration-500 opacity-100">
+              <Image
+                src={darkBgImage}
+                alt="Dark background"
+                fill
+                priority
+                quality={100}
+                placeholder="blur"
+                sizes="100vw"
+                style={{
+                  objectFit: 'cover',
+                  objectPosition: 'center',
+                }}
+              />
+            </div>
+          )}
+          
+          {/* Light mode background */}
+          {resolvedTheme === 'light' && (
+            <div className="absolute inset-0 transition-opacity duration-500 opacity-100">
+              <Image
+                src={lightBgImage}
+                alt="Light background"
+                fill
+                priority
+                quality={100}
+                placeholder="blur"
+                sizes="100vw"
+                style={{
+                  objectFit: 'cover',
+                  objectPosition: 'center',
+                }}
+              />
+            </div>
+          )}
+          
+          {/* Noise overlay */}
+          <div 
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='7.5' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+              opacity: 0.15,
+              mixBlendMode: 'overlay',
+              zIndex: 1
+            }}
+          />
+        </div>
+      )}
+
       {/* Content overlay */}
-      <div className="z-50 flex flex-col items-center justify-center px-4 text-center space-y-8 max-w-4xl">
-        {/* Avalanche Badge */}
+      <div className="flex flex-col items-center justify-center px-4 text-center space-y-8 max-w-4xl relative" style={{ zIndex: 10 }}>
+        {/* Avalanche Badge with increased glow intensity */}
         <motion.div
           className="avalanche-badge mb-4 px-3 py-1.5 rounded-md bg-black/30 backdrop-blur-md border border-white/10 card-glass shadow-lg flex items-center"
           initial={{ opacity: 0, y: -20 }}
+          // style={{
+          //   boxShadow: '0 0 15px 5px rgba(255, 75, 67, 0.5), 0 0 30px 10px rgba(255, 75, 67, 0.3)'
+          // }}
         >
-          <span className="glowing-dot"></span>
+          <span className="glowing-dot" style={{
+            background: 'radial-gradient(circle, rgba(255,75,67,1) 0%, rgba(255,75,67,0.7) 50%, rgba(255,75,67,0) 100%)',
+            boxShadow: '0 0 10px 5px rgba(255, 75, 67, 0.8), 0 0 20px 10px rgba(255, 75, 67, 0.4)'
+          }}></span>
           <span className="text-white/90 text-xs font-azeret-mono tracking-wide">powered by avalanche</span>
         </motion.div>
 
@@ -78,73 +146,113 @@ const Hero = () => {
       </div>
 
       {/* Floating images - contained within the hero section */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 5 }}>
         <Floating sensitivity={-1} className="overflow-hidden">
-          <FloatingElement depth={0.5} className="top-[8%] left-[11%]">
-            <motion.img
+          <FloatingElement depth={0.5} className="top-[15%] left-[18%]">
+            <motion.div
               initial={{ opacity: 0 }}
-              src={exampleImages[0].url}
-              alt={exampleImages[0].title}
-              className="w-16 h-16 md:w-24 md:h-24 object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-lg card-glass"
-            />
+              className="float-item event-frame-3d w-28 h-40 md:w-40 md:h-40 rounded-lg relative hover:scale-105 transition-transform cursor-pointer"
+            >
+              <div className="absolute inset-1 bg-black/40 dark:bg-white/40 backdrop-blur-md rounded-lg z-10 border border-white/20 dark:border-black/20 shadow-inner overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl">
+                  🎭
+                </div>
+              </div>
+              <div className="absolute inset-0 bg-black/25 dark:bg-white/25 backdrop-blur-lg rounded-lg border border-white/10 dark:border-black/10 shadow-lg"></div>
+            </motion.div>
           </FloatingElement>
-          <FloatingElement depth={1} className="top-[10%] left-[32%]">
-            <motion.img
+          <FloatingElement depth={1} className="top-[40%] right-[20%]">
+            <motion.div
               initial={{ opacity: 0 }}
-              src={exampleImages[1].url}
-              alt={exampleImages[1].title}
-              className="w-20 h-20 md:w-28 md:h-28 object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-lg card-glass"
-            />
+              className="float-item event-frame-3d w-20 h-20 md:w-28 md:h-28 rounded-lg relative hover:scale-105 transition-transform cursor-pointer"
+            >
+              <div className="absolute inset-1 bg-black/40 dark:bg-white/40 backdrop-blur-md rounded-lg z-10 border border-white/20 dark:border-black/20 shadow-inner overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl">
+                  🎤
+                </div>
+              </div>
+              <div className="absolute inset-0 bg-black/25 dark:bg-white/25 backdrop-blur-lg rounded-lg border border-white/10 dark:border-black/10 shadow-lg"></div>
+            </motion.div>
           </FloatingElement>
-          <FloatingElement depth={2} className="top-[2%] left-[53%]">
-            <motion.img
+          <FloatingElement depth={2} className="top-[15%] left-[53%]">
+            <motion.div
               initial={{ opacity: 0 }}
-              src={exampleImages[2].url}
-              alt={exampleImages[2].title}
-              className="w-28 h-40 md:w-40 md:h-52 object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-lg card-glass"
-            />
+              className="float-item event-frame-3d w-16 h-16 md:w-24 md:h-24 rounded-lg relative hover:scale-105 transition-transform cursor-pointer"
+            >
+              <div className="absolute inset-1 bg-black/40 dark:bg-white/40 backdrop-blur-md rounded-lg z-10 border border-white/20 dark:border-black/20 shadow-inner overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center text-5xl md:text-6xl">
+                  🎉
+                </div>
+              </div>
+              <div className="absolute inset-0 bg-black/25 dark:bg-white/25 backdrop-blur-lg rounded-lg border border-white/10 dark:border-black/10 shadow-lg"></div>
+            </motion.div>
           </FloatingElement>
-          <FloatingElement depth={1} className="top-[0%] left-[83%]">
-            <motion.img
+          <FloatingElement depth={1} className="top-[20%] left-[83%]">
+            <motion.div
               initial={{ opacity: 0 }}
-              src={exampleImages[3].url}
-              alt={exampleImages[3].title}
-              className="w-24 h-24 md:w-32 md:h-32 object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-lg card-glass"
-            />
+              className="float-item event-frame-3d w-24 h-24 md:w-32 md:h-32 rounded-lg relative hover:scale-105 transition-transform cursor-pointer"
+            >
+              <div className="absolute inset-1 bg-black/40 dark:bg-white/40 backdrop-blur-md rounded-lg z-10 border border-white/20 dark:border-black/20 shadow-inner overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl">
+                  🎮
+                </div>
+              </div>
+              <div className="absolute inset-0 bg-black/25 dark:bg-white/25 backdrop-blur-lg rounded-lg border border-white/10 dark:border-black/10 shadow-lg"></div>
+            </motion.div>
           </FloatingElement>
 
-          <FloatingElement depth={1} className="top-[40%] left-[2%]">
-            <motion.img
+          <FloatingElement depth={1} className="top-[44%] left-[8%]">
+            <motion.div
               initial={{ opacity: 0 }}
-              src={exampleImages[4].url}
-              alt={exampleImages[4].title}
-              className="w-28 h-28 md:w-36 md:h-36 object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-lg card-glass"
-            />
+              className="float-item event-frame-3d w-28 h-28 md:w-36 md:h-36 rounded-lg relative hover:scale-105 transition-transform cursor-pointer"
+            >
+              <div className="absolute inset-1 bg-black/40 dark:bg-white/40 backdrop-blur-md rounded-lg z-10 border border-white/20 dark:border-black/20 shadow-inner overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl">
+                  🎓
+                </div>
+              </div>
+              <div className="absolute inset-0 bg-black/25 dark:bg-white/25 backdrop-blur-lg rounded-lg border border-white/10 dark:border-black/10 shadow-lg"></div>
+            </motion.div>
           </FloatingElement>
           <FloatingElement depth={2} className="top-[70%] left-[77%]">
-            <motion.img
+            <motion.div
               initial={{ opacity: 0 }}
-              src={exampleImages[7].url}
-              alt={exampleImages[7].title}
-              className="w-28 h-28 md:w-36 md:h-48 object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-lg card-glass"
-            />
+              className="float-item event-frame-3d w-28 h-28 md:w-36 md:h-36 rounded-lg relative hover:scale-105 transition-transform cursor-pointer"
+            >
+              <div className="absolute inset-1 bg-black/40 dark:bg-white/40 backdrop-blur-md rounded-lg z-10 border border-white/20 dark:border-black/20 shadow-inner overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl">
+                  ⚽
+                </div>
+              </div>
+              <div className="absolute inset-0 bg-black/25 dark:bg-white/25 backdrop-blur-lg rounded-lg border border-white/10 dark:border-black/10 shadow-lg"></div>
+            </motion.div>
           </FloatingElement>
 
-          <FloatingElement depth={4} className="top-[73%] left-[15%]">
-            <motion.img
+          <FloatingElement depth={4} className="top-[73%] left-[20%]">
+            <motion.div
               initial={{ opacity: 0 }}
-              src={exampleImages[5].url}
-              alt={exampleImages[5].title}
-              className="w-40 md:w-52 h-full object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-lg card-glass"
-            />
+              className="float-item event-frame-3d w-40 md:w-52 h-40 md:h-52 rounded-lg relative hover:scale-105 transition-transform cursor-pointer"
+            >
+              <div className="absolute inset-1 bg-black/40 dark:bg-white/40 backdrop-blur-md rounded-lg z-10 border border-white/20 dark:border-black/20 shadow-inner overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl">
+                  🍽
+                </div>
+              </div>
+              <div className="absolute inset-0 bg-black/25 dark:bg-white/25 backdrop-blur-lg rounded-lg border border-white/10 dark:border-black/10 shadow-lg"></div>
+            </motion.div>
           </FloatingElement>
           <FloatingElement depth={1} className="top-[80%] left-[50%]">
-            <motion.img
+            <motion.div
               initial={{ opacity: 0 }}
-              src={exampleImages[6].url}
-              alt={exampleImages[6].title}
-              className="w-24 h-24 md:w-32 md:h-32 object-cover hover:scale-105 duration-200 cursor-pointer transition-transform rounded-lg card-glass"
-            />
+              className="float-item event-frame-3d w-24 h-24 md:w-32 md:h-32 rounded-lg relative hover:scale-105 transition-transform cursor-pointer"
+            >
+              <div className="absolute inset-1 bg-black/40 dark:bg-white/40 backdrop-blur-md rounded-lg z-10 border border-white/20 dark:border-black/20 shadow-inner overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl">
+                  🏕
+                </div>
+              </div>
+              <div className="absolute inset-0 bg-black/25 dark:bg-white/25 backdrop-blur-lg rounded-lg border border-white/10 dark:border-black/10 shadow-lg"></div>
+            </motion.div>
           </FloatingElement>
         </Floating>
       </div>
@@ -152,4 +260,4 @@ const Hero = () => {
   )
 }
 
-export default Hero 
+export default Hero

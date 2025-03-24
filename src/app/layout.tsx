@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { ThemeProvider } from "next-themes";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import AnimatedGradientBackground from "@/components/ui/animated-gradient-background";
+import { TriangleCursor } from "@/components/ui/triangle-cursor";
 import "./globals.css";
 
 // Metadata must be exported from a separate file or with a dynamic export
@@ -18,10 +20,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [mounted, setMounted] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   
+  // useEffect only runs on the client, so now we can safely show the UI
   useEffect(() => {
+    setMounted(true);
+    
     // Get theme from localStorage or use system preference as default
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | "system" || "system";
     setTheme(savedTheme);
@@ -33,20 +39,14 @@ export default function RootLayout({
       (savedTheme === "system" && systemPrefersDark);
     
     setIsDarkTheme(shouldUseDarkTheme);
-    document.documentElement.classList.toggle("dark", shouldUseDarkTheme);
     
-    // Listen for system preference changes
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = (e: MediaQueryListEvent) => {
-      if (theme === "system") {
-        setIsDarkTheme(e.matches);
-        document.documentElement.classList.toggle("dark", e.matches);
-      }
-    };
-    
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, [theme]);
+    // Apply the theme class to the document to avoid hydration mismatch
+    if (shouldUseDarkTheme) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
   
   // Function to toggle theme
   const toggleTheme = (newTheme: "light" | "dark" | "system") => {
@@ -55,15 +55,19 @@ export default function RootLayout({
     
     if (newTheme === "light") {
       setIsDarkTheme(false);
-      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.remove('dark');
     } else if (newTheme === "dark") {
       setIsDarkTheme(true);
-      document.documentElement.classList.add("dark");
+      document.documentElement.classList.add('dark');
     } else {
       // System preference
       const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
       setIsDarkTheme(systemPrefersDark);
-      document.documentElement.classList.toggle("dark", systemPrefersDark);
+      if (systemPrefersDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     }
   };
 
@@ -95,32 +99,42 @@ export default function RootLayout({
         <title>{metadata.title}</title>
         <meta name="description" content={metadata.description} />
       </head>
-      <body className="antialiased font-azeret-mono relative min-h-screen overflow-x-hidden">
-        {/* Animated Background */}
-        <AnimatedGradientBackground
-          Breathing={true}
-          gradientColors={isDarkTheme ? darkGradientColors : lightGradientColors}
-          gradientStops={[35, 50, 60, 70, 80, 90, 100]}
-          startingGap={125}
-          breathingRange={5}
-          topOffset={0}
-          animationSpeed={0.02}
-          containerClassName="fixed inset-0 -z-10"
-        />
-        
-        {/* Content Container with Navbar and Footer */}
-        <div className="flex flex-col min-h-screen">
-          {/* Fixed Navbar */}
-          <Navbar theme={theme} setTheme={toggleTheme} />
-          
-          {/* Main Content */}
-          <main className="flex-grow">
-            {children}
-          </main>
-          
-          {/* Fixed Footer */}
-          <Footer />
-        </div>
+      <body className="antialiased font-azeret-mono relative min-h-screen overflow-x-hidden" suppressHydrationWarning>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {/* Don't render anything until client-side hydration completes */}
+          {mounted && (
+            <>
+              {/* Custom Triangle Cursor */}
+              <TriangleCursor />
+              
+              {/* Animated Background */}
+              <AnimatedGradientBackground
+                Breathing={true}
+                gradientColors={isDarkTheme ? darkGradientColors : lightGradientColors}
+                gradientStops={[35, 50, 60, 70, 80, 90, 100]}
+                startingGap={125}
+                breathingRange={5}
+                topOffset={0}
+                animationSpeed={0.02}
+                containerClassName="fixed inset-0 -z-10"
+              />
+              
+              {/* Content Container with Navbar and Footer */}
+              <div className="flex flex-col min-h-screen">
+                {/* Fixed Navbar */}
+                <Navbar theme={theme} setTheme={toggleTheme} />
+                
+                {/* Main Content */}
+                <main className="flex-grow">
+                  {children}
+                </main>
+                
+                {/* Fixed Footer */}
+                <Footer />
+              </div>
+            </>
+          )}
+        </ThemeProvider>
       </body>
     </html>
   );
