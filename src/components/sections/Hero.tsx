@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { motion, stagger, useAnimate } from "framer-motion"
 import { Search } from "lucide-react"
 import Image from "next/image"
@@ -21,8 +21,8 @@ const Hero = () => {
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
-  useEffect(() => {
-    setMounted(true)
+  // Optimize animations with useCallback to avoid recreating functions
+  const runAnimations = useCallback(() => {
     animate(".float-item", { opacity: [0, 1] }, { duration: 0.5, delay: stagger(0.15) })
     animate(".avalanche-badge", { opacity: 1, y: 0 }, { duration: 0.8, delay: 0.5 })
     animate(".hero-text", { opacity: 1, y: 0 }, { duration: 0.8, delay: 1 })
@@ -30,79 +30,85 @@ const Hero = () => {
     animate(".cta-buttons", { opacity: 1, y: 0 }, { duration: 0.8, delay: 1.4 })
   }, [animate])
 
+  useEffect(() => {
+    setMounted(true)
+    runAnimations()
+  }, [runAnimations])
+
+  // Memoize background to avoid unnecessary re-renders
+  const renderBackground = useCallback(() => {
+    if (!mounted) return null
+    
+    return (
+      <div className="absolute inset-0 w-full h-full" style={{ zIndex: 0 }}>
+        {/* Dark mode background */}
+        {resolvedTheme === 'dark' && (
+          <div className="absolute inset-0 transition-opacity duration-500 opacity-100">
+            <Image
+              src={darkBgImage}
+              alt="Dark background"
+              fill
+              priority
+              quality={100}
+              placeholder="blur"
+              sizes="100vw"
+              style={{
+                objectFit: 'cover',
+                objectPosition: 'center',
+              }}
+            />
+          </div>
+        )}
+        
+        {/* Light mode background */}
+        {resolvedTheme === 'light' && (
+          <div className="absolute inset-0 transition-opacity duration-500 opacity-100">
+            <Image
+              src={lightBgImage}
+              alt="Light background"
+              fill
+              priority
+              quality={100}
+              placeholder="blur"
+              sizes="100vw"
+              style={{
+                objectFit: 'cover',
+                objectPosition: 'center',
+              }}
+            />
+          </div>
+        )}
+        
+        {/* Noise overlay */}
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='7.5' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+            opacity: 0.15,
+            mixBlendMode: 'overlay',
+            zIndex: 1
+          }}
+        />
+      </div>
+    )
+  }, [mounted, resolvedTheme])
+
   return (
     <div
       className="relative flex w-full h-screen justify-center items-center overflow-hidden"
       ref={scope}
     >
-      {/* Background Images - display only when mounted to avoid hydration mismatch */}
-      {mounted && (
-        <div className="absolute inset-0 w-full h-full" style={{ zIndex: 0 }}>
-          {/* Dark mode background */}
-          {resolvedTheme === 'dark' && (
-            <div className="absolute inset-0 transition-opacity duration-500 opacity-100">
-              <Image
-                src={darkBgImage}
-                alt="Dark background"
-                fill
-                priority
-                quality={100}
-                placeholder="blur"
-                sizes="100vw"
-                style={{
-                  objectFit: 'cover',
-                  objectPosition: 'center',
-                }}
-              />
-            </div>
-          )}
-          
-          {/* Light mode background */}
-          {resolvedTheme === 'light' && (
-            <div className="absolute inset-0 transition-opacity duration-500 opacity-100">
-              <Image
-                src={lightBgImage}
-                alt="Light background"
-                fill
-                priority
-                quality={100}
-                placeholder="blur"
-                sizes="100vw"
-                style={{
-                  objectFit: 'cover',
-                  objectPosition: 'center',
-                }}
-              />
-            </div>
-          )}
-          
-          {/* Noise overlay */}
-          <div 
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='7.5' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-              opacity: 0.15,
-              mixBlendMode: 'overlay',
-              zIndex: 1
-            }}
-          />
-        </div>
-      )}
+      {/* Background Images */}
+      {renderBackground()}
 
       {/* Content overlay */}
       <div className="flex flex-col items-center justify-center px-4 text-center space-y-8 max-w-4xl relative" style={{ zIndex: 10 }}>
         {/* Avalanche Badge with increased glow intensity */}
         <motion.div
-          className="avalanche-badge mb-4 px-3 py-1.5 rounded-md bg-black/30 backdrop-blur-md border border-white/10 card-glass shadow-lg flex items-center"
+          className="avalanche-badge mb-4 px-3 py-1.5 rounded-md bg-black/30 backdrop-blur-md border border-white/10 card-glass flex items-center"
           initial={{ opacity: 0, y: -20 }}
-          // style={{
-          //   boxShadow: '0 0 15px 5px rgba(255, 75, 67, 0.5), 0 0 30px 10px rgba(255, 75, 67, 0.3)'
-          // }}
         >
-          <span className="glowing-dot" style={{
-            background: 'radial-gradient(circle, rgba(255,75,67,1) 0%, rgba(255,75,67,0.7) 50%, rgba(255,75,67,0) 100%)',
-            boxShadow: '0 0 10px 5px rgba(255, 75, 67, 0.8), 0 0 20px 10px rgba(255, 75, 67, 0.4)'
-          }}></span>
+          <span className="glowing-dot"></span>
           <span className="text-white/90 text-xs font-azeret-mono tracking-wide">powered by avalanche</span>
         </motion.div>
 
@@ -136,10 +142,10 @@ const Hero = () => {
           className="cta-buttons flex flex-wrap gap-4 justify-center"
           initial={{ opacity: 0, y: 20 }}
         >
-          <Button size="lg">
+          <Button size="lg" className="">
             Explore Events
           </Button>
-          <Button variant="glassmorphic" size="lg">
+          <Button variant="glassmorphic" size="lg" className="">
             Create Event
           </Button>
         </motion.div>

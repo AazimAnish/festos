@@ -256,24 +256,22 @@ body.custom-cursor {
   z-index: 99999;
   transform-origin: center;
   transition: filter 0.15s ease;
-  filter: drop-shadow(0 0 5px rgba(255, 50, 50, 0.7)) drop-shadow(0 0 8px rgba(255, 50, 50, 0.7));
+  filter: drop-shadow(0 0 5px rgba(255, 50, 50, 0.7));
+  will-change: transform, filter;
 }
 
 .triangle-cursor-hover {
-  filter: drop-shadow(0 0 8px rgba(255, 50, 50, 0.9)) drop-shadow(0 0 15px rgba(255, 50, 50, 0.9)) drop-shadow(0 0 25px rgba(255, 50, 50, 0.9));
+  filter: drop-shadow(0 0 8px rgba(255, 50, 50, 0.9)) drop-shadow(0 0 15px rgba(255, 50, 50, 0.9));
   animation: cursorFirefly 2.5s infinite ease-in-out;
 }
 
 @keyframes cursorFirefly {
-
-  0%,
-  100% {
-    filter: drop-shadow(0 0 5px rgba(255, 50, 50, 0.7)) drop-shadow(0 0 8px rgba(255, 50, 50, 0.6));
+  0%, 100% {
+    filter: drop-shadow(0 0 5px rgba(255, 50, 50, 0.7));
     transform: scale(1);
   }
-
   50% {
-    filter: drop-shadow(0 0 15px rgba(255, 50, 50, 1)) drop-shadow(0 0 30px rgba(255, 50, 50, 1)) drop-shadow(0 0 40px rgba(255, 50, 50, 0.8));
+    filter: drop-shadow(0 0 15px rgba(255, 50, 50, 1)) drop-shadow(0 0 30px rgba(255, 50, 50, 1));
     transform: scale(1.15);
   }
 }
@@ -528,4 +526,57 @@ body.dark::before {
     filter: drop-shadow(0 0 10px rgba(255, 50, 50, 1)) drop-shadow(0 0 20px rgba(255, 50, 50, 1)) drop-shadow(0 0 30px rgba(255, 50, 50, 0.9));
     transform: scale(1.15);
   }
+}
+
+/* Button shine effect */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shine::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.3) 40%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0.3) 60%,
+    rgba(255, 255, 255, 0) 70%,
+    transparent 100%
+  );
+  transform: rotate(45deg);
+  animation: buttonShimmer 3s linear infinite;
+  pointer-events: none;
+  z-index: 10;
+}
+
+@keyframes buttonShimmer {
+  0% {
+    transform: rotate(45deg) translateX(-100%);
+  }
+  100% {
+    transform: rotate(45deg) translateX(100%);
+  }
+}
+
+/* Backdrop for buttons */
+.btn-backdrop {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(8px) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark .btn-backdrop {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(8px) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
 }
