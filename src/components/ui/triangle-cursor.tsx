@@ -1,16 +1,15 @@
-"use client"
+"use client";
 
-import { useMousePosition } from "@/hooks/use-mouse-position"
-import { useEffect, useState, useRef, useMemo, useCallback } from "react"
+import { useMousePosition } from "@/hooks/use-mouse-position";
+import { useEffect, useRef, useMemo } from "react";
 
 export function TriangleCursor() {
-  const [isClient, setIsClient] = useState(false)
-  const [isHovering, setIsHovering] = useState(false)
+  const cursorRef = useRef<HTMLDivElement>(null);
   const position = useMousePosition(undefined, {
-    throttleMs: 16, // Optimized for 60fps
-    enableOnHover: true
-  })
-  const cursorRef = useRef(null)
+    throttleMs: 32, // Matches the hook's optimization
+    enableOnHover: true,
+  });
+  const isMounted = useRef(false);
 
   const interactiveSelectors = useMemo(
     () =>
@@ -29,37 +28,18 @@ export function TriangleCursor() {
         ".btn",
       ].join(", "),
     []
-  )
-
-  const handleMouseOver = useCallback(
-    (e: MouseEvent) => {
-      // No longer changing hover state
-    },
-    [interactiveSelectors]
-  )
-
-  const handleMouseOut = useCallback(
-    (e: MouseEvent) => {
-      // No longer changing hover state
-    },
-    [interactiveSelectors]
-  )
+  );
 
   useEffect(() => {
-    setIsClient(true)
-    document.documentElement.classList.add("custom-cursor")
-    document.body.classList.add("custom-cursor")
-    document.addEventListener("mouseover", handleMouseOver, { passive: true })
-    document.addEventListener("mouseout", handleMouseOut, { passive: true })
+    isMounted.current = true;
+    document.documentElement.classList.add("custom-cursor");
+    document.body.classList.add("custom-cursor");
 
-    const style = document.createElement("style")
+    const style = document.createElement("style");
     style.textContent = `
-      /* Only apply custom cursor to non-interactive elements */
       .custom-cursor {
         cursor: none !important;
       }
-      
-      /* Allow default cursors for interactive elements */
       .custom-cursor a,
       .custom-cursor button,
       .custom-cursor input,
@@ -74,47 +54,52 @@ export function TriangleCursor() {
       .custom-cursor .btn {
         cursor: auto !important;
       }
-      
-      /* Additional specific cursor styles */
-      .custom-cursor a {
-        cursor: pointer !important;
+    `;
+    document.head.appendChild(style);
+
+    const handleMouseOver = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.matches(interactiveSelectors) ||
+        target.closest(interactiveSelectors)
+      ) {
+        if (cursorRef.current) {
+          cursorRef.current.style.display = "none"; // Hide custom cursor
+        }
       }
-      
-      .custom-cursor [data-grab] {
-        cursor: grab !important;
+    };
+
+    const handleMouseOut = () => {
+      if (cursorRef.current) {
+        cursorRef.current.style.display = "block"; // Show custom cursor
       }
-      
-      input, textarea {
-        caret-color: #ff3232 !important;
-      }
-    `
-    document.head.appendChild(style)
+    };
+
+    document.addEventListener("mouseover", handleMouseOver, { passive: true });
+    document.addEventListener("mouseout", handleMouseOut, { passive: true });
 
     return () => {
-      document.documentElement.classList.remove("custom-cursor")
-      document.body.classList.remove("custom-cursor")
-      document.removeEventListener("mouseover", handleMouseOver)
-      document.removeEventListener("mouseout", handleMouseOut)
+      isMounted.current = false;
+      document.documentElement.classList.remove("custom-cursor");
+      document.body.classList.remove("custom-cursor");
+      document.removeEventListener("mouseover", handleMouseOver);
+      document.removeEventListener("mouseout", handleMouseOut);
       if (style.parentNode) {
-        document.head.removeChild(style)
+        document.head.removeChild(style);
       }
-    }
-  }, [handleMouseOver, handleMouseOut])
+    };
+  }, [interactiveSelectors]);
 
-  if (!isClient) return null
+  if (!isMounted.current) return null;
 
-  const { x, y } = position
+  const { x, y } = position;
   const cursorStyle = {
     transform: `translate3d(${x - 8}px, ${y - 8}px, 0)`,
-    willChange: "transform, filter",
+    willChange: "transform",
     opacity: x === 0 && y === 0 ? 0 : 1,
-  }
+  };
 
   return (
-    <div
-      ref={cursorRef}
-      className="triangle-cursor"
-      style={cursorStyle}
-    />
-  )
+    <div ref={cursorRef} className="triangle-cursor" style={cursorStyle} />
+  );
 }
