@@ -9,60 +9,71 @@ import Floating, {
 } from "@/components/ui/parallax-floating"
 
 import { exampleImages } from "@/utils/demo-images"
+import { Button } from "@/components/ui/button"
 
 const Hero = () => {
   const [scope, animate] = useAnimate()
 
   useEffect(() => {
     animate("img", { opacity: [0, 1] }, { duration: 0.5, delay: stagger(0.15) })
+    animate(".avalanche-badge", { opacity: 1, y: 0 }, { duration: 0.8, delay: 0.5 })
     animate(".hero-text", { opacity: 1, y: 0 }, { duration: 0.8, delay: 1 })
     animate(".search-bar", { opacity: 1, y: 0 }, { duration: 0.8, delay: 1.2 })
     animate(".cta-buttons", { opacity: 1, y: 0 }, { duration: 0.8, delay: 1.4 })
   }, [animate])
 
   return (
-    <div 
+    <div
       className="relative flex w-full h-screen justify-center items-center overflow-hidden"
       ref={scope}
     >
       {/* Content overlay */}
       <div className="z-50 flex flex-col items-center justify-center px-4 text-center space-y-8 max-w-4xl">
-        <motion.div 
+        {/* Avalanche Badge */}
+        <motion.div
+          className="avalanche-badge mb-4 px-3 py-1.5 rounded-md bg-black/30 backdrop-blur-md border border-white/10 card-glass shadow-lg flex items-center"
+          initial={{ opacity: 0, y: -20 }}
+        >
+          <span className="glowing-dot"></span>
+          <span className="text-white/90 text-xs font-azeret-mono tracking-wide">powered by avalanche</span>
+        </motion.div>
+
+        <motion.div
           className="hero-text space-y-4"
           initial={{ opacity: 0, y: 20 }}
         >
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-calendas text-white leading-tight text-glow">
-            <span className="text-[#ff7e78]">Festos</span>
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-calendas text-white leading-tight">
+            <span className="text-[#ff4b43]">Festos</span>
           </h1>
           <p className="text-xl sm:text-2xl text-white/80 font-calendas italic">
             Unforgettable experiences, one ticket at a time
           </p>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           className="search-bar w-full max-w-md"
           initial={{ opacity: 0, y: 20 }}
         >
-          <div className="relative">
-            <input 
-              type="text" 
-              placeholder="Search for events..." 
-              className="w-full py-3 px-5 pr-12 rounded-full bg-white/10 border border-white/20 text-white placeholder-white/50 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-[#ff7e78]/50 focus:border-transparent font-azeret-mono card-glass"
+          <div className="relative search-glow">
+            <input
+              type="text"
+              placeholder="Search for events..."
+              className="w-full py-3 px-5 pr-12 rounded-md bg-white/10 border border-white/20 text-white placeholder-white/50 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-[#ff4b43]/50 focus:border-transparent font-azeret-mono"
             />
-            <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/70" size={20} />
+            <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/70 cursor-pointer" size={20} />
           </div>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           className="cta-buttons flex flex-wrap gap-4 justify-center"
           initial={{ opacity: 0, y: 20 }}
         >
-          <button className="px-8 py-3 rounded-full bg-[#ff7e78] text-white font-medium hover:bg-[#ff9d99] transition-colors font-azeret-mono accent-glow hover-glow">
+          <Button size="lg">
             Explore Events
-          </button>
-          <button className="px-8 py-3 rounded-full bg-transparent border border-white/30 text-white font-medium hover:bg-white/10 transition-colors font-azeret-mono hover-glow backdrop-blur-sm">
+          </Button>
+          <Button variant="glassmorphic" size="lg">
             Create Event
-          </button>
+          </Button>
         </motion.div>
       </div>
 

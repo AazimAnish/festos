@@ -9,10 +9,16 @@ export default {
   ],
   theme: {
   	extend: {
-      fontFamily: {
-        'calendas': ['Calendas', 'serif'],
-        'azeret-mono': ['"Azeret Mono"', 'monospace'],
-      },
+  		fontFamily: {
+  			calendas: [
+  				'Calendas',
+  				'serif'
+  			],
+  			'azeret-mono': [
+  				'Azeret Mono',
+  				'monospace'
+  			]
+  		},
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
@@ -59,8 +65,7 @@ export default {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
-  		}
+  		},
   	}
   },
-  plugins: [require("tailwindcss-animate")],
 } satisfies Config;

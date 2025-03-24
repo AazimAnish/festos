@@ -1,121 +1,128 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Calendar, MapPin, Ticket, ChevronRight } from "lucide-react"
-
+import { Calendar, TrendingUp, Clock, Star } from "lucide-react"
 import { exampleImages } from "@/utils/demo-images"
-import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 
-type TabType = "upcoming" | "trending" | "music" | "tech" | "food" | "arts"
+// Tab types
+type TabType = "trending" | "upcoming" | "featured" | "recent"
 
 const DiscoverEventsSection = () => {
-  const [activeTab, setActiveTab] = useState<TabType>("upcoming")
+  const [activeTab, setActiveTab] = useState<TabType>("trending")
+  const [attendeeCounts, setAttendeeCounts] = useState<number[]>([])
   
-  const tabs: { id: TabType; label: string }[] = [
-    { id: "upcoming", label: "Upcoming" },
-    { id: "trending", label: "Trending" },
-    { id: "music", label: "Music" },
-    { id: "tech", label: "Tech" },
-    { id: "food", label: "Food" },
-    { id: "arts", label: "Arts" },
+  // Generate stable attendee counts on client-side only
+  useEffect(() => {
+    const counts = exampleImages.map(() => Math.floor(Math.random() * 200) + 50)
+    setAttendeeCounts(counts)
+  }, [])
+  
+  const tabs = [
+    { id: "trending", label: "Trending", icon: TrendingUp },
+    { id: "upcoming", label: "Upcoming", icon: Calendar },
+    { id: "featured", label: "Featured", icon: Star },
+    { id: "recent", label: "Recent", icon: Clock },
   ]
-
+  
   return (
-    <section className="relative py-32 px-4 md:px-8 max-w-7xl mx-auto">
-      {/* Section Title */}
-      <div className="flex justify-between items-center mb-10">
-        <h2 className="text-3xl md:text-4xl font-calendas text-white text-glow">
-          <span className="text-[#ff7e78]">Discover</span> Events
-        </h2>
+    <section className="py-20 px-4 md:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Section Title */}
+        <div className="mb-8">
+          <h2 className="text-3xl md:text-4xl font-calendas text-black dark:text-white">
+            <span className="text-[#ff4b43]">Discover</span> Events
+          </h2>
+          <p className="text-black/70 dark:text-white/70 mt-2 font-azeret-mono text-sm md:text-base">
+            Find your next unforgettable experience
+          </p>
+        </div>
         
-        <button className="px-5 py-2 rounded-full border border-white/30 text-white text-sm font-azeret-mono hover:bg-white/10 transition-colors flex items-center gap-1 group hover-glow backdrop-blur-sm">
-          <span>View All</span>
-          <ChevronRight size={16} className="transition-transform group-hover:translate-x-1" />
-        </button>
-      </div>
-
-      {/* Category Tabs */}
-      <div className="flex overflow-x-auto pb-4 mb-8 hide-scrollbar">
-        <div className="flex space-x-2 mx-auto">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "px-5 py-2 rounded-full text-sm font-azeret-mono transition-colors whitespace-nowrap",
-                activeTab === tab.id
-                  ? "bg-[#ff7e78] text-white accent-glow"
-                  : "bg-white/5 text-white/70 hover:bg-white/10 border border-white/10"
-              )}
+        {/* Tab navigation */}
+        <div className="flex flex-wrap gap-2 mb-10">
+          {tabs.map((tab) => {
+            const Icon = tab.icon
+            const isActive = activeTab === tab.id
+            
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as TabType)}
+                className={`
+                  px-4 py-2 rounded-lg flex items-center gap-2 font-azeret-mono text-sm transition-colors
+                  ${isActive 
+                    ? 'bg-[#ff4b43] text-white accent-glow'
+                    : 'bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 text-black/70 dark:text-white/70'}
+                `}
+              >
+                <Icon size={16} />
+                {tab.label}
+              </button>
+            )
+          })}
+        </div>
+        
+        {/* Events grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {exampleImages.map((event, index) => (
+            <motion.div
+              key={`discover-${activeTab}-${index}`}
+              className="card-glass hover:border-white/30 dark:hover:border-black/30 transition-all cursor-pointer group hover-glow"
+              whileHover={{ y: -5 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
             >
-              {tab.label}
-            </button>
+              <div className="relative h-48">
+                <img 
+                  src={event.url} 
+                  alt={event.title} 
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300"
+                />
+                <div className="absolute top-3 right-3 bg-white/10 dark:bg-black/10 backdrop-blur-md px-3 py-1 rounded-lg">
+                  <span className="text-white dark:text-black text-xs font-azeret-mono">0.025 ETH</span>
+                </div>
+                {activeTab === "trending" && (
+                  <div className="absolute top-3 left-3 bg-[#ff4b43]/80 backdrop-blur-md px-3 py-1 rounded-lg accent-glow">
+                    <span className="text-white text-xs font-azeret-mono">Hot</span>
+                  </div>
+                )}
+                {activeTab === "upcoming" && (
+                  <div className="absolute top-3 left-3 bg-emerald-500/80 backdrop-blur-md px-3 py-1 rounded-lg accent-glow">
+                    <span className="text-white text-xs font-azeret-mono">New</span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="p-4">
+                <h3 className="text-lg font-bold text-black dark:text-white">{event.title}</h3>
+                <p className="text-black/70 dark:text-white/70 text-sm mt-1 font-azeret-mono">
+                  {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} • New York, NY
+                </p>
+                
+                <div className="flex justify-between items-center mt-4">
+                  <div className="text-black/50 dark:text-white/50 text-xs font-azeret-mono">
+                    {attendeeCounts[index] || "100+"} attendees
+                  </div>
+                  <Button 
+                    variant="link" 
+                    className="text-[#ff4b43] hover:text-[#ff6c66] text-sm font-azeret-mono p-0"
+                  >
+                    View details
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
           ))}
         </div>
-      </div>
-
-      {/* Event Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {exampleImages.map((event, index) => (
-          <motion.div
-            key={`discover-${activeTab}-${index}`}
-            className="card-glass rounded-xl overflow-hidden hover:border-white/30 transition-all cursor-pointer group hover-glow"
-            whileHover={{ y: -5 }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.05 }}
-          >
-            <div className="relative h-48">
-              <img 
-                src={event.url} 
-                alt={event.title} 
-                className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300"
-              />
-              <div className="absolute top-3 right-3 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full">
-                <span className="text-white text-xs font-azeret-mono">0.025 ETH</span>
-              </div>
-              {activeTab === "trending" && (
-                <div className="absolute top-3 left-3 bg-[#ff7e78]/80 backdrop-blur-md px-3 py-1 rounded-full accent-glow">
-                  <span className="text-white text-xs font-azeret-mono">Hot</span>
-                </div>
-              )}
-              {activeTab === "upcoming" && (
-                <div className="absolute top-3 left-3 bg-emerald-500/80 backdrop-blur-md px-3 py-1 rounded-full accent-glow">
-                  <span className="text-white text-xs font-azeret-mono">New</span>
-                </div>
-              )}
-            </div>
-            <div className="p-4 relative z-10">
-              <h3 className="text-white text-lg font-calendas mb-2 text-glow">{event.title}</h3>
-              <div className="flex items-center gap-2 text-white/70 text-sm mb-2">
-                <Calendar size={14} />
-                <span className="font-azeret-mono">Jun 15, 2023</span>
-              </div>
-              <div className="flex items-center gap-2 text-white/70 text-sm">
-                <MapPin size={14} />
-                <span className="font-azeret-mono">New York, NY</span>
-              </div>
-              <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <Ticket size={16} className="text-[#ff7e78]" />
-                  <span className="text-white font-azeret-mono text-sm">125 available</span>
-                </div>
-                <button className="bg-[#ff7e78]/10 text-[#ff7e78] px-3 py-1 rounded-full text-xs font-azeret-mono hover:bg-[#ff7e78]/20 transition-colors accent-glow">
-                  Buy Ticket
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-      
-      {/* Mobile View All */}
-      <div className="flex justify-center mt-10 md:hidden">
-        <button className="w-full max-w-sm py-3 rounded-full border border-white/30 text-white text-sm font-azeret-mono hover:bg-white/10 transition-colors flex items-center justify-center gap-1 group hover-glow">
-          <span>View All Events</span>
-          <ChevronRight size={16} className="transition-transform group-hover:translate-x-1" />
-        </button>
+        
+        {/* View all events button */}
+        <div className="mt-12 text-center">
+          <Button size="lg" className="rounded-lg">
+            View All Events
+          </Button>
+        </div>
       </div>
     </section>
   )
