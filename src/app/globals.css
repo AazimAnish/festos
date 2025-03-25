@@ -261,9 +261,9 @@ body.custom-cursor {
 }
 
 /* Remove hover animation to avoid unnecessary computation */
-.triangle-cursor-hover {
-  display: none; /* Not needed since we hide the cursor entirely */
-}
+/* .triangle-cursor-hover {
+  display: none; 
+} */
 
 @keyframes cursorFirefly {
   0%, 100% {
