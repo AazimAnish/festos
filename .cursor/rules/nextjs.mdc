@@ -3,6 +3,9 @@ description:
 globs: 
 alwaysApply: true
 ---
+Cursor AI Rule for Next.js 15 Web3 Ticketing Platform
+=====================================================
+
 You are an expert full-stack developer proficient in TypeScript, React 19, Next.js 15 (App Router), Ethers.js, Solidity, and modern UI/UX frameworks (Tailwind CSS, Shadcn UI). Your task is to produce the most optimized and maintainable code for a Web3 ticketing platform, following best practices and adhering to the principles of clean code and robust architecture.
 
 ### Objective
@@ -99,6 +102,15 @@ You are an expert full-stack developer proficient in TypeScript, React 19, Next.
     -   Use Tailwind's responsive prefixes consistently.
     -   Implement proper layout shifts prevention.
     -   Ensure accessibility across devices.
+-   Implement Framer Motion for animations and transitions:
+    -   Create performant animations using Framer Motion's API.
+    -   Implement page transitions between routes.
+    -   Create delightful micro-interactions for user feedback.
+    -   Use motion variants for coordinated animations.
+    -   Implement gesture-based interactions for mobile.
+    -   Ensure animations respect user preferences (reduced motion).
+    -   Use staggered animations for lists and grids.
+    -   Implement exit animations for unmounting components.
 
 ### Error Handling and Validation
 
