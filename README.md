@@ -1,7 +1,4 @@
-# Festos - Web3 Ticketing Platform
-
-## About
-Festos is a Next.js 15 Web3 ticketing platform that enables secure and transparent event ticketing using blockchain technology.
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
 
@@ -19,31 +16,9 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Custom Fonts
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses the following custom fonts:
-- **Calendas Plus** (Primary font for headings and titles)
-- **Azeret Mono** (Secondary font for body text and UI elements)
-
-Please add the following font files to the `/public/fonts` directory:
-
-1. Calendas Plus:
-   - `Calendas-Plus-Regular.woff2` and `Calendas-Plus-Regular.woff`
-   - `Calendas-Plus-Italic.woff2` and `Calendas-Plus-Italic.woff`
-   - `Calendas-Plus-Bold.woff2` and `Calendas-Plus-Bold.woff`
-
-2. Azeret Mono:
-   - `AzeretMono-Regular.woff2` and `AzeretMono-Regular.woff`
-   - `AzeretMono-Medium.woff2` and `AzeretMono-Medium.woff`
-
-You can download these fonts from their respective websites or font providers.
-
-## Features
-- Web3 integration for blockchain-based ticketing
-- Primary and secondary ticket marketplace
-- Event creation and management
-- Ticket verification and check-in
-- User profiles and wallet integration
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More
 

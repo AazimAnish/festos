@@ -5,53 +5,55 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium font-azeret-mono transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff4b43] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-3xl text-sm font-bold transition-all disabled:pointer-events-none disabled:opacity-50 hover:scale-105 hover:shadow-lg font-secondary",
   {
     variants: {
       variant: {
-        default: "bg-[#ff4b43] text-white hover:bg-[#ff6c66] accent-glow hover-glow",
+        default:
+          "backdrop-blur-sm bg-white/20 border border-white/30 shadow-[0_8px_32px_rgba(255,255,255,0.1)] text-gray-800 hover:bg-white/30 hover:shadow-[0_8px_32px_rgba(255,255,255,0.2)] hover:border-white/50",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          "backdrop-blur-sm bg-red-500/20 border border-red-300/30 shadow-[0_8px_32px_rgba(239,68,68,0.1)] text-red-800 hover:bg-red-500/30 hover:shadow-[0_8px_32px_rgba(239,68,68,0.2)] hover:border-red-300/50",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+          "backdrop-blur-sm bg-transparent border border-white/30 shadow-[0_8px_32px_rgba(255,255,255,0.1)] text-gray-800 hover:bg-white/10 hover:shadow-[0_8px_32px_rgba(255,255,255,0.2)] hover:border-white/50",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-[#ff4b43] underline-offset-4 hover:underline",
-        glassmorphic: "card-glass border border-white/10 dark:border-black/10 bg-black/40 dark:bg-white/40 backdrop-blur-md text-white dark:text-gray-900 hover:bg-black/50 dark:hover:bg-white/50",
+          "backdrop-blur-sm bg-gray-500/20 border border-gray-300/30 shadow-[0_8px_32px_rgba(107,114,128,0.1)] text-gray-800 hover:bg-gray-500/30 hover:shadow-[0_8px_32px_rgba(107,114,128,0.2)] hover:border-gray-300/50",
+        ghost:
+          "backdrop-blur-sm bg-transparent border border-transparent text-gray-800 hover:bg-white/10 hover:shadow-[0_8px_32px_rgba(255,255,255,0.2)] hover:border-white/30",
+        link: "text-blue-600 underline-offset-4 hover:underline bg-transparent border-transparent shadow-none",
       },
       size: {
-        default: "h-10 px-5 py-2",
-        sm: "h-9 rounded-lg px-3 py-1.5",
-        lg: "h-11 rounded-lg px-8 py-3",
-        icon: "h-10 w-10",
+        default: "h-9 px-4 py-2 has-[>svg]:px-3",
+        sm: "h-8 rounded-xl gap-1.5 px-3 has-[>svg]:px-2.5",
+        lg: "h-10 rounded-xl px-6 has-[>svg]:px-4",
+        icon: "size-9",
       },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
     },
-  },
+  }
 )
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
-  asChild?: boolean
+function Button({
+  className,
+  variant,
+  size,
+  asChild = false,
+  ...props
+}: React.ComponentProps<"button"> &
+  VariantProps<typeof buttonVariants> & {
+    asChild?: boolean
+  }) {
+  const Comp = asChild ? Slot : "button"
+
+  return (
+    <Comp
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    />
+  )
 }
-
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button"
-    return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
-        ref={ref}
-        {...props}
-      />
-    )
-  },
-)
-Button.displayName = "Button"
 
 export { Button, buttonVariants }
