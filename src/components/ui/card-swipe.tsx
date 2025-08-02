@@ -22,14 +22,14 @@ export const CardSwipe: React.FC<CarouselProps> = ({
   const css = `
   .swiper {
     width: 100%;
-    padding-bottom: 60px;
+    padding-bottom: 40px;
   }
   
   .swiper-slide {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 24px;
+    border-radius: 20px;
     font-size: 22px;
     font-weight: bold;
     color: #fff;
@@ -46,20 +46,34 @@ export const CardSwipe: React.FC<CarouselProps> = ({
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 20px;
+    border-radius: 18px;
   }
   
   @media (max-width: 640px) {
     .swiper {
-      padding-bottom: 40px;
+      padding-bottom: 30px;
     }
     
     .swiper-slide {
-      border-radius: 20px;
+      border-radius: 16px;
     }
     
     .swiper-slide img {
-      border-radius: 16px;
+      border-radius: 14px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .swiper {
+      padding-bottom: 25px;
+    }
+    
+    .swiper-slide {
+      border-radius: 14px;
+    }
+    
+    .swiper-slide img {
+      border-radius: 12px;
     }
   }
   `
