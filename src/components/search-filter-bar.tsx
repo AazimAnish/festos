@@ -20,7 +20,7 @@ export function SearchFilterBar({
   onMapToggle 
 }: SearchFilterBarProps) {
   return (
-    <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b border-border">
+    <div className="sticky top-16 sm:top-20 z-30 bg-background/95 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
           {/* Search Bar */}

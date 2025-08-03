@@ -8,8 +8,9 @@ import { X, Navigation } from "lucide-react";
 import { FadeIn } from "@/components/ui/fade-in";
 import { EmptyState } from "./empty-state";
 import { LocationDialog } from "@/components/ui/location-dialog";
+import { Loading } from "@/components/ui/loading";
 import type { SampleEvent } from "@/lib/data/mock-data";
-import { EVENT_COORDINATES, DEFAULT_LOCATION } from "@/lib/data/mock-data";
+import { DEFAULT_LOCATION } from "@/lib/data/mock-data";
 
 interface MapViewProps {
   events: SampleEvent[];
@@ -26,6 +27,7 @@ export function MapView({ events, isOpen, onClose, onClearFilters }: MapViewProp
   const [mapLoaded, setMapLoaded] = useState(false);
   const [showLocationDialog, setShowLocationDialog] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [mapError, setMapError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen || !mapContainer.current) return;
@@ -36,33 +38,39 @@ export function MapView({ events, isOpen, onClose, onClearFilters }: MapViewProp
       return;
     }
 
-    // Initialize map with MapLibre
-    map.current = new maplibregl.Map({
-      container: mapContainer.current,
-      style: {
-        version: 8,
-        sources: {
-          'osm': {
-            type: 'raster',
-            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-            tileSize: 256,
-            attribution: '© OpenStreetMap contributors'
-          }
+    try {
+      // Initialize map with MapLibre
+      map.current = new maplibregl.Map({
+        container: mapContainer.current,
+        style: {
+          version: 8,
+          sources: {
+            'osm': {
+              type: 'raster',
+              tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+              tileSize: 256,
+              attribution: '© OpenStreetMap contributors'
+            }
+          },
+          layers: [
+            {
+              id: 'osm-tiles',
+              type: 'raster',
+              source: 'osm',
+              minzoom: 0,
+              maxzoom: 22
+            }
+          ]
         },
-        layers: [
-          {
-            id: 'osm-tiles',
-            type: 'raster',
-            source: 'osm',
-            minzoom: 0,
-            maxzoom: 22
-          }
-        ]
-      },
-      center: [userLocation.lng, userLocation.lat], // Use user location
-      zoom: 8,
-      attributionControl: false
-    });
+        center: [userLocation.lng, userLocation.lat], // Use user location
+        zoom: 8,
+        attributionControl: false
+      });
+    } catch (error) {
+      setMapError('Failed to initialize map');
+      console.error('Map initialization error:', error);
+      return;
+    }
 
     map.current.on('load', () => {
       setMapLoaded(true);
@@ -87,8 +95,12 @@ export function MapView({ events, isOpen, onClose, onClearFilters }: MapViewProp
       
       // Add event markers with improved UI
       events.forEach((event) => {
-        const coordinates = EVENT_COORDINATES[event.id];
-        if (!coordinates) return;
+        // TODO: Get coordinates from event data or API
+        // For now, use a simple algorithm to generate coordinates
+        const coordinates: [number, number] = [
+          DEFAULT_LOCATION.lng + (event.id * 0.1),
+          DEFAULT_LOCATION.lat + (event.id * 0.1)
+        ];
 
         // Create marker element with improved design
         const markerEl = document.createElement('div');
@@ -233,8 +245,25 @@ export function MapView({ events, isOpen, onClose, onClearFilters }: MapViewProp
           </div>
         </div>
 
-        {/* Map or Empty State */}
-        {events.length > 0 ? (
+        {/* Map, Error, or Empty State */}
+        {mapError ? (
+          <div className="w-full h-full flex items-center justify-center" style={{ marginTop: '80px' }}>
+            <div className="text-center space-y-4">
+              <h2 className="font-primary text-xl font-bold text-foreground">
+                Map Error
+              </h2>
+              <p className="font-secondary text-sm text-gray">
+                {mapError}
+              </p>
+              <Button
+                onClick={() => setMapError(null)}
+                className="bg-primary hover:bg-primary/90"
+              >
+                Try Again
+              </Button>
+            </div>
+          </div>
+        ) : events.length > 0 ? (
           <>
             <div 
               ref={mapContainer} 
@@ -245,10 +274,7 @@ export function MapView({ events, isOpen, onClose, onClearFilters }: MapViewProp
             {/* Loading State */}
             {!mapLoaded && (
               <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-                <div className="text-center space-y-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mx-auto"></div>
-                  <p className="font-secondary text-sm text-gray">Loading map...</p>
-                </div>
+                <Loading size="lg" text="Loading map..." />
               </div>
             )}
           </>

@@ -21,7 +21,7 @@ const CARD_IMAGES = [
 
 export function HeroSection() {
   return (
-    <div className="min-h-screen bg-background flex items-center relative">
+    <div className="min-h-screen bg-background flex items-center relative pt-16 sm:pt-20">
       <GridBackground />
       <section className="w-full relative z-10">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">

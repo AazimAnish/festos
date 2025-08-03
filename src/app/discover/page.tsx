@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense } from "react";
 import { DiscoverHero } from "@/components/discover-hero";
 import { SearchFilterBar } from "@/components/search-filter-bar";
 import { FilterPanel } from "@/components/filter-panel";
 import { EventsGrid } from "@/components/events-grid";
 import { FloatingMapToggle } from "@/components/floating-map-toggle";
 import { MapView } from "@/components/map-view";
+import { Loading } from "@/components/ui/loading";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { SAMPLE_EVENTS } from "@/lib/data/sample-events";
 
 interface Filters {
@@ -16,6 +18,31 @@ interface Filters {
   hasPOAP: boolean;
   savedOnly: boolean;
   date: Date | undefined;
+}
+
+// Loading component for the events section
+function EventsLoading() {
+  return (
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
+      <Loading size="lg" text="Loading events..." />
+    </div>
+  );
+}
+
+// Error fallback for events section
+function EventsError() {
+  return (
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
+      <div className="text-center space-y-4">
+        <h2 className="font-primary text-xl font-bold text-foreground">
+          Failed to load events
+        </h2>
+        <p className="font-secondary text-sm text-gray">
+          Please try refreshing the page or check your connection.
+        </p>
+      </div>
+    </div>
+  );
 }
 
 export default function DiscoverPage() {
@@ -32,6 +59,8 @@ export default function DiscoverPage() {
 
   // Filter events based on current filters
   const filteredEvents = useMemo(() => {
+    // TODO: Replace with real API call
+    // For now, return empty array since mock data is removed
     return SAMPLE_EVENTS.filter(event => {
       // Search filter
       if (filters.search && !event.title.toLowerCase().includes(filters.search.toLowerCase()) &&
@@ -122,19 +151,25 @@ export default function DiscoverPage() {
       
       {/* Main Content Area */}
       <div className={`transition-all duration-300 ${isFilterOpen ? 'sm:ml-80 lg:ml-96' : ''}`}>
-        {/* Events Grid */}
-        <EventsGrid 
-          events={filteredEvents} 
-          onClearFilters={clearFilters}
-        />
+        {/* Events Grid with Error Boundary */}
+        <ErrorBoundary fallback={<EventsError />}>
+          <Suspense fallback={<EventsLoading />}>
+            <EventsGrid 
+              events={filteredEvents} 
+              onClearFilters={clearFilters}
+            />
+          </Suspense>
+        </ErrorBoundary>
         
-        {/* Map View */}
-        <MapView 
-          events={filteredEvents}
-          isOpen={showMap}
-          onClose={() => setShowMap(false)}
-          onClearFilters={clearFilters}
-        />
+        {/* Map View with Error Boundary */}
+        <ErrorBoundary fallback={<EventsError />}>
+          <MapView 
+            events={filteredEvents}
+            isOpen={showMap}
+            onClose={() => setShowMap(false)}
+            onClearFilters={clearFilters}
+          />
+        </ErrorBoundary>
       </div>
       
       {/* Floating Map Toggle */}

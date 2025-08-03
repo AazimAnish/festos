@@ -5,7 +5,7 @@ import { FadeIn } from "@/components/ui/fade-in";
 
 export function DiscoverHero() {
   return (
-    <div className="bg-background pt-20 pb-16">
+    <div className="bg-background pt-16 sm:pt-20 pb-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <FadeIn
           variant="up"

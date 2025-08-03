@@ -1,18 +1,29 @@
 import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  // Only run middleware for dynamic routes that need authentication
   const { pathname } = request.nextUrl
   
-  // Skip middleware for static assets and API routes
+  // Skip middleware for static assets, API routes, and public files
   if (pathname.startsWith('/_next') || 
       pathname.startsWith('/api') || 
+      pathname.startsWith('/favicon.ico') ||
+      pathname.startsWith('/public') ||
       pathname.includes('.')) {
     return
   }
 
-  // For now, just pass through - add authentication logic here when needed
-  return
+  // Add security headers
+  const response = NextResponse.next()
+  
+  // Security headers
+  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('Referrer-Policy', 'origin-when-cross-origin')
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  
+  // TODO: Add authentication logic here when needed
+  return response
 }
 
 export const config = {
