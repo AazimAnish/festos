@@ -72,9 +72,9 @@ export function Header() {
             >
               <Link href="/discover">
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  className="text-foreground/80 hover:text-foreground transition-colors duration-200 font-secondary"
+                  className="border-2 border-black text-foreground/80 hover:text-foreground hover:border-primary hover:bg-primary/5 transition-all duration-200 font-secondary rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 h-10 sm:h-11 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-primary/20"
                 >
                   Explore
                 </Button>
@@ -90,7 +90,7 @@ export function Header() {
               <Button
                 variant="outline"
                 size="sm"
-                className="border-2 border-border text-foreground hover:border-primary hover:bg-primary/5 transition-all duration-200 font-secondary"
+                className="border-2 border-black text-foreground hover:border-primary hover:bg-primary/5 transition-all duration-200 font-secondary rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 h-10 sm:h-11 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-primary/20"
               >
                 Create
               </Button>
@@ -104,7 +104,7 @@ export function Header() {
             >
               <Button
                 size="sm"
-                className="bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 font-secondary shadow-sm hover:shadow-md"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 font-secondary rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 h-10 sm:h-11 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-primary/20"
               >
                 Connect Wallet
               </Button>
@@ -120,7 +120,7 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-foreground/80 hover:text-foreground"
+                className="text-foreground/80 hover:text-foreground rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 h-10 sm:h-11 hover:scale-105 active:scale-95 transition-all duration-200"
               >
                 <svg
                   className="w-5 h-5"
