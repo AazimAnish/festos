@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { CardSwipe } from "@/components/ui/card-swipe";
 import { FadeIn } from "@/components/ui/fade-in";
 import { AvalancheBadge } from "@/components/ui/avalanche-badge";
+import GridBackground from "@/components/ui/grid-background";
+import Link from "next/link";
 
 const CARD_IMAGES = [
   { src: "/card1.png", alt: "Event 1" },
@@ -19,8 +21,9 @@ const CARD_IMAGES = [
 
 export function HeroSection() {
   return (
-    <div className="min-h-screen bg-background flex items-center">
-      <section className="w-full">
+    <div className="min-h-screen bg-background flex items-center relative">
+      <GridBackground />
+      <section className="w-full relative z-10">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 xl:gap-20 items-center">
             
@@ -68,13 +71,15 @@ export function HeroSection() {
                   >
                     🎉 Throw a Fest
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="font-secondary text-sm sm:text-base md:text-lg px-6 sm:px-8 py-3 sm:py-4 h-auto border-2 border-foreground text-foreground rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 hover:border-foreground hover:shadow-lg hover:shadow-primary/20"
-                  >
-                    🎟️ Explore Fests
-                  </Button>
+                  <Link href="/discover">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="font-secondary text-sm sm:text-base md:text-lg px-6 sm:px-8 py-3 sm:py-4 h-auto border-2 border-foreground text-foreground rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 hover:border-foreground hover:shadow-lg hover:shadow-primary/20"
+                    >
+                      🎟️ Explore Fests
+                    </Button>
+                  </Link>
                 </FadeIn>
                 
               </div>

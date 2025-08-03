@@ -1,14 +1,18 @@
-import { createMiddlewareClient } from '@/lib/supabase'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  const { supabase, response } = createMiddlewareClient(request)
+  // Only run middleware for dynamic routes that need authentication
+  const { pathname } = request.nextUrl
+  
+  // Skip middleware for static assets and API routes
+  if (pathname.startsWith('/_next') || 
+      pathname.startsWith('/api') || 
+      pathname.includes('.')) {
+    return
+  }
 
-  // Refresh session if expired - required for Server Components
-  // https://supabase.com/docs/guides/auth/auth-helpers/nextjs#managing-user-with-client-components
-  await supabase.auth.getUser()
-
-  return response
+  // For now, just pass through - add authentication logic here when needed
+  return
 }
 
 export const config = {

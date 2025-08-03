@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "maplibre-gl/dist/maplibre-gl.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -9,6 +10,7 @@
   --color-gray: #9794A7;
   --color-white: #FFFFFF;
   --color-black: #333333;
+  --color-light-gray: #E5E7EB; /* Light gray for borders */
 
   /* Border Radius System */
   --radius: 0.625rem; /* 10px - main radius (rounded-lg) */
@@ -30,8 +32,8 @@
   --accent-foreground: var(--color-white);
   --destructive: var(--color-red);
   --destructive-foreground: var(--color-white);
-  --border: var(--color-black);
-  --input: var(--color-black);
+  --border: var(--color-light-gray); /* Updated to light gray */
+  --input: var(--color-light-gray); /* Updated to light gray */
   --ring: var(--color-red);
 }
 
@@ -41,6 +43,7 @@
   --color-gray: var(--color-gray);
   --color-white: var(--color-white);
   --color-black: var(--color-black);
+  --color-light-gray: var(--color-light-gray);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
@@ -93,8 +96,8 @@
   --accent-foreground: var(--color-white);
   --destructive: var(--color-red);
   --destructive-foreground: var(--color-white);
-  --border: var(--color-white);
-  --input: var(--color-white);
+  --border: var(--color-light-gray); /* Keep light gray in dark mode too */
+  --input: var(--color-light-gray); /* Keep light gray in dark mode too */
   --ring: var(--color-red);
 }
 
@@ -134,4 +137,87 @@
       @apply min-h-[44px] min-w-[44px];
     }
   }
+}
+
+/* MapLibre Custom Styles */
+.maplibregl-popup-content {
+  @apply rounded-xl border-2 border-border shadow-lg;
+}
+
+.maplibregl-popup-close-button {
+  @apply text-gray hover:text-foreground;
+}
+
+.event-marker {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.event-marker:hover {
+  transform: scale(1.05);
+}
+
+.event-marker .group:hover .absolute {
+  opacity: 1 !important;
+}
+
+/* Custom popup styles */
+.maplibregl-popup-content {
+  @apply bg-background border-2 border-border rounded-xl shadow-lg;
+  font-family: inherit;
+  max-width: 320px;
+  padding: 0;
+}
+
+.maplibregl-popup-close-button {
+  @apply text-gray hover:text-foreground transition-colors;
+  @apply bg-background border border-border rounded-sm;
+  @apply hover:bg-accent hover:text-accent-foreground;
+}
+
+/* User location marker styles */
+.user-location-marker {
+  z-index: 2;
+}
+
+.user-location-marker .animate-ping {
+  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.user-location-marker .animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Enhanced event marker styles */
+.event-marker {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 1;
+}
+
+.event-marker:hover {
+  transform: scale(1.1);
+  z-index: 1000;
+}
+
+.event-marker .group:hover .absolute {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+/* Custom popup styles for events */
+.event-popup .maplibregl-popup-content {
+  @apply bg-background border-2 border-border rounded-xl shadow-xl;
+  font-family: inherit;
+  max-width: 320px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.event-popup .maplibregl-popup-tip {
+  @apply border-t border-border;
+}
+
+.event-popup .maplibregl-popup-tip::before {
+  @apply border-t border-background;
 }
