@@ -52,7 +52,7 @@ export function LocationMap({ location, address, coordinates }: LocationMapProps
               <DialogTrigger asChild>
                 <Button
                   variant="outline"
-                  className="w-full justify-start font-secondary text-sm border-2 border-border hover:border-primary transition-all duration-200"
+                  className="w-full justify-start font-secondary text-sm border-2 border-border hover:border-primary transition-all duration-200 rounded-xl"
                 >
                   <Navigation className="w-4 h-4 mr-2" />
                   View on Map
@@ -78,14 +78,14 @@ export function LocationMap({ location, address, coordinates }: LocationMapProps
                   <div className="flex gap-2">
                     <Button
                       onClick={handleOpenMaps}
-                      className="flex-1 font-secondary text-sm px-4 py-2 h-auto bg-primary text-primary-foreground rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 hover:bg-primary/90"
+                      className="flex-1 font-secondary text-sm px-4 py-2 h-auto bg-primary text-primary-foreground rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 hover:bg-primary/90"
                     >
                       <ExternalLink className="w-4 h-4 mr-2" />
                       Open in Google Maps
                     </Button>
                     <Button
                       variant="outline"
-                      className="flex-1 font-secondary text-sm px-4 py-2 h-auto border-2 border-border text-foreground rounded-lg transition-all duration-200 hover:border-primary hover:text-primary"
+                      className="flex-1 font-secondary text-sm px-4 py-2 h-auto border-2 border-border text-foreground rounded-xl transition-all duration-200 hover:border-primary hover:text-primary"
                     >
                       <Navigation className="w-4 h-4 mr-2" />
                       Get Directions
@@ -100,7 +100,7 @@ export function LocationMap({ location, address, coordinates }: LocationMapProps
                 variant="outline"
                 size="sm"
                 onClick={handleOpenMaps}
-                className="flex-1 font-secondary text-xs px-3 py-2 h-auto border-2 border-border text-foreground hover:border-primary hover:text-primary transition-all duration-200"
+                className="flex-1 font-secondary text-xs px-3 py-2 h-auto border-2 border-border text-foreground hover:border-primary hover:text-primary transition-all duration-200 rounded-xl"
               >
                 <ExternalLink className="w-3 h-3 mr-1" />
                 Google Maps
@@ -108,7 +108,7 @@ export function LocationMap({ location, address, coordinates }: LocationMapProps
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1 font-secondary text-xs px-3 py-2 h-auto border-2 border-border text-foreground hover:border-primary hover:text-primary transition-all duration-200"
+                className="flex-1 font-secondary text-xs px-3 py-2 h-auto border-2 border-border text-foreground hover:border-primary hover:text-primary transition-all duration-200 rounded-xl"
               >
                 <Navigation className="w-3 h-3 mr-1" />
                 Directions

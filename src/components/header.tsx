@@ -5,6 +5,7 @@ import { FadeIn } from "@/components/ui/fade-in";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { CustomConnectButton } from "@/components/wallet/connect-button";
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -62,9 +63,9 @@ export function Header() {
             </Link>
           </FadeIn>
 
-          {/* Navigation - Stay Out of the Way */}
-          <nav className="hidden sm:flex items-center gap-4 lg:gap-6">
-            {/* Passive entry point - low commitment */}
+          {/* Navigation - Intentional Hierarchy */}
+          <nav className="hidden sm:flex items-center gap-3 lg:gap-4">
+            {/* Tertiary Action - Discovery (Subtle) */}
             <FadeIn
               variant="down"
               timing="normal"
@@ -74,14 +75,14 @@ export function Header() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-2 border-black text-foreground/80 hover:text-foreground hover:border-primary hover:bg-primary/5 transition-all duration-200 font-secondary rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 h-10 sm:h-11 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-primary/20"
+                  className="border-2 border-foreground text-foreground hover:border-primary hover:bg-primary/5 transition-all duration-200 font-secondary rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 h-10 sm:h-11 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-primary/20"
                 >
                   Explore
                 </Button>
               </Link>
             </FadeIn>
 
-            {/* High-agency CTA for power users */}
+            {/* Secondary Action - Creation (Medium Emphasis) */}
             <FadeIn
               variant="down"
               timing="normal"
@@ -90,52 +91,33 @@ export function Header() {
               <Button
                 variant="outline"
                 size="sm"
-                className="border-2 border-black text-foreground hover:border-primary hover:bg-primary/5 transition-all duration-200 font-secondary rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 h-10 sm:h-11 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-primary/20"
+                className="border-2 border-foreground text-foreground hover:border-primary hover:bg-primary/5 transition-all duration-200 font-secondary rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 h-10 sm:h-11 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-primary/20"
               >
                 Create
               </Button>
             </FadeIn>
 
-            {/* Personal onboarding - gives ownership */}
+            {/* Primary Action - Wallet Connection (High Emphasis) */}
             <FadeIn
               variant="down"
               timing="normal"
               delay={300}
             >
-              <Button
-                size="sm"
-                className="bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 font-secondary rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 h-10 sm:h-11 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-primary/20"
-              >
-                Connect Wallet
-              </Button>
+              <div className="relative">
+                <CustomConnectButton />
+                {/* Subtle glow effect for primary action */}
+                <div className="absolute inset-0 bg-primary/10 rounded-xl blur-xl opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+              </div>
             </FadeIn>
           </nav>
 
-          {/* Mobile Menu Button - Minimal on mobile */}
+          {/* Mobile - Simplified for Focus */}
           <div className="sm:hidden">
             <FadeIn
               variant="right"
               timing="fast"
             >
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-foreground/80 hover:text-foreground rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 h-10 sm:h-11 hover:scale-105 active:scale-95 transition-all duration-200"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </Button>
+              <CustomConnectButton />
             </FadeIn>
           </div>
         </div>

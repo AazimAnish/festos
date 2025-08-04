@@ -89,7 +89,7 @@ export function SocialSharing({ event }: SocialSharingProps) {
           <div className="space-y-3">
             <Button
               onClick={handleTwitterShare}
-              className="w-full font-secondary text-sm px-4 py-3 h-auto bg-blue-500 text-white rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/20"
+              className="w-full font-secondary text-sm px-4 py-3 h-auto bg-info text-info-foreground rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 hover:bg-info/90 hover:shadow-lg hover:shadow-info/20"
             >
               <Twitter className="w-4 h-4 mr-2" />
               Share on Twitter

@@ -12,6 +12,20 @@
   --color-black: #333333;
   --color-light-gray: #E5E7EB; /* Light gray for borders */
 
+  /* Status Colors */
+  --color-success: #10B981; /* Green */
+  --color-success-light: #D1FAE5;
+  --color-success-dark: #059669;
+  --color-warning: #F59E0B; /* Orange */
+  --color-warning-light: #FEF3C7;
+  --color-warning-dark: #D97706;
+  --color-error: #EF4444; /* Red */
+  --color-error-light: #FEE2E2;
+  --color-error-dark: #DC2626;
+  --color-info: #3B82F6; /* Blue */
+  --color-info-light: #DBEAFE;
+  --color-info-dark: #2563EB;
+
   /* Border Radius System */
   --radius: 0.625rem; /* 10px - main radius (rounded-lg) */
 
@@ -35,6 +49,16 @@
   --border: var(--color-light-gray); /* Updated to light gray */
   --input: var(--color-light-gray); /* Updated to light gray */
   --ring: var(--color-red);
+  
+  /* Status Colors */
+  --success: var(--color-success);
+  --success-foreground: var(--color-white);
+  --warning: var(--color-warning);
+  --warning-foreground: var(--color-white);
+  --error: var(--color-error);
+  --error-foreground: var(--color-white);
+  --info: var(--color-info);
+  --info-foreground: var(--color-white);
 }
 
 @theme inline {
@@ -63,6 +87,16 @@
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+  
+  /* Status Colors */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-error: var(--error);
+  --color-error-foreground: var(--error-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   
   /* Font System */
   --font-primary: var(--font-instrument-serif);
@@ -99,6 +133,16 @@
   --border: var(--color-light-gray); /* Keep light gray in dark mode too */
   --input: var(--color-light-gray); /* Keep light gray in dark mode too */
   --ring: var(--color-red);
+  
+  /* Status Colors - Dark Mode */
+  --success: var(--color-success);
+  --success-foreground: var(--color-white);
+  --warning: var(--color-warning);
+  --warning-foreground: var(--color-white);
+  --error: var(--color-error);
+  --error-foreground: var(--color-white);
+  --info: var(--color-info);
+  --info-foreground: var(--color-white);
 }
 
 @layer base {

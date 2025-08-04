@@ -12,14 +12,14 @@ const buttonVariants = cva(
         default:
           "backdrop-blur-sm bg-white/20 border border-white/30 shadow-[0_8px_32px_rgba(255,255,255,0.1)] text-gray-800 hover:bg-white/30 hover:shadow-[0_8px_32px_rgba(255,255,255,0.2)] hover:border-white/50",
         destructive:
-          "backdrop-blur-sm bg-red-500/20 border border-red-300/30 shadow-[0_8px_32px_rgba(239,68,68,0.1)] text-red-800 hover:bg-red-500/30 hover:shadow-[0_8px_32px_rgba(239,68,68,0.2)] hover:border-red-300/50",
+          "backdrop-blur-sm bg-error/20 border border-error/30 shadow-[0_8px_32px_rgba(var(--color-error),0.1)] text-error hover:bg-error/30 hover:shadow-[0_8px_32px_rgba(var(--color-error),0.2)] hover:border-error/50",
         outline:
           "backdrop-blur-sm bg-transparent border border-white/30 shadow-[0_8px_32px_rgba(255,255,255,0.1)] text-gray-800 hover:bg-white/10 hover:shadow-[0_8px_32px_rgba(255,255,255,0.2)] hover:border-white/50",
         secondary:
           "backdrop-blur-sm bg-gray-500/20 border border-gray-300/30 shadow-[0_8px_32px_rgba(107,114,128,0.1)] text-gray-800 hover:bg-gray-500/30 hover:shadow-[0_8px_32px_rgba(107,114,128,0.2)] hover:border-gray-300/50",
         ghost:
           "backdrop-blur-sm bg-transparent border border-transparent text-gray-800 hover:bg-white/10 hover:shadow-[0_8px_32px_rgba(255,255,255,0.2)] hover:border-white/30",
-        link: "text-blue-600 underline-offset-4 hover:underline bg-transparent border-transparent shadow-none",
+        link: "text-info underline-offset-4 hover:underline bg-transparent border-transparent shadow-none",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

@@ -25,8 +25,8 @@ export default function Error({
           <div className="space-y-6">
             {/* Error Icon */}
             <div className="flex justify-center">
-              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
-                <AlertTriangle className="w-10 h-10 text-red-600" />
+              <div className="w-20 h-20 bg-error/10 rounded-full flex items-center justify-center">
+                <AlertTriangle className="w-10 h-10 text-error" />
               </div>
             </div>
             

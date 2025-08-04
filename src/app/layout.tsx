@@ -3,6 +3,7 @@ import { Instrument_Serif, Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/header";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { RainbowKitProviderWrapper } from "@/components/providers/rainbowkit-provider";
 
 const instrumentSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
@@ -85,10 +86,12 @@ export default function RootLayout({
       </head>
       <body className="antialiased bg-background text-foreground">
         <ErrorBoundary>
-          <Header />
-          <main id="main-content" role="main">
-            {children}
-          </main>
+          <RainbowKitProviderWrapper>
+            <Header />
+            <main id="main-content" role="main">
+              {children}
+            </main>
+          </RainbowKitProviderWrapper>
         </ErrorBoundary>
       </body>
     </html>

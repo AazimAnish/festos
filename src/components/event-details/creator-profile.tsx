@@ -53,22 +53,22 @@ export function CreatorProfile({ creator }: CreatorProfileProps) {
               {creator.bio}
             </p>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm text-gray">
-                <span>🎉</span>
-                <span>{creator.eventsCount} fests created</span>
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="font-secondary text-xs px-3 py-1.5 h-auto border-2 border-border text-foreground hover:border-primary hover:text-primary transition-all duration-200"
-              >
-                <span>View all fests</span>
-                <ExternalLink className="w-3 h-3 ml-1" />
-              </Button>
+            <div className="flex items-center gap-2 text-sm text-gray">
+              <span>🎉</span>
+              <span>{creator.eventsCount} fests created</span>
             </div>
           </div>
+        </div>
+
+        {/* View All Fests Button - Centered and Prominent */}
+        <div className="mt-6 pt-4 border-t border-border">
+          <Button
+            variant="outline"
+            className="w-full font-secondary text-sm px-4 py-2 h-auto border-2 border-border text-foreground hover:border-primary hover:text-primary transition-all duration-200 hover:scale-105 rounded-xl"
+          >
+            <span>View all fests</span>
+            <ExternalLink className="w-4 h-4 ml-2" />
+          </Button>
         </div>
       </CardContent>
     </Card>

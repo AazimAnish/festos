@@ -29,10 +29,10 @@ export const CardSwipe: React.FC<CarouselProps> = ({
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 20px;
+    border-radius: var(--radius-2xl);
     font-size: 22px;
     font-weight: bold;
-    color: #fff;
+    color: var(--color-white);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease;
   }
@@ -46,7 +46,7 @@ export const CardSwipe: React.FC<CarouselProps> = ({
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 18px;
+    border-radius: var(--radius-xl);
   }
   
   @media (max-width: 640px) {
@@ -55,11 +55,11 @@ export const CardSwipe: React.FC<CarouselProps> = ({
     }
     
     .swiper-slide {
-      border-radius: 16px;
+      border-radius: var(--radius-lg);
     }
     
     .swiper-slide img {
-      border-radius: 14px;
+      border-radius: var(--radius-md);
     }
   }
   
@@ -69,11 +69,11 @@ export const CardSwipe: React.FC<CarouselProps> = ({
     }
     
     .swiper-slide {
-      border-radius: 14px;
+      border-radius: var(--radius-md);
     }
     
     .swiper-slide img {
-      border-radius: 12px;
+      border-radius: var(--radius-sm);
     }
   }
   `

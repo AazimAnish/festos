@@ -54,24 +54,26 @@ export function EventHeroBanner({ event }: EventHeroBannerProps) {
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
       
       {/* Top Actions - Back, Share and Wishlist */}
-      <div className="absolute top-0 left-0 right-0 p-6 sm:p-8 lg:p-12 z-40">
-        <div className="flex items-center justify-between">
-          {/* Back Button */}
-          <button
-            onClick={handleBackClick}
-            className="flex items-center gap-2 px-4 py-2 bg-background/90 text-foreground hover:bg-background/95 backdrop-blur-sm border border-border/20 rounded-lg z-50 relative cursor-pointer transition-all duration-200 hover:scale-105"
-            type="button"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="font-secondary text-sm">Back</span>
-          </button>
+      <div className="absolute top-0 left-0 right-0 p-6 sm:p-8 lg:p-12 z-30">
+        <div className="flex items-center justify-between w-full">
+          {/* Back Button - Top Left */}
+          <div className="flex items-center">
+            <button
+              onClick={handleBackClick}
+              className="flex items-center gap-2 px-4 py-2 bg-background/90 text-foreground hover:bg-background/95 backdrop-blur-sm border border-border/20 rounded-xl cursor-pointer transition-all duration-200 hover:scale-105"
+              type="button"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="font-secondary text-sm">Back</span>
+            </button>
+          </div>
           
-          {/* Action Buttons */}
+          {/* Action Buttons - Top Right */}
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
-              className="bg-background/90 text-foreground hover:bg-background/95 backdrop-blur-sm border border-border/20"
+              className="bg-background/90 text-foreground hover:bg-background/95 backdrop-blur-sm border border-border/20 rounded-xl"
               onClick={handleSaveToggle}
             >
               <Heart className={`w-4 h-4 ${saved ? 'fill-current text-primary' : ''}`} />
@@ -79,7 +81,7 @@ export function EventHeroBanner({ event }: EventHeroBannerProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="bg-background/90 text-foreground hover:bg-background/95 backdrop-blur-sm border border-border/20"
+              className="bg-background/90 text-foreground hover:bg-background/95 backdrop-blur-sm border border-border/20 rounded-xl"
             >
               <Share2 className="w-4 h-4" />
             </Button>

@@ -75,7 +75,7 @@ export function SimilarEvents({ events }: SimilarEventsProps) {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-full font-secondary text-xs px-3 py-1.5 h-auto border-2 border-border text-foreground hover:border-primary hover:text-primary transition-all duration-200"
+                        className="w-full font-secondary text-xs px-3 py-1.5 h-auto border-2 border-border text-foreground hover:border-primary hover:text-primary transition-all duration-200 rounded-xl"
                       >
                         View Details
                       </Button>
@@ -89,13 +89,15 @@ export function SimilarEvents({ events }: SimilarEventsProps) {
         </ScrollArea>
 
         <div className="text-center pt-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="font-secondary text-xs px-3 py-1.5 h-auto text-primary hover:text-primary/80"
-          >
-            View all similar events →
-          </Button>
+          <Link href="/discover">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="font-secondary text-xs px-3 py-1.5 h-auto text-primary hover:text-primary/80 rounded-xl"
+            >
+              View all similar events →
+            </Button>
+          </Link>
         </div>
       </CardContent>
     </Card>

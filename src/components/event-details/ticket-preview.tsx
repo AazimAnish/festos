@@ -81,8 +81,8 @@ export function TicketPreview({ ticketId, poapTokenId, hasPOAP }: TicketPreviewP
 
               <div className="flex items-center justify-between p-3 bg-muted/20 rounded-lg border border-border">
                 <span className="font-secondary text-sm text-gray">Status</span>
-                <Badge className="bg-green-500/10 text-green-600 border-0 px-2 py-1 text-xs">
-                  ✅ Valid
+                <Badge className="bg-success/10 text-success border-0 px-2 py-1 text-xs">
+                  Confirmed
                 </Badge>
               </div>
             </div>
@@ -111,7 +111,7 @@ export function TicketPreview({ ticketId, poapTokenId, hasPOAP }: TicketPreviewP
                     <span className="text-4xl">🪙</span>
                   </div>
                   <Badge className="absolute -top-2 -right-2 bg-primary text-primary-foreground border-0 px-2 py-1 text-xs">
-                    NFT
+                    POAP NFT
                   </Badge>
                 </div>
               </div>
@@ -144,7 +144,7 @@ export function TicketPreview({ ticketId, poapTokenId, hasPOAP }: TicketPreviewP
 
                 <div className="flex items-center justify-between p-3 bg-muted/20 rounded-lg border border-border">
                   <span className="font-secondary text-sm text-gray">Network</span>
-                  <Badge className="bg-blue-500/10 text-blue-600 border-0 px-2 py-1 text-xs">
+                  <Badge className="bg-info/10 text-info border-0 px-2 py-1 text-xs">
                     Polygon
                   </Badge>
                 </div>

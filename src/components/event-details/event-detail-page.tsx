@@ -2,7 +2,7 @@
 
 import { EventHeroBanner } from "./event-hero-banner";
 import { CreatorProfile } from "./creator-profile";
-import { RegistrationFormPreview } from "./registration-form-preview";
+import { WalletConnectionDialog } from "./registration/wallet-connection-dialog";
 import { TicketPreview } from "./ticket-preview";
 import { AttendeeList } from "./attendee-list";
 import { LocationMap } from "./location-map";
@@ -54,10 +54,10 @@ export function EventDetailPage({ slug }: EventDetailPageProps) {
       eventsCount: 12
     },
     registrationForm: [
-      { type: "text", label: "Full Name", required: true },
-      { type: "email", label: "Email", required: true },
-      { type: "text", label: "Twitter Handle", required: false },
-      { type: "select", label: "Experience Level", options: ["Beginner", "Intermediate", "Advanced"], required: true }
+      { type: "text" as const, label: "Full Name", required: true },
+      { type: "email" as const, label: "Email", required: true },
+      { type: "text" as const, label: "Twitter Handle", required: false },
+      { type: "select" as const, label: "Experience Level", options: ["Beginner", "Intermediate", "Advanced"], required: true }
     ],
     ticketId: "ETH2025-001",
     poapTokenId: "0x1234...5678",
@@ -164,21 +164,21 @@ export function EventDetailPage({ slug }: EventDetailPageProps) {
 
                         {/* Primary Action */}
                         {!isRegistered ? (
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button className="w-full font-secondary text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-5 h-auto bg-primary text-primary-foreground rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20 text-center">
-                                🎟️ Register Now
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-md sm:max-w-lg">
-                              <DialogHeader>
-                                <DialogTitle className="font-primary text-lg sm:text-xl font-bold text-foreground">
-                                  Register for {eventData.title}
-                                </DialogTitle>
-                              </DialogHeader>
-                              <RegistrationFormPreview form={eventData.registrationForm} />
-                            </DialogContent>
-                          </Dialog>
+                          <WalletConnectionDialog 
+                            eventData={{
+                              id: eventData.id.toString(),
+                              title: eventData.title,
+                              price: eventData.price,
+                              hasPOAP: eventData.hasPOAP,
+                              poapTokenId: eventData.poapTokenId,
+                              joinedCount: eventData.joinedCount,
+                              location: eventData.location,
+                              date: eventData.date,
+                              time: eventData.time,
+                              image: eventData.image
+                            }}
+                            registrationForm={eventData.registrationForm}
+                          />
                         ) : (
                           <Dialog>
                             <DialogTrigger asChild>
