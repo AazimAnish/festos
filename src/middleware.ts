@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   
   // Skip middleware for static assets, API routes, and public files
@@ -10,7 +10,7 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith('/favicon.ico') ||
       pathname.startsWith('/public') ||
       pathname.includes('.')) {
-    return
+    return NextResponse.next()
   }
 
   // Add security headers

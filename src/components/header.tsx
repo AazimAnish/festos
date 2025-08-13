@@ -5,7 +5,8 @@ import { FadeIn } from "@/components/ui/fade-in";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { CustomConnectButton } from "@/components/wallet/connect-button";
+import dynamic from "next/dynamic";
+const CustomConnectButton = dynamic(() => import("@/components/wallet/connect-button").then(m => m.CustomConnectButton), { ssr: false });
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);

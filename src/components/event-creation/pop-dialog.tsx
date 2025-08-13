@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Upload, ImageIcon } from "lucide-react"
+import Image from "next/image"
 
 type PopConfig = {
   popImage?: string
@@ -99,7 +100,14 @@ export function POPDialog({
             <Label>POP Design</Label>
             <div className="relative aspect-video rounded-xl border-2 border-dashed border-border bg-muted/50 overflow-hidden">
               {popImage ? (
-                <img src={popImage || "/placeholder.svg"} alt="POP design" className="w-full h-full object-cover" />
+                <Image
+                  src={popImage || "/placeholder.svg"}
+                  alt="POP design"
+                  fill
+                  sizes="100vw"
+                  className="object-cover"
+                  unoptimized
+                />
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                   <ImageIcon className="h-8 w-8 mb-2" />

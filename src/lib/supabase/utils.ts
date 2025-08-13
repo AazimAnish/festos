@@ -1,13 +1,11 @@
 import { createClient as createServerClient } from './server'
 import { createClient as createBrowserClient } from './client'
-import { cookies } from 'next/headers'
 
 /**
  * Get the current user from the server
  */
 export async function getCurrentUser() {
-  const cookieStore = cookies()
-  const supabase = await createServerClient(cookieStore)
+  const supabase = await createServerClient()
   
   const { data: { user }, error } = await supabase.auth.getUser()
   
@@ -23,8 +21,7 @@ export async function getCurrentUser() {
  * Get the current session from the server
  */
 export async function getCurrentSession() {
-  const cookieStore = cookies()
-  const supabase = await createServerClient(cookieStore)
+  const supabase = await createServerClient()
   
   const { data: { session }, error } = await supabase.auth.getSession()
   
@@ -40,8 +37,7 @@ export async function getCurrentSession() {
  * Sign out the current user
  */
 export async function signOut() {
-  const cookieStore = cookies()
-  const supabase = await createServerClient(cookieStore)
+  const supabase = await createServerClient()
   
   const { error } = await supabase.auth.signOut()
   

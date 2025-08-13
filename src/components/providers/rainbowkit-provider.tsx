@@ -16,10 +16,7 @@ export function RainbowKitProviderWrapper({
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider
-          initialChain={config.chains[2]} // Default to Avalanche
-          locale="en-US"
-        >
+        <RainbowKitProvider locale="en-US">
           {children}
         </RainbowKitProvider>
       </QueryClientProvider>
