@@ -47,7 +47,7 @@ export function CustomConnectButton() {
                   <Button
                     onClick={openConnectModal}
                     type="button"
-                    className="font-secondary rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-primary/20 px-3 sm:px-4 py-2.5 sm:py-3 h-10 sm:h-11"
+                    className="font-secondary rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-primary/20 px-3 sm:px-4 py-2.5 sm:py-3 h-10 sm:h-11"
                   >
                     💳 Connect Wallet
                   </Button>

@@ -25,10 +25,10 @@ export function AvalancheBadge({ className, ...props }: AvalancheBadgeProps) {
     >
       <Badge
         className={cn(
-          // Base styles using CSS variables
-          "bg-background/90 backdrop-blur-sm border-muted text-black px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-medium",
+          // Base styles using CSS variables with better contrast
+          "bg-background/95 backdrop-blur-sm border-border text-foreground px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-medium",
           // Hover effects using CSS variables
-          "hover:bg-background hover:shadow-lg hover:shadow-red-500/20",
+          "hover:bg-background hover:shadow-lg hover:shadow-primary/20",
           // Transitions and layout
           "transition-all duration-300 ease-out relative overflow-hidden",
           // Size and radius using CSS variables

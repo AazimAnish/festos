@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { ChevronDown, Calendar, TrendingUp, MapPin, DollarSign, FileText } from "lucide-react";
+import { ChevronDown, Calendar, TrendingUp, MapPin, DollarSign, FileText, Filter } from "lucide-react";
 import { EventCard } from "./event-card";
 import { EmptyState } from "./empty-state";
 import { FadeIn } from "@/components/ui/fade-in";
@@ -62,20 +62,20 @@ export function EventsGrid({ events, onClearFilters }: EventsGridProps) {
   }, [events, sortBy]);
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
+    <div className="container mx-auto apple-section">
       {/* Header Section */}
-      <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="space-y-3">
-          <h2 className="font-primary text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
+      <div className="mb-8 lg:mb-12 xl:mb-16 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 lg:gap-8">
+        <div className="responsive-spacing">
+          <h2 className="font-primary text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground tracking-tight">
             Discover Fests
           </h2>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4 lg:gap-6">
             {events.length > 0 ? (
-              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20 shadow-sm">
+              <span className="inline-flex items-center px-4 lg:px-6 py-2 lg:py-3 rounded-full text-sm lg:text-base font-medium bg-primary/10 text-primary border border-primary/20 shadow-sm tracking-tight">
                 {events.length} {events.length === 1 ? 'event' : 'events'}
               </span>
             ) : (
-              <p className="font-secondary text-sm sm:text-base text-gray">
+              <p className="font-secondary text-base lg:text-lg text-muted-foreground tracking-tight">
                 No events found
               </p>
             )}
@@ -86,17 +86,17 @@ export function EventsGrid({ events, onClearFilters }: EventsGridProps) {
           <DropdownMenuTrigger asChild>
             <Button 
               variant="outline" 
-              className="w-full sm:w-auto h-10 sm:h-11 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl border-2 border-border bg-background/50 backdrop-blur-sm hover:border-primary hover:bg-background/80 transition-all duration-200 font-secondary text-xs sm:text-sm shadow-sm hover:shadow-md"
+              className="w-full sm:w-auto h-12 lg:h-14 px-6 lg:px-8 py-3 lg:py-4 rounded-xl border border-border bg-background hover:border-primary hover:bg-accent transition-all duration-200 ease-out font-secondary text-sm lg:text-base shadow-sm tracking-tight"
             >
-              <CurrentIcon className="w-4 h-4 mr-2 text-gray" />
+              <CurrentIcon className="w-4 h-4 lg:w-5 lg:h-5 mr-3 text-muted-foreground" />
               <span className="text-foreground">Sort by: {currentSort.label}</span>
-              <ChevronDown className="w-4 h-4 ml-2 text-gray transition-transform duration-200 group-data-[state=open]:rotate-180" />
+              <ChevronDown className="w-4 h-4 lg:w-5 lg:h-5 ml-3 text-muted-foreground transition-transform duration-200 ease-out group-data-[state=open]:rotate-180" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent 
             align="end" 
             sideOffset={8}
-            className="w-full sm:w-56 rounded-xl border-2 border-border bg-background/95 backdrop-blur-md shadow-2xl p-2"
+            className="w-full sm:w-56 lg:w-64 rounded-xl border border-border bg-background/95 backdrop-blur-xl shadow-lg p-2 lg:p-3"
           >
             {sortOptions.map((option) => {
               const Icon = option.icon;
@@ -104,22 +104,22 @@ export function EventsGrid({ events, onClearFilters }: EventsGridProps) {
                 <DropdownMenuItem
                   key={option.value}
                   onClick={() => setSortBy(option.value)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 font-secondary text-sm ${
+                  className={`flex items-center gap-3 px-4 lg:px-6 py-3 lg:py-4 rounded-lg cursor-pointer transition-all duration-200 ease-out font-secondary text-sm lg:text-base tracking-tight ${
                     sortBy === option.value 
                       ? "bg-primary/10 text-primary border border-primary/20 shadow-sm" 
                       : "hover:bg-accent/20 text-foreground hover:text-accent-foreground"
                   }`}
                 >
-                  <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${
+                  <div className={`flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 rounded-lg transition-all duration-200 ease-out ${
                     sortBy === option.value 
                       ? "bg-primary text-primary-foreground" 
                       : "bg-accent/20 text-accent-foreground"
                   }`}>
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
                   </div>
                   <span className="font-medium">{option.label}</span>
                   {sortBy === option.value && (
-                    <div className="ml-auto w-2 h-2 bg-primary rounded-full"></div>
+                    <div className="ml-auto w-2 h-2 lg:w-3 lg:h-3 bg-primary rounded-full"></div>
                   )}
                 </DropdownMenuItem>
               );
@@ -130,7 +130,7 @@ export function EventsGrid({ events, onClearFilters }: EventsGridProps) {
 
       {/* Events Grid or Empty State */}
       {sortedEvents.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 auto-rows-fr">
+        <div className="apple-grid-4">
           {sortedEvents.map((event, index) => (
             <FadeIn
               key={event.id}
@@ -147,9 +147,16 @@ export function EventsGrid({ events, onClearFilters }: EventsGridProps) {
         <EmptyState 
           title="No fests found"
           description="Try adjusting your filters or search terms to find more events"
-          actionText="Clear All Filters"
-          onAction={onClearFilters}
-          icon="🎭"
+          action={onClearFilters ? {
+            label: "Clear All Filters",
+            href: "#",
+            icon: <Filter className="w-4 h-4" />
+          } : undefined}
+          secondaryAction={{
+            label: "Create a Fest",
+            href: "/create",
+            icon: <span>🎉</span>
+          }}
         />
       )}
     </div>

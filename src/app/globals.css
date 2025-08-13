@@ -5,31 +5,52 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Main Custom Colors */
-  --color-red: #FF384A;
-  --color-gray: #9794A7;
-  --color-white: #FFFFFF;
-  --color-black: #333333;
-  --color-light-gray: #E5E7EB; /* Light gray for borders */
+  /* Apple-inspired Color System */
+  --color-red: #ff384a;
+  --color-gray: #9794a7;
+  --color-white: #ffffff;
+  --color-black: #1d1d1f; /* Apple's preferred dark color */
+  --color-light-gray: #f5f5f7; /* Apple's system gray 6 */
+  --color-medium-gray: #86868b; /* Apple's system gray 2 */
 
-  /* Status Colors */
-  --color-success: #10B981; /* Green */
-  --color-success-light: #D1FAE5;
-  --color-success-dark: #059669;
-  --color-warning: #F59E0B; /* Orange */
-  --color-warning-light: #FEF3C7;
-  --color-warning-dark: #D97706;
-  --color-error: #EF4444; /* Red */
-  --color-error-light: #FEE2E2;
-  --color-error-dark: #DC2626;
-  --color-info: #3B82F6; /* Blue */
-  --color-info-light: #DBEAFE;
-  --color-info-dark: #2563EB;
+  /* Enhanced Status Colors (Apple-inspired) */
+  --color-success: #34c759; /* Apple's system green */
+  --color-success-light: #d1fae5;
+  --color-success-dark: #30d158;
+  --color-warning: #ff9f0a; /* Apple's system orange */
+  --color-warning-light: #fef3c7;
+  --color-warning-dark: #ff9500;
+  --color-error: #ff3b30; /* Apple's system red */
+  --color-error-light: #fee2e2;
+  --color-error-dark: #ff2d92;
+  --color-info: #007aff; /* Apple's system blue */
+  --color-info-light: #dbeafe;
+  --color-info-dark: #0a84ff;
 
-  /* Border Radius System */
-  --radius: 0.625rem; /* 10px - main radius (rounded-lg) */
+  /* Apple-inspired Border Radius System */
+  --radius: 0.75rem; /* 12px - Apple's preferred */
+  --radius-sm: 0.5rem; /* 8px */
+  --radius-md: 0.75rem; /* 12px */
+  --radius-lg: 1rem; /* 16px */
+  --radius-xl: 1.25rem; /* 20px */
+  --radius-2xl: 1.5rem; /* 24px */
+  --radius-3xl: 2rem; /* 32px */
 
-  /* Design System Colors */
+  /* Apple-inspired Shadow System (Enhanced) */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+
+  /* Apple-specific shadows for depth */
+  --shadow-apple-sm: 0 2px 8px rgba(0, 0, 0, 0.12);
+  --shadow-apple-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-apple-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --shadow-apple-xl: 0 16px 64px rgba(0, 0, 0, 0.12);
+
+  /* Enhanced Design System Colors - Fixed for Accessibility */
   --background: var(--color-white);
   --foreground: var(--color-black);
   --card: var(--color-white);
@@ -38,18 +59,18 @@
   --popover-foreground: var(--color-black);
   --primary: var(--color-red);
   --primary-foreground: var(--color-white);
-  --secondary: var(--color-red);
+  --secondary: var(--color-info); /* Changed from red to blue for better hierarchy */
   --secondary-foreground: var(--color-white);
-  --muted: var(--color-gray);
-  --muted-foreground: var(--color-white);
-  --accent: var(--color-gray);
-  --accent-foreground: var(--color-white);
-  --destructive: var(--color-red);
+  --muted: var(--color-light-gray);
+  --muted-foreground: var(--color-medium-gray); /* Fixed: should be dark text on light background */
+  --accent: var(--color-light-gray);
+  --accent-foreground: var(--color-black);
+  --destructive: var(--color-error);
   --destructive-foreground: var(--color-white);
-  --border: var(--color-light-gray); /* Updated to light gray */
-  --input: var(--color-light-gray); /* Updated to light gray */
+  --border: var(--color-light-gray);
+  --input: var(--color-light-gray);
   --ring: var(--color-red);
-  
+
   /* Status Colors */
   --success: var(--color-success);
   --success-foreground: var(--color-white);
@@ -59,6 +80,21 @@
   --error-foreground: var(--color-white);
   --info: var(--color-info);
   --info-foreground: var(--color-white);
+
+  /* Additional Colors */
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 @theme inline {
@@ -68,6 +104,7 @@
   --color-white: var(--color-white);
   --color-black: var(--color-black);
   --color-light-gray: var(--color-light-gray);
+  --color-medium-gray: var(--color-medium-gray);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
@@ -87,7 +124,7 @@
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
-  
+
   /* Status Colors */
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
@@ -97,43 +134,64 @@
   --color-error-foreground: var(--error-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
-  
+
   /* Font System */
   --font-primary: var(--font-instrument-serif);
   --font-secondary: var(--font-inter-bold);
   --font-tertiary: var(--font-roboto-mono);
-  
+
   /* Radius System */
-  --radius-sm: calc(var(--radius) - 4px);   /* 6px */
-  --radius-md: calc(var(--radius) - 2px);   /* 8px */
-  --radius-lg: var(--radius);               /* 10px - main radius */
-  --radius-xl: calc(var(--radius) + 4px);   /* 14px - button radius */
-  --radius-2xl: calc(var(--radius) + 8px);  /* 18px */
-  --radius-3xl: calc(var(--radius) + 12px); /* 22px */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-3xl: var(--radius-3xl);
+
+  /* Shadow System */
+  --shadow-apple-sm: var(--shadow-apple-sm);
+  --shadow-apple-md: var(--shadow-apple-md);
+  --shadow-apple-lg: var(--shadow-apple-lg);
+  --shadow-apple-xl: var(--shadow-apple-xl);
+
+  /* Additional Colors */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* Dark Mode */
+/* Dark Mode - Apple-inspired with Fixed Colors */
 .dark {
   --background: var(--color-black);
   --foreground: var(--color-white);
-  --card: var(--color-black);
+  --card: #1c1c1e; /* Apple's system gray 6 dark */
   --card-foreground: var(--color-white);
-  --popover: var(--color-black);
+  --popover: #1c1c1e;
   --popover-foreground: var(--color-white);
   --primary: var(--color-red);
   --primary-foreground: var(--color-white);
-  --secondary: var(--color-red);
+  --secondary: var(--color-info);
   --secondary-foreground: var(--color-white);
-  --muted: var(--color-gray);
-  --muted-foreground: var(--color-white);
-  --accent: var(--color-gray);
+  --muted: #3a3a3c; /* Apple's system gray 4 dark */
+  --muted-foreground: #8e8e93; /* Apple's system gray 3 dark - fixed for dark mode */
+  --accent: #2c2c2e; /* Apple's system gray 5 dark */
   --accent-foreground: var(--color-white);
-  --destructive: var(--color-red);
+  --destructive: var(--color-error);
   --destructive-foreground: var(--color-white);
-  --border: var(--color-light-gray); /* Keep light gray in dark mode too */
-  --input: var(--color-light-gray); /* Keep light gray in dark mode too */
+  --border: #38383a; /* Apple's system gray 3 dark */
+  --input: #38383a;
   --ring: var(--color-red);
-  
+
   /* Status Colors - Dark Mode */
   --success: var(--color-success);
   --success-foreground: var(--color-white);
@@ -143,49 +201,322 @@
   --error-foreground: var(--color-white);
   --info: var(--color-info);
   --info-foreground: var(--color-white);
+
+  /* Additional Colors - Dark Mode */
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
+  html {
+    /* Apple-inspired smooth scrolling */
+    scroll-behavior: smooth;
+    /* Enhanced text rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* Apple's preferred font feature settings */
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1, "ss01" 1, "ss02" 1;
+  }
+
   body {
     @apply bg-background text-foreground;
+    /* Apple-inspired line height and spacing */
+    line-height: 1.47059; /* Apple's preferred line height */
+    letter-spacing: -0.022em; /* Apple's preferred letter spacing */
+    /* Enhanced font rendering */
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
   }
-  
-  /* Responsive container improvements */
+
+  /* Apple-inspired typography improvements */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-primary;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+  }
+
+  h1 {
+    @apply text-4xl sm:text-5xl md:text-6xl lg:text-7xl;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+
+  h2 {
+    @apply text-3xl sm:text-4xl md:text-5xl;
+    font-weight: 600;
+    letter-spacing: -0.022em;
+  }
+
+  h3 {
+    @apply text-2xl sm:text-3xl;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    @apply font-tertiary;
+    line-height: 1.47059;
+    letter-spacing: -0.022em;
+  }
+
+  /* Apple-inspired focus styles */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+    border-radius: var(--radius);
+    transition: all 0.2s ease-out;
+  }
+
+  /* Enhanced responsive container with Apple-inspired spacing */
   .container {
-    @apply px-4 sm:px-6 lg:px-8;
+    @apply px-4 sm:px-6 lg:px-8 xl:px-12;
     max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
   }
-  
-  /* Better mobile typography */
+
+  /* Apple-inspired spacing system */
+  .spacing-xs {
+    @apply space-y-2;
+  }
+  .spacing-sm {
+    @apply space-y-3;
+  }
+  .spacing-md {
+    @apply space-y-4;
+  }
+  .spacing-lg {
+    @apply space-y-6;
+  }
+  .spacing-xl {
+    @apply space-y-8;
+  }
+  .spacing-2xl {
+    @apply space-y-12;
+  }
+
+  /* Apple-inspired padding system */
+  .padding-xs {
+    @apply p-2;
+  }
+  .padding-sm {
+    @apply p-3;
+  }
+  .padding-md {
+    @apply p-4;
+  }
+  .padding-lg {
+    @apply p-6;
+  }
+  .padding-xl {
+    @apply p-8;
+  }
+  .padding-2xl {
+    @apply p-12;
+  }
+
+  /* Apple-inspired responsive spacing */
+  .responsive-spacing {
+    @apply space-y-4 sm:space-y-6 lg:space-y-8;
+  }
+
+  .responsive-padding {
+    @apply p-4 sm:p-6 lg:p-8 xl:p-12;
+  }
+
+  /* Apple-inspired mobile typography */
   @media (max-width: 640px) {
     h1 {
       @apply text-3xl sm:text-4xl;
+      line-height: 1.1;
     }
     h2 {
       @apply text-2xl sm:text-3xl;
+      line-height: 1.15;
     }
     h3 {
       @apply text-xl sm:text-2xl;
+      line-height: 1.2;
     }
     p {
       @apply text-base sm:text-lg;
+      line-height: 1.47059;
     }
   }
-  
-  /* Improved touch targets for mobile */
+
+  /* Apple's 44pt minimum touch target */
   @media (max-width: 768px) {
-    button, [role="button"] {
-      @apply min-h-[44px] min-w-[44px];
+    button,
+    [role="button"],
+    a {
+      min-height: 44px;
+      min-width: 44px;
     }
   }
+
+  /* Apple-inspired selection styles */
+  ::selection {
+    @apply bg-primary/20 text-foreground;
+  }
+
+  /* Apple-inspired scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray/30 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray/50;
+  }
+}
+
+/* Apple-inspired glass morphism effects */
+.glass {
+  @apply backdrop-blur-xl bg-white/10 border border-white/20;
+  box-shadow: var(--shadow-apple-lg);
+}
+
+.glass-dark {
+  @apply backdrop-blur-xl bg-black/10 border border-white/10;
+  box-shadow: var(--shadow-apple-lg);
+}
+
+/* Apple-inspired card hover effects */
+.card-hover {
+  @apply transition-all duration-300 ease-out;
+}
+
+.card-hover:hover {
+  @apply transform scale-[1.02];
+  box-shadow: var(--shadow-apple-lg);
+}
+
+/* Apple-inspired button animations */
+.btn-apple {
+  @apply transition-all duration-200 ease-out;
+}
+
+.btn-apple:hover {
+  @apply transform scale-[1.02];
+  box-shadow: var(--shadow-apple-md);
+}
+
+.btn-apple:active {
+  @apply transform scale-[0.98];
+}
+
+/* Apple-inspired depth layers */
+.layer-1 {
+  box-shadow: var(--shadow-apple-sm);
+}
+
+.layer-2 {
+  box-shadow: var(--shadow-apple-md);
+}
+
+.layer-3 {
+  box-shadow: var(--shadow-apple-lg);
+}
+
+.layer-4 {
+  box-shadow: var(--shadow-apple-xl);
+}
+
+/* Apple-inspired micro-interactions */
+.micro-interaction {
+  @apply transition-all duration-150 ease-out;
+}
+
+.micro-interaction:hover {
+  @apply transform scale-[1.02];
+}
+
+.micro-interaction:active {
+  @apply transform scale-[0.98];
+}
+
+/* Apple-inspired focus states */
+.focus-apple {
+  @apply focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  transition: all 0.2s ease-out;
+}
+
+/* Apple-inspired responsive grid system */
+.apple-grid {
+  @apply grid gap-4 sm:gap-6 lg:gap-8;
+}
+
+.apple-grid-2 {
+  @apply grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8;
+}
+
+.apple-grid-3 {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8;
+}
+
+.apple-grid-4 {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8;
+}
+
+/* Apple-inspired flex layouts */
+.apple-flex {
+  @apply flex items-center gap-3 sm:gap-4;
+}
+
+.apple-flex-between {
+  @apply flex items-center justify-between gap-3 sm:gap-4;
+}
+
+.apple-flex-center {
+  @apply flex items-center justify-center gap-3 sm:gap-4;
+}
+
+/* Apple-inspired section spacing */
+.apple-section {
+  @apply py-8 sm:py-12 lg:py-16 xl:py-20;
+}
+
+.apple-section-sm {
+  @apply py-6 sm:py-8 lg:py-12;
+}
+
+.apple-section-lg {
+  @apply py-12 sm:py-16 lg:py-20 xl:py-24;
 }
 
 /* MapLibre Custom Styles */
 .maplibregl-popup-content {
-  @apply rounded-xl border-2 border-border shadow-lg;
+  @apply rounded-xl border border-border;
+  box-shadow: var(--shadow-apple-lg);
 }
 
 .maplibregl-popup-close-button {
@@ -207,10 +538,11 @@
 
 /* Custom popup styles */
 .maplibregl-popup-content {
-  @apply bg-background border-2 border-border rounded-xl shadow-lg;
+  @apply bg-background border border-border rounded-xl;
   font-family: inherit;
   max-width: 320px;
   padding: 0;
+  box-shadow: var(--shadow-apple-lg);
 }
 
 .maplibregl-popup-close-button {
@@ -251,11 +583,12 @@
 
 /* Custom popup styles for events */
 .event-popup .maplibregl-popup-content {
-  @apply bg-background border-2 border-border rounded-xl shadow-xl;
+  @apply bg-background border border-border rounded-xl;
   font-family: inherit;
   max-width: 320px;
   padding: 0;
   overflow: hidden;
+  box-shadow: var(--shadow-apple-lg);
 }
 
 .event-popup .maplibregl-popup-tip {

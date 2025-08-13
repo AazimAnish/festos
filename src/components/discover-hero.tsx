@@ -2,41 +2,44 @@
 
 import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/ui/fade-in";
+import Link from "next/link";
 
 export function DiscoverHero() {
   return (
-    <div className="bg-background pt-16 sm:pt-20 pb-16">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="bg-background pt-16 sm:pt-20 lg:pt-24 pb-12 sm:pb-16 lg:pb-20">
+      <div className="container mx-auto">
         <FadeIn
           variant="up"
           timing="normal"
-          className="text-center space-y-6 sm:space-y-8"
+          className="text-center responsive-spacing"
         >
-          <h1 className="font-primary text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] text-foreground tracking-tight">
+          <h1 className="font-primary text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] text-foreground tracking-tight">
             Fests near you. <span className="text-primary">Or far.</span>
           </h1>
-          <p className="font-tertiary text-base sm:text-lg md:text-xl lg:text-2xl max-w-lg mx-auto text-gray leading-relaxed">
+          <p className="font-tertiary text-lg sm:text-xl md:text-2xl lg:text-3xl max-w-lg mx-auto text-muted-foreground leading-relaxed tracking-tight">
             Tap in. On-chain.
           </p>
           
           <FadeIn
             variant="up"
             timing="hero-buttons"
-            className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center pt-4"
+            className="flex flex-col sm:flex-row gap-4 lg:gap-6 justify-center pt-6 lg:pt-8"
           >
             <Button
               size="lg"
-              className="font-secondary text-sm sm:text-base md:text-lg px-6 sm:px-8 py-3 sm:py-4 h-auto bg-primary text-primary-foreground rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20"
+              className="w-full sm:w-auto font-secondary text-base lg:text-lg px-8 lg:px-12 py-4 lg:py-6 h-auto bg-primary text-primary-foreground rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg tracking-tight"
             >
               🧭 Explore Map
             </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="font-secondary text-sm sm:text-base md:text-lg px-6 sm:px-8 py-3 sm:py-4 h-auto border-2 border-foreground text-foreground rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 hover:border-foreground hover:shadow-lg hover:shadow-primary/20"
-            >
-              📤 Throw a Fest
-            </Button>
+            <Link href="/create">
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full sm:w-auto font-secondary text-base lg:text-lg px-8 lg:px-12 py-4 lg:py-6 h-auto border-2 border-border text-foreground rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg hover:bg-accent tracking-tight"
+              >
+                📤 Throw a Fest
+              </Button>
+            </Link>
           </FadeIn>
         </FadeIn>
       </div>
