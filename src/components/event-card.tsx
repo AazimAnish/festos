@@ -1,90 +1,228 @@
-"use client";
+"use client"
 
-import { Button } from "@/components/ui/button";
-import { Heart, Users } from "lucide-react";
-import { useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import type { SampleEvent } from "@/lib/data/sample-events";
-import { generateEventSlug } from "@/lib/utils";
+import type React from "react"
+import { Calendar, MapPin, Users, Bookmark, BookmarkCheck } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { useState } from "react"
+import Link from "next/link"
+import Image from "next/image"
+import { cn, formatPrice } from "@/lib/utils"
 
-type EventCardProps = Pick<SampleEvent, 'id' | 'title' | 'location' | 'price' | 'image' | 'joinedCount' | 'hasPOAP' | 'isSaved'>;
+interface EventCardProps {
+  id: string | number
+  title: string
+  date: string
+  location: string
+  price: string
+  image: string
+  category?: string
+  joinedCount: number
+  isSaved?: boolean
+  hasPOAP?: boolean
+  description?: string
+  organizers?: Array<{
+    name: string
+    avatar: string
+  }>
+  status?: "pending" | "confirmed" | "cancelled"
+  variant?: "list" | "grid"
+}
 
-export function EventCard({ 
+export function EventCard({
   id,
-  title, 
-  location, 
-  price, 
-  image, 
-  joinedCount, 
-  hasPOAP, 
-  isSaved = false 
+  title,
+  date,
+  location,
+  price,
+  image,
+  joinedCount,
+  isSaved = false,
+  hasPOAP = false,
+  organizers = [],
+  status = "confirmed",
+  variant = "list",
 }: EventCardProps) {
-  const [saved, setSaved] = useState(isSaved);
+  const [saved, setSaved] = useState(isSaved)
 
   const handleSaveToggle = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSaved(!saved);
-  };
+    e.preventDefault()
+    e.stopPropagation()
+    setSaved(!saved)
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return {
+      day: date.getDate(),
+      month: date.toLocaleDateString("en-US", { month: "short" }),
+      weekday: date.toLocaleDateString("en-US", { weekday: "short" }),
+      time: date.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      }),
+    }
+  }
+
+  const formattedDate = formatDate(date)
+  const displayedPrice = price === "Free" ? "Free" : formatPrice(price)
+
+  const getStatusClasses = (value: string) => {
+    if (value === "pending") return "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400"
+    if (value === "cancelled") return "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
+    return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400"
+  }
+
+  const isGrid = variant === "grid"
 
   return (
-    <Link href={`/events/${generateEventSlug({ id, title })}`} className="block">
-      <div className="group bg-background border border-border rounded-xl overflow-hidden hover:border-primary/50 transition-all duration-300 ease-out hover:shadow-lg hover:scale-[1.02] w-full h-[280px] sm:h-[320px] lg:h-[360px] xl:h-[380px] flex flex-col cursor-pointer">
+    <Link href={`/events/${String(id)}`} className="group block h-full">
+      <Card
+        className={cn(
+          "relative overflow-hidden border border-border/50 bg-background shadow-sm transition-all duration-200 cursor-pointer",
+          isGrid
+            ? "flex flex-col h-full hover:shadow-lg hover:border-border"
+            : "flex flex-row h-40 hover:shadow-lg hover:scale-[1.01] hover:border-border",
+        )}
+      >
         {/* Image */}
-        <div className="relative overflow-hidden flex-shrink-0" style={{ height: '60%' }}>
-          <Image 
-            src={image} 
+        <div
+          className={cn(
+            "relative overflow-hidden",
+            isGrid ? "w-full aspect-[4/3]" : "w-40 h-40 flex-shrink-0",
+          )}
+        >
+          <Image
+            src={image || "/placeholder.svg?height=160&width=160"}
             alt={title}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300 ease-out"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="object-cover transition-transform duration-200 group-hover:scale-105"
+            sizes={isGrid ? "(max-width: 768px) 50vw, 20vw" : "160px"}
             priority={false}
           />
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`absolute top-3 right-3 lg:top-4 lg:right-4 rounded-lg p-2 lg:p-3 backdrop-blur-sm z-10 transition-all duration-200 ease-out hover:scale-110 ${
-              saved ? 'bg-primary/90 text-primary-foreground hover:bg-primary' : 'bg-background/90 text-foreground hover:bg-background/95'
-            }`}
-            onClick={handleSaveToggle}
-          >
-            <Heart className={`w-4 h-4 lg:w-5 lg:h-5 ${saved ? 'fill-current' : ''}`} />
-          </Button>
+
+          <div className="absolute inset-0 bg-gradient-to-br from-black/10 via-transparent to-black/20" />
+
+          <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm">
+            <div className="text-center">
+              <div className="font-semibold text-lg text-gray-900 leading-none">{formattedDate.day}</div>
+              <div className="text-xs text-gray-600 uppercase tracking-wide mt-0.5">{formattedDate.month}</div>
+            </div>
+          </div>
+
+          {hasPOAP && (
+            <div className="absolute bottom-3 left-3">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-primary/10 text-primary border border-primary/20 shadow-sm">
+                <span>🪙</span>
+                <span>POAP</span>
+              </span>
+            </div>
+          )}
+
+          {status !== "confirmed" && (
+            <div className="absolute top-3 right-3">
+              <span className={cn("px-2 py-1 rounded-md text-xs font-medium", getStatusClasses(status))}>
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Content */}
-        <div className="p-4 lg:p-6 flex flex-col justify-between flex-1">
-          <div className="responsive-spacing flex-1">
-            <h3 className="font-primary text-base lg:text-lg xl:text-xl font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200 ease-out leading-tight tracking-tight">
-              {title}
-            </h3>
-            <p className="font-secondary text-sm lg:text-base text-muted-foreground tracking-tight">
-              {location}
-            </p>
+        <div className={cn("flex-1 min-w-0", isGrid ? "p-4 flex flex-col h-full" : "p-6 flex flex-col justify-between")}> 
+          {/* Top: Title + Save */}
+          <div className={cn("flex items-start justify-between gap-3", isGrid ? "mb-2" : "mb-3")}> 
+            <div className="flex-1 min-w-0">
+              <h3
+                className={cn(
+                  "font-semibold text-gray-900 dark:text-white transition-colors duration-200 leading-tight",
+                  isGrid ? "text-base line-clamp-2 group-hover:text-primary" : "text-xl line-clamp-2 group-hover:text-primary",
+                )}
+              >
+                {title}
+              </h3>
+            </div>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSaveToggle}
+              className={cn(
+                "rounded-full transition-all duration-200 p-0 flex-shrink-0",
+                isGrid ? "w-8 h-8 hover:bg-accent/20" : "w-9 h-9 hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-110",
+              )}
+              aria-label={saved ? "Unsave event" : "Save event"}
+            >
+              {saved ? (
+                <BookmarkCheck className={cn(isGrid ? "w-4 h-4 text-primary" : "w-5 h-5 text-primary")} />
+              ) : (
+                <Bookmark className={cn(isGrid ? "w-4 h-4 text-muted-foreground" : "w-5 h-5 text-gray-400")} />
+              )}
+            </Button>
           </div>
 
-          <div className="responsive-spacing">
-            <div className="flex items-center justify-between">
-              <div className="font-secondary text-base lg:text-lg xl:text-xl font-semibold text-primary tracking-tight">
-                {price}
+          {/* Meta */}
+          <div className={cn("space-y-1.5", isGrid ? "mb-3" : "mb-4")}> 
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Calendar className={cn(isGrid ? "w-3.5 h-3.5" : "w-4 h-4", "flex-shrink-0")} />
+              <span className={cn(isGrid ? "text-xs" : "text-sm", "font-medium truncate")}>
+                {formattedDate.weekday}, {formattedDate.time}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <MapPin className={cn(isGrid ? "w-3.5 h-3.5" : "w-4 h-4", "flex-shrink-0")} />
+              <span className={cn(isGrid ? "text-xs" : "text-sm", "truncate")}>{location}</span>
+            </div>
+          </div>
+
+          {/* Organizers (only in list or if exists) */}
+          {!isGrid && organizers.length > 0 && (
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex -space-x-2">
+                {organizers.slice(0, 3).map((org, index) => (
+                  <Image
+                    key={index}
+                    src={org.avatar || "/placeholder.svg?height=24&width=24"}
+                    alt={org.name}
+                    width={24}
+                    height={24}
+                    className="rounded-full border-2 border-white object-cover"
+                  />
+                ))}
               </div>
-              <div className="flex items-center gap-2 text-sm lg:text-base text-muted-foreground">
-                <Users className="w-4 h-4 lg:w-5 lg:h-5" />
-                <span className="hidden sm:inline tracking-tight">{joinedCount} joined</span>
-                <span className="sm:hidden tracking-tight">{joinedCount}</span>
+              <span className="text-sm text-muted-foreground truncate">
+                {organizers[0]?.name}
+                {organizers.length > 1 && ` +${organizers.length - 1} others`}
+              </span>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className={cn("flex items-center justify-between", isGrid ? "pt-1 mt-auto" : "")}> 
+            <div className="flex items-center gap-3">
+              <div className={cn("font-semibold text-gray-900 dark:text-white", isGrid ? "text-sm" : "text-lg")}>{displayedPrice}</div>
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <Users className={cn(isGrid ? "w-3.5 h-3.5" : "w-4 h-4")} />
+                <span className={cn(isGrid ? "text-xs" : "text-sm")}>{joinedCount}</span>
               </div>
             </div>
 
-            {hasPOAP && (
-              <div className="flex items-center gap-2 text-sm lg:text-base font-medium text-primary tracking-tight">
-                <span>🪙</span>
-                <span className="hidden sm:inline">POAP enabled</span>
-                <span className="sm:hidden">POAP</span>
-              </div>
-            )}
+            <Button
+              size={isGrid ? "sm" : "sm"}
+              className={cn(
+                "rounded-lg font-medium transition-all duration-200",
+                isGrid
+                  ? "h-8 px-3 text-xs bg-accent/40 text-foreground hover:bg-primary hover:text-primary-foreground"
+              : "px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-primary hover:text-primary-foreground",
+              )}
+            >
+              View
+            </Button>
           </div>
         </div>
-      </div>
+      </Card>
     </Link>
-  );
+  )
 }

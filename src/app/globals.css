@@ -137,7 +137,7 @@
 
   /* Font System */
   --font-primary: var(--font-instrument-serif);
-  --font-secondary: var(--font-inter-bold);
+  --font-secondary: var(--font-inter);
   --font-tertiary: var(--font-roboto-mono);
 
   /* Radius System */
@@ -250,7 +250,7 @@
   h4,
   h5,
   h6 {
-    @apply font-primary;
+    @apply font-sans;
     font-weight: 600;
     letter-spacing: -0.025em;
     line-height: 1.1;
@@ -276,7 +276,7 @@
   }
 
   p {
-    @apply font-tertiary;
+    @apply font-mono;
     line-height: 1.47059;
     letter-spacing: -0.022em;
   }
@@ -511,90 +511,4 @@
 
 .apple-section-lg {
   @apply py-12 sm:py-16 lg:py-20 xl:py-24;
-}
-
-/* MapLibre Custom Styles */
-.maplibregl-popup-content {
-  @apply rounded-xl border border-border;
-  box-shadow: var(--shadow-apple-lg);
-}
-
-.maplibregl-popup-close-button {
-  @apply text-gray hover:text-foreground;
-}
-
-.event-marker {
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.event-marker:hover {
-  transform: scale(1.05);
-}
-
-.event-marker .group:hover .absolute {
-  opacity: 1 !important;
-}
-
-/* Custom popup styles */
-.maplibregl-popup-content {
-  @apply bg-background border border-border rounded-xl;
-  font-family: inherit;
-  max-width: 320px;
-  padding: 0;
-  box-shadow: var(--shadow-apple-lg);
-}
-
-.maplibregl-popup-close-button {
-  @apply text-gray hover:text-foreground transition-colors;
-  @apply bg-background border border-border rounded-sm;
-  @apply hover:bg-accent hover:text-accent-foreground;
-}
-
-/* User location marker styles */
-.user-location-marker {
-  z-index: 2;
-}
-
-.user-location-marker .animate-ping {
-  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-
-.user-location-marker .animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Enhanced event marker styles */
-.event-marker {
-  cursor: pointer;
-  transition: all 0.2s ease;
-  z-index: 1;
-}
-
-.event-marker:hover {
-  transform: scale(1.1);
-  z-index: 1000;
-}
-
-.event-marker .group:hover .absolute {
-  opacity: 1;
-  transform: translateY(-2px);
-}
-
-/* Custom popup styles for events */
-.event-popup .maplibregl-popup-content {
-  @apply bg-background border border-border rounded-xl;
-  font-family: inherit;
-  max-width: 320px;
-  padding: 0;
-  overflow: hidden;
-  box-shadow: var(--shadow-apple-lg);
-}
-
-.event-popup .maplibregl-popup-tip {
-  @apply border-t border-border;
-}
-
-.event-popup .maplibregl-popup-tip::before {
-  @apply border-t border-background;
 }

@@ -1,56 +1,52 @@
-"use client";
+"use client"
 
-import { Button } from "@/components/ui/button";
-import { FadeIn } from "@/components/ui/fade-in";
-import Link from "next/link";
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import dynamic from "next/dynamic";
-const CustomConnectButton = dynamic(() => import("@/components/wallet/connect-button").then(m => m.CustomConnectButton), { ssr: false });
+import { Button } from "@/components/ui/button"
+import { FadeIn } from "@/components/ui/fade-in"
+import Link from "next/link"
+import { useState, useEffect } from "react"
+import Image from "next/image"
+import dynamic from "next/dynamic"
+const CustomConnectButton = dynamic(
+  () => import("@/components/wallet/connect-button").then((m) => m.CustomConnectButton),
+  { ssr: false },
+)
 
 export function Header() {
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false)
 
   // Handle scroll effect for subtle background change
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
+      setIsScrolled(window.scrollY > 10)
+    }
 
-    window.addEventListener("scroll", handleScroll);
-    
+    window.addEventListener("scroll", handleScroll)
+
     // Cleanup
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
 
   return (
     <FadeIn
       variant="down"
       timing="fast"
-      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ease-out ${
-        isScrolled
-          ? "backdrop-blur-xl bg-background/95 border-b border-border/50 shadow-sm"
-          : "bg-transparent"
+      className={`sticky top-0 z-40 transition-all duration-300 ease-out ${
+        isScrolled ? "backdrop-blur-xl bg-background/70 border-b border-border/50 shadow-sm" : "bg-transparent"
       }`}
     >
       <header className="container mx-auto">
         <div className="flex items-center justify-between h-16 sm:h-20 lg:h-24">
-          
           {/* Logo - Identity Focus */}
-          <FadeIn
-            variant="left"
-            timing="fast"
-            className="flex items-center"
-          >
-            <Link 
+          <FadeIn variant="left" timing="fast" className="flex items-center">
+            <Link
               href="/"
               className="group flex items-center gap-3 transition-all duration-200 ease-out hover:scale-[1.02]"
             >
               {/* Ticket logo with subtle glow */}
               <div className="relative">
-                <Image 
-                  src="/ticket.png" 
-                  alt="Festos" 
+                <Image
+                  src="/ticket.png"
+                  alt="Festos"
                   width={40}
                   height={40}
                   className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 object-contain transition-transform duration-200 ease-out group-hover:scale-105"
@@ -67,11 +63,7 @@ export function Header() {
           {/* Navigation - Intentional Hierarchy */}
           <nav className="hidden sm:flex items-center gap-4 lg:gap-6">
             {/* Tertiary Action - Discovery (Subtle) */}
-            <FadeIn
-              variant="down"
-              timing="normal"
-              delay={100}
-            >
+            <FadeIn variant="down" timing="normal" delay={100}>
               <Link href="/discover">
                 <Button
                   variant="ghost"
@@ -84,16 +76,12 @@ export function Header() {
             </FadeIn>
 
             {/* Secondary Action - Creation (Medium Emphasis) */}
-            <FadeIn
-              variant="down"
-              timing="normal"
-              delay={200}
-            >
+            <FadeIn variant="down" timing="normal" delay={200}>
               <Link href="/create">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border border-border text-foreground hover:border-primary hover:bg-accent transition-all duration-200 ease-out font-secondary rounded-lg px-4 py-2 h-10 lg:h-12 lg:px-6 tracking-tight"
+                  className="border border-border text-foreground hover:border-primary hover:bg-accent transition-all duration-200 ease-out font-secondary rounded-lg px-4 py-2 h-10 lg:h-12 lg:px-6 tracking-tight bg-transparent"
                 >
                   Create
                 </Button>
@@ -101,11 +89,7 @@ export function Header() {
             </FadeIn>
 
             {/* Primary Action - Wallet Connection (High Emphasis) */}
-            <FadeIn
-              variant="down"
-              timing="normal"
-              delay={300}
-            >
+            <FadeIn variant="down" timing="normal" delay={300}>
               <div className="relative">
                 <CustomConnectButton />
                 {/* Subtle glow effect for primary action */}
@@ -116,15 +100,12 @@ export function Header() {
 
           {/* Mobile - Simplified for Focus */}
           <div className="sm:hidden">
-            <FadeIn
-              variant="right"
-              timing="fast"
-            >
+            <FadeIn variant="right" timing="fast">
               <CustomConnectButton />
             </FadeIn>
           </div>
         </div>
       </header>
     </FadeIn>
-  );
-} 
+  )
+}

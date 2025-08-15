@@ -1,65 +1,67 @@
-"use client";
+"use client"
 
-import { Search, Filter, Map } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Search, Filter, Map, Grid3X3 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 interface SearchFilterBarProps {
-  onFilterToggle: () => void;
-  searchValue: string;
-  onSearchChange: (value: string) => void;
-  showMap: boolean;
-  onMapToggle: () => void;
+  onFilterToggle: () => void
+  searchValue: string
+  onSearchChange: (value: string) => void
+  showMap: boolean
+  onMapToggle: () => void
 }
 
-export function SearchFilterBar({ 
-  onFilterToggle, 
-  searchValue, 
-  onSearchChange, 
-  showMap, 
-  onMapToggle 
+export function SearchFilterBar({
+  onFilterToggle,
+  searchValue,
+  onSearchChange,
+  showMap,
+  onMapToggle,
 }: SearchFilterBarProps) {
   return (
-    <div className="sticky top-16 sm:top-20 lg:top-24 z-30 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm">
-      <div className="container mx-auto">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 lg:gap-6 py-4 lg:py-6">
-          {/* Search Bar */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 lg:left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 pointer-events-none transition-colors duration-200 ease-out" />
+    <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border">
+      <div className="container mx-auto px-6 py-6">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          {/* Enhanced Search Bar */}
+          <div className="flex-1 relative group">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5 group-focus-within:text-primary apple-transition" />
             <Input
-              placeholder="Search fests, cities, tags…"
+              placeholder="Find events, venues, or experiences…"
               value={searchValue}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-10 sm:pl-12 lg:pl-16 pr-4 lg:pr-6 py-3 lg:py-4 rounded-xl border border-border bg-background font-secondary text-sm sm:text-base lg:text-lg focus:border-primary transition-all duration-200 ease-out w-full h-12 lg:h-14 shadow-sm tracking-tight"
+              className="pl-12 pr-4 h-12 rounded-xl border-2 border-border bg-background/50 font-secondary text-base focus:border-primary focus:bg-background focus:ring-0 apple-transition placeholder:text-muted-foreground"
             />
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-3 lg:gap-4 w-full sm:w-auto">
+          <div className="flex items-center gap-3">
             {/* Filter Button */}
             <Button
               variant="outline"
-              size="sm"
               onClick={onFilterToggle}
-              className="flex-1 sm:flex-none px-4 lg:px-6 py-3 lg:py-4 rounded-xl border border-border hover:border-primary hover:bg-accent transition-all duration-200 ease-out font-secondary text-sm lg:text-base h-12 lg:h-14 shadow-sm tracking-tight"
+              className="h-12 px-6 rounded-xl border-2 border-border bg-background hover:border-primary hover:bg-primary/5 text-foreground hover:text-primary font-medium apple-transition hover:scale-105 active:scale-95"
             >
-              <Filter className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-              <span className="hidden sm:inline ml-2 lg:ml-3">Filter</span>
+              <Filter className="w-5 h-5 mr-2" />
+              <span className="hidden sm:inline">Filter</span>
             </Button>
 
             {/* Map Toggle */}
             <Button
               variant={showMap ? "default" : "outline"}
-              size="sm"
               onClick={onMapToggle}
-              className="flex-1 sm:flex-none px-4 lg:px-6 py-3 lg:py-4 rounded-xl border border-border hover:border-primary hover:bg-accent transition-all duration-200 ease-out font-secondary text-sm lg:text-base h-12 lg:h-14 shadow-sm tracking-tight"
+              className={`h-12 px-6 rounded-xl font-medium apple-transition hover:scale-105 active:scale-95 ${
+                showMap
+                  ? "bg-primary hover:bg-primary/90 text-primary-foreground apple-shadow"
+                  : "border-2 border-border bg-background hover:border-primary hover:bg-primary/5 text-foreground hover:text-primary"
+              }`}
             >
-              <Map className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-              <span className="hidden sm:inline ml-2 lg:ml-3">Map</span>
+              {showMap ? <Grid3X3 className="w-5 h-5 mr-2" /> : <Map className="w-5 h-5 mr-2" />}
+              <span className="hidden sm:inline">{showMap ? "Grid" : "Map"}</span>
             </Button>
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }

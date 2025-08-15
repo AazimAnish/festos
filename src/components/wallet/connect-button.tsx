@@ -1,13 +1,15 @@
-'use client';
+"use client";
 
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Button } from '@/components/ui/button';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export function CustomConnectButton() {
   const [showDropdown, setShowDropdown] = useState(false);
+  const router = useRouter();
 
   return (
     <ConnectButton.Custom>
@@ -114,7 +116,7 @@ export function CustomConnectButton() {
 
                   {/* Dropdown Menu */}
                   {showDropdown && (
-                    <div className="absolute top-full right-0 mt-2 w-48 bg-background/95 backdrop-blur-md border-2 border-border rounded-xl shadow-2xl z-50 overflow-hidden">
+                    <div className="absolute top-full right-0 mt-2 w-56 bg-background/95 backdrop-blur-md border-2 border-border rounded-xl shadow-2xl z-50 overflow-hidden">
                       <div className="p-2 space-y-1">
                         {/* Network Switch Option */}
                         <button
@@ -138,6 +140,21 @@ export function CustomConnectButton() {
                         >
                           <div className="w-3 h-3 rounded-full bg-primary/20 border border-primary/40"></div>
                           Account Details
+                        </button>
+
+                        {/* Profile Option */}
+                        <button
+                          onClick={() => {
+                            const walletAddress = account?.address ?? account?.displayName;
+                            if (walletAddress) {
+                              router.push(`/profile/${walletAddress}`);
+                            }
+                            setShowDropdown(false);
+                          }}
+                          className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted/50 transition-colors duration-200 font-secondary text-sm flex items-center gap-2"
+                        >
+                          <div className="w-3 h-3 rounded-full bg-primary/20 border border-primary/40"></div>
+                          Profile
                         </button>
                       </div>
                     </div>

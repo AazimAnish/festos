@@ -33,13 +33,13 @@ export function AttendeeList({ count }: AttendeeListProps) {
 
   return (
     <Card className="border-2 border-border rounded-xl overflow-hidden hover:border-primary transition-all duration-200">
-      <CardHeader className="pb-4">
+      <CardHeader className="pb-4 px-6 py-6">
         <CardTitle className="font-primary text-lg font-bold text-foreground flex items-center gap-2">
           🙋 Attendees
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6 px-6 pb-6">
         {/* Main Attendee Button */}
         <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
           <PopoverTrigger asChild>
@@ -173,7 +173,7 @@ export function AttendeeList({ count }: AttendeeListProps) {
         <Separator />
 
         {/* Community Actions */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-foreground">🎉 Join the community</span>
@@ -188,7 +188,7 @@ export function AttendeeList({ count }: AttendeeListProps) {
             </Button>
           </div>
           
-          <div className="text-center">
+          <div className="text-center p-3 bg-muted/20 rounded-lg">
             <p className="font-tertiary text-xs text-gray">
               {count > 100 ? '🔥 This event is popular!' : '🌟 Be part of something special'}
             </p>

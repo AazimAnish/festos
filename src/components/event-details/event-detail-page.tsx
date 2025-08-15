@@ -84,7 +84,7 @@ export function EventDetailPage({ slug }: EventDetailPageProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background pt-16 sm:pt-20 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loading size="lg" text="Loading event details..." />
       </div>
     );
@@ -92,7 +92,7 @@ export function EventDetailPage({ slug }: EventDetailPageProps) {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background pt-16 sm:pt-20 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <h2 className="font-primary text-xl font-bold text-foreground">
             {error}
@@ -106,7 +106,7 @@ export function EventDetailPage({ slug }: EventDetailPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background pt-16 sm:pt-20">
+    <div className="min-h-screen bg-background">
       {/* Hero Banner */}
       <FadeIn variant="up" timing="normal">
         <EventHeroBanner event={eventData} />
@@ -207,10 +207,10 @@ export function EventDetailPage({ slug }: EventDetailPageProps) {
 
                 {/* Optional Information - Collapsible */}
                 <FadeIn variant="up" timing="normal">
-                  <Accordion type="single" collapsible className="w-full space-y-4 sm:space-y-6">
+                  <Accordion type="single" collapsible className="w-full space-y-6">
                     {/* Location Details */}
                     <AccordionItem value="location" className="border-2 border-border rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
-                      <AccordionTrigger className="px-6 sm:px-8 py-4 sm:py-6 hover:no-underline">
+                      <AccordionTrigger className="px-6 sm:px-8 py-6 sm:py-8 hover:no-underline">
                         <div className="flex items-center gap-4">
                           <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-primary flex-shrink-0" />
                           <span className="font-secondary text-base sm:text-lg text-foreground">Location Details</span>
@@ -227,7 +227,7 @@ export function EventDetailPage({ slug }: EventDetailPageProps) {
 
                     {/* Creator Profile */}
                     <AccordionItem value="creator" className="border-2 border-border rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
-                      <AccordionTrigger className="px-6 sm:px-8 py-4 sm:py-6 hover:no-underline">
+                      <AccordionTrigger className="px-6 sm:px-8 py-6 sm:py-8 hover:no-underline">
                         <div className="flex items-center gap-4">
                           <Info className="w-5 h-5 sm:w-6 sm:h-6 text-primary flex-shrink-0" />
                           <span className="font-secondary text-base sm:text-lg text-foreground">About Creator</span>
@@ -240,7 +240,7 @@ export function EventDetailPage({ slug }: EventDetailPageProps) {
 
                     {/* Similar Events */}
                     <AccordionItem value="similar" className="border-2 border-border rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
-                      <AccordionTrigger className="px-6 sm:px-8 py-4 sm:py-6 hover:no-underline">
+                      <AccordionTrigger className="px-6 sm:px-8 py-6 sm:py-8 hover:no-underline">
                         <div className="flex items-center gap-4">
                           <Ticket className="w-5 h-5 sm:w-6 sm:h-6 text-primary flex-shrink-0" />
                           <span className="font-secondary text-base sm:text-lg text-foreground">Similar Events</span>

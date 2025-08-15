@@ -2,7 +2,6 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Calendar, MapPin } from "lucide-react";
 import Image from "next/image";
@@ -24,19 +23,14 @@ interface SimilarEventsProps {
 
 export function SimilarEvents({ events }: SimilarEventsProps) {
   return (
-    <Card className="border-2 border-border rounded-xl overflow-hidden hover:border-primary transition-all duration-200">
-      <CardHeader className="pb-4">
-        <CardTitle className="font-primary text-lg font-bold text-foreground flex items-center gap-2">
-          🎉 Similar Events
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="space-y-6">
+      <div className="space-y-4">
         <ScrollArea className="w-full">
-          <div className="flex space-x-4 pb-4">
+          <div className="flex space-x-4 pb-4 px-2">
             {events.map((event) => (
               <Link key={event.id} href={`/events/${generateEventSlug(event)}`}>
-                <div className="w-64 flex-shrink-0 group cursor-pointer">
-                  <div className="bg-background border-2 border-border rounded-xl overflow-hidden hover:border-primary transition-all duration-200 hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02]">
+                <div className="w-64 flex-shrink-0 group cursor-pointer p-1">
+                  <div className="bg-background border-2 border-border rounded-xl overflow-hidden hover:border-primary transition-all duration-200 hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.01]">
                     {/* Image */}
                     <div className="relative h-32 overflow-hidden">
                       <Image
@@ -62,11 +56,11 @@ export function SimilarEvents({ events }: SimilarEventsProps) {
                       </div>
 
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-xs text-gray">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Calendar className="w-3 h-3" />
                           <span className="font-secondary">{event.date}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-gray">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <MapPin className="w-3 h-3" />
                           <span className="font-secondary">{event.location}</span>
                         </div>
@@ -99,7 +93,7 @@ export function SimilarEvents({ events }: SimilarEventsProps) {
             </Button>
           </Link>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 } 
