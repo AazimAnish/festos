@@ -13,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { MapPin, Users, Info, Ticket } from "lucide-react";
+import { MapPin, Users, Info, Ticket, QrCode } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Loading } from "@/components/ui/loading";
 import { extractEventIdFromSlug } from "@/lib/utils";
@@ -200,6 +200,41 @@ export function EventDetailPage({ slug }: EventDetailPageProps) {
                             </DialogContent>
                           </Dialog>
                         )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </FadeIn>
+
+                {/* Organizer Check-in Section */}
+                <FadeIn variant="up" timing="normal">
+                  <Card className="border-2 border-border rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <CardContent className="p-6 sm:p-8">
+                      <div className="space-y-6">
+                        <h3 className="font-primary text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3">
+                          <QrCode className="w-6 h-6 text-primary" />
+                          Organizer Tools
+                        </h3>
+                        <p className="font-secondary text-base text-gray">
+                          Manage event check-ins and attendee verification
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4">
+                          <Button
+                            asChild
+                            className="font-secondary text-sm px-6 py-3 h-auto border-2 border-primary bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all duration-200 rounded-xl"
+                          >
+                            <a href={`/checkin/${eventData.id}`}>
+                              <QrCode className="w-4 h-4 mr-2" />
+                              Open Check-in Terminal
+                            </a>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="font-secondary text-sm px-6 py-3 h-auto border-2 border-border text-foreground hover:border-primary hover:text-primary transition-all duration-200 rounded-xl"
+                          >
+                            <Users className="w-4 h-4 mr-2" />
+                            View Attendee List
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
