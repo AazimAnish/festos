@@ -420,6 +420,11 @@
   box-shadow: var(--shadow-apple-lg);
 }
 
+/* Avatar background fix for connect button */
+.avatar-fallback {
+  background-color: white !important;
+}
+
 /* Apple-inspired button animations */
 .btn-apple {
   @apply transition-all duration-200 ease-out;

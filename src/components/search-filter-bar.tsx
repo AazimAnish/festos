@@ -21,8 +21,8 @@ export function SearchFilterBar({
 }: SearchFilterBarProps) {
   return (
     <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border">
-      <div className="container mx-auto px-6 py-6">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
           {/* Enhanced Search Bar */}
           <div className="flex-1 relative group">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5 group-focus-within:text-primary apple-transition" />
@@ -35,14 +35,14 @@ export function SearchFilterBar({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Filter Button */}
             <Button
               variant="outline"
               onClick={onFilterToggle}
-              className="h-12 px-6 rounded-xl border-2 border-border bg-background hover:border-primary hover:bg-primary/5 text-foreground hover:text-primary font-medium apple-transition hover:scale-105 active:scale-95"
+              className="h-10 sm:h-12 px-4 sm:px-6 rounded-xl border-2 border-border bg-background hover:border-primary hover:bg-primary/5 text-foreground hover:text-primary font-medium apple-transition hover:scale-105 active:scale-95"
             >
-              <Filter className="w-5 h-5 mr-2" />
+              <Filter className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
               <span className="hidden sm:inline">Filter</span>
             </Button>
 
@@ -50,13 +50,13 @@ export function SearchFilterBar({
             <Button
               variant={showMap ? "default" : "outline"}
               onClick={onMapToggle}
-              className={`h-12 px-6 rounded-xl font-medium apple-transition hover:scale-105 active:scale-95 ${
+              className={`h-10 sm:h-12 px-4 sm:px-6 rounded-xl font-medium apple-transition hover:scale-105 active:scale-95 ${
                 showMap
                   ? "bg-primary hover:bg-primary/90 text-primary-foreground apple-shadow"
                   : "border-2 border-border bg-background hover:border-primary hover:bg-primary/5 text-foreground hover:text-primary"
               }`}
             >
-              {showMap ? <Grid3X3 className="w-5 h-5 mr-2" /> : <Map className="w-5 h-5 mr-2" />}
+              {showMap ? <Grid3X3 className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" /> : <Map className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />}
               <span className="hidden sm:inline">{showMap ? "Grid" : "Map"}</span>
             </Button>
           </div>

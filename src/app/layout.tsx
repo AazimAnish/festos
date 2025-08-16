@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Instrument_Serif, Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { RainbowKitProviderWrapper } from "@/components/providers/rainbowkit-provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -118,6 +119,7 @@ export default function RootLayout({
             <main id="main-content" role="main">
               {children}
             </main>
+            <Footer />
             <Toaster />
           </RainbowKitProviderWrapper>
         </ErrorBoundary>

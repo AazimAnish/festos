@@ -452,7 +452,7 @@ export function MarketplacePage() {
           {/* Featured Listings */}
           <div className="mb-8">
             <h2 className="font-primary text-2xl font-bold text-foreground mb-4">Featured Listings</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredListings.slice(0, 3).map((listing) => (
                 <Card key={`featured-${listing.id}`} className="overflow-hidden group rounded-xl border border-primary/30 bg-primary/5 shadow-sm hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1">
                   <div className="relative">
@@ -537,7 +537,7 @@ export function MarketplacePage() {
           {/* Regular Listings */}
           <h2 className="font-primary text-2xl font-bold text-foreground mb-4">All Listings</h2>
           {filteredListings.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredListings.map((listing) => (
                 <Card key={listing.id} className="overflow-hidden group rounded-xl border border-border/50 bg-background shadow-sm hover:shadow-lg hover:border-border transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1">
                   <div className="relative">

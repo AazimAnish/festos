@@ -176,9 +176,9 @@ export function EventCreationPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto p-6 space-y-8">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
           <div className="flex-1">
             <Input
               placeholder="Event name *"
@@ -213,18 +213,18 @@ export function EventCreationPage() {
           </Select>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Left Column - Event Banner */}
           <div className="lg:col-span-1">
             <EventBanner />
           </div>
 
           {/* Right Column - Event Details */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Date & Time */}
             <div className="space-y-2">
-              <div className="grid grid-cols-4 gap-4">
-                <div className="col-span-3">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 sm:gap-4">
+                <div className="sm:col-span-3">
                   <DateTimePicker
                     startDate={startDate}
                     endDate={endDate}
@@ -232,9 +232,9 @@ export function EventCreationPage() {
                     onEndDateChange={setEndDate}
                   />
                 </div>
-                <div className="col-span-1">
+                <div className="sm:col-span-1">
                   <Select value={timezone} onValueChange={setTimezone}>
-                    <SelectTrigger className="h-12 rounded-lg">
+                    <SelectTrigger className="h-10 sm:h-12 rounded-lg">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

@@ -172,9 +172,9 @@ export function UserDashboard() {
   }
 
   return (
-    <div className="container mx-auto px-6 max-w-6xl py-8">
+    <div className="container mx-auto px-4 sm:px-6 max-w-6xl py-6 sm:py-8">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row gap-6 md:items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row gap-4 sm:gap-6 md:items-center justify-between mb-6 sm:mb-8">
         <div>
           <h1 className="font-primary text-3xl font-bold text-foreground tracking-tight mb-2">
             My Dashboard
@@ -183,7 +183,7 @@ export function UserDashboard() {
             Manage your events, tickets, and collections
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <Link href="/create">
             <Button className="gap-2 font-secondary rounded-lg">
               <Plus className="w-4 h-4" />
@@ -276,7 +276,7 @@ export function UserDashboard() {
             </div>
 
             {upcomingEvents.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {upcomingEvents.map((event, i) => (
                   <div
                     key={event.id}
@@ -318,7 +318,7 @@ export function UserDashboard() {
             </div>
 
             {mockTickets.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {mockTickets.map((ticket) => (
                   <Card key={ticket.id} className="overflow-hidden group rounded-xl border border-border/50 bg-background shadow-sm hover:shadow-lg hover:border-border transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1">
                     <div className="relative">
@@ -393,7 +393,7 @@ export function UserDashboard() {
             </div>
 
             {createdEvents.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {createdEvents.slice(0, 3).map((event, i) => (
                   <div
                     key={event.id}
@@ -457,7 +457,7 @@ export function UserDashboard() {
             </h2>
             
             {upcomingEvents.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {upcomingEvents.map((event, i) => (
                   <div
                     key={event.id}

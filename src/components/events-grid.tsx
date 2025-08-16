@@ -59,12 +59,12 @@ export function EventsGrid({ events, onClearFilters }: EventsGridProps) {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-10">
-      <div className="mb-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+      <div className="mb-8 sm:mb-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
         <div>
-          <h2 className="font-primary font-bold text-4xl md:text-5xl text-foreground mb-4 tracking-tight">
+          <h2 className="font-primary font-bold text-3xl sm:text-4xl md:text-5xl text-foreground mb-3 sm:mb-4 tracking-tight">
             Discover Events
           </h2>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             {events.length > 0 ? (
               <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-primary/10 text-primary border border-primary/20">
                 {events.length} {events.length === 1 ? "event" : "events"}
@@ -80,17 +80,17 @@ export function EventsGrid({ events, onClearFilters }: EventsGridProps) {
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="h-12 px-6 rounded-xl border-2 border-border bg-background hover:border-primary hover:bg-primary/5 text-foreground hover:text-primary font-medium apple-transition hover:scale-105 active:scale-95"
+              className="h-10 sm:h-12 px-4 sm:px-6 rounded-xl border-2 border-border bg-background hover:border-primary hover:bg-primary/5 text-foreground hover:text-primary font-medium apple-transition hover:scale-105 active:scale-95"
             >
-              <CurrentIcon className="w-5 h-5 mr-3" />
-              <span>Sort by: {currentSort.label}</span>
-              <ChevronDown className="w-4 h-4 ml-3 apple-transition group-data-[state=open]:rotate-180" />
+              <CurrentIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3" />
+              <span className="text-sm sm:text-base">Sort by: {currentSort.label}</span>
+              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 ml-2 sm:ml-3 apple-transition group-data-[state=open]:rotate-180" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
             sideOffset={8}
-            className="w-64 rounded-xl border border-border bg-background/95 backdrop-blur-md apple-shadow-lg p-2"
+            className="w-56 sm:w-64 rounded-xl border border-border bg-background/95 backdrop-blur-md apple-shadow-lg p-2"
           >
             {sortOptions.map((option) => {
               const Icon = option.icon
@@ -120,7 +120,7 @@ export function EventsGrid({ events, onClearFilters }: EventsGridProps) {
 
       {/* Events Grid */}
       {sortedEvents.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6 items-stretch">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 items-stretch">
           {sortedEvents.map((event, index) => (
             <div
               key={event.id}

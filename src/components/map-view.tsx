@@ -227,7 +227,7 @@ export function MapView({ events, isOpen, onClose, onClearFilters }: MapViewProp
       {/* Map Container */}
       <FadeIn variant="scale" timing="fast" className="fixed inset-0 z-50 bg-background">
         {/* Header */}
-        <div className="absolute top-0 left-0 right-0 z-10 bg-background/95 backdrop-blur-md border-b border-border p-4">
+        <div className="absolute top-0 left-0 right-0 z-10 bg-background/95 backdrop-blur-md border-b border-border p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Navigation className="w-5 h-5 text-primary" />
