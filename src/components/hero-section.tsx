@@ -30,21 +30,21 @@ export function HeroSection() {
               {/* Main Heading */}
               <div className="space-y-4">
                 <h1 className="font-primary font-black text-4xl sm:text-5xl lg:text-6xl xl:text-7xl text-foreground tracking-tight leading-[0.9]">
-                  Own Your <span className="text-primary">Moments.</span>
+                  Your <span className="text-primary">Moments.</span>
                   <br />
-                  Own Your <span className="text-primary">Tickets.</span>
+                  Your <span className="text-primary">Tickets.</span>
                 </h1>
                 
                 <p className="font-secondary text-lg sm:text-xl lg:text-2xl text-muted-foreground max-w-2xl leading-relaxed">
-                  No scams. No paper. Just <span className="text-primary font-medium">real tickets</span> and memories you&apos;ll keep forever.
+                  Simple. Secure. Yours to keep forever.
                 </p>
               </div>
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Button
-                  size="lg"
-                  className="font-secondary text-lg px-8 py-6 h-auto bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 ease-out hover:scale-105 active:scale-95 tracking-tight rounded-xl"
+                  size="xl"
+                  className="font-secondary text-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 ease-out hover:scale-105 active:scale-95 tracking-tight shadow-lg shadow-primary/20"
                   asChild
                 >
                   <Link href="/create">
@@ -54,8 +54,8 @@ export function HeroSection() {
                 
                 <Button
                   variant="outline"
-                  size="lg"
-                  className="font-secondary text-lg px-8 py-6 h-auto border-2 border-border text-foreground hover:border-primary hover:text-primary transition-all duration-200 ease-out hover:scale-105 active:scale-95 tracking-tight rounded-xl"
+                  size="xl"
+                  className="font-secondary text-lg border-2 border-border text-foreground hover:border-primary hover:text-primary transition-all duration-200 ease-out hover:scale-105 active:scale-95 tracking-tight"
                   asChild
                 >
                   <Link href="/discover">

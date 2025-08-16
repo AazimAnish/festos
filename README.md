@@ -1,4 +1,16 @@
+# Festos - For the culture. On the chain.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Features
+
+### Splash Screen
+The application includes a beautiful, Apple-inspired splash screen that appears on first visit:
+- **Sophisticated Animations**: Multi-phase animation sequence with logo fade-in, scale effects, and text reveal
+- **Apple Design Philosophy**: Clean typography, smooth transitions, and psychological design principles
+- **Interactive**: Users can press ESC or click to skip the splash screen
+- **Smart Persistence**: Only shows on first visit, subsequent visits skip directly to the main app
+- **Responsive Design**: Adapts beautifully across all device sizes
 
 ## Getting Started
 

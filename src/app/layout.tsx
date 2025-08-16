@@ -6,6 +6,7 @@ import { Footer } from "@/components/footer";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { RainbowKitProviderWrapper } from "@/components/providers/rainbowkit-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { SplashScreenProvider } from "@/components/splash-screen-provider";
 
 const instrumentSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
@@ -115,12 +116,14 @@ export default function RootLayout({
       <body className="antialiased bg-background text-foreground">
         <ErrorBoundary>
           <RainbowKitProviderWrapper>
-            <Header />
-            <main id="main-content" role="main">
-              {children}
-            </main>
-            <Footer />
-            <Toaster />
+            <SplashScreenProvider>
+              <Header />
+              <main id="main-content" role="main">
+                {children}
+              </main>
+              <Footer />
+              <Toaster />
+            </SplashScreenProvider>
           </RainbowKitProviderWrapper>
         </ErrorBoundary>
       </body>
