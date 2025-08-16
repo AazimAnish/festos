@@ -1,23 +1,13 @@
-"use client";
+import { HeroSection } from "@/components/hero-section";
+import FeaturedEvents from "../components/featured-events";
+import WhyFestos from "../components/why-festos";
 
-import Hero from "@/components/sections/Hero"
-import DiscoverEventsSection from "@/components/sections/DiscoverEventsSection"
-import FeaturedOrganizersSection from "@/components/sections/FeaturedOrganizersSection"
-import CallToActionSection from "@/components/sections/CallToActionSection"
-
-export default function HomePage() {
+export default function Home() {
   return (
-    <div className="relative min-h-screen">
-      {/* Hero section */}
-      <Hero />
-      
-      {/* Discover Events Section */}
-      <DiscoverEventsSection />
-      
-      <div className="relative">
-        {/* Featured Organizers Section */}
-        <FeaturedOrganizersSection />
-      </div>
-    </div>
-  )
+    <>
+      <HeroSection />
+      <FeaturedEvents />
+      <WhyFestos />
+    </>
+  );
 }
