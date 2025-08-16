@@ -5,7 +5,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Event slug utilities
+// Event ID utilities (Lu.ma style)
+export const generateUniqueEventId = (): string => {
+  // Generate a short, unique ID like Lu.ma (e.g., fpvxrdl3)
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < 8; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
+// Event slug utilities (for backward compatibility)
 export const generateEventSlug = (event: { id: number; title: string }) => {
   if (!event.title || !event.id) {
     throw new Error('Invalid event data for slug generation');
@@ -32,6 +43,35 @@ export const extractEventIdFromSlug = (slug: string): number => {
   }
   
   return id;
+};
+
+// New function to extract event ID from unique ID
+export const extractEventIdFromUniqueId = (uniqueId: string): number => {
+  // In a real app, this would query the database to find the event by unique ID
+  // For now, we'll use a simple hash-based approach
+  let hash = 0;
+  for (let i = 0; i < uniqueId.length; i++) {
+    const char = uniqueId.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return Math.abs(hash) % 1000 + 1; // Return a number between 1-1000
+};
+
+// Generate username from wallet address
+export const generateUsernameFromAddress = (address: string): string => {
+  // Remove 0x prefix and take first 8 characters
+  const cleanAddress = address.replace('0x', '');
+  const shortAddress = cleanAddress.substring(0, 8);
+  
+  // Convert to lowercase and ensure it's alphanumeric
+  return shortAddress.toLowerCase();
+};
+
+// Get username from wallet address or return default
+export const getUsernameFromWallet = (address?: string): string => {
+  if (!address) return 'anonymous';
+  return generateUsernameFromAddress(address);
 };
 
 // Validation utilities

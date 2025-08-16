@@ -6,10 +6,11 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Calendar, MapPin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { generateEventSlug } from "@/lib/utils";
+
 
 interface SimilarEvent {
   id: number;
+  uniqueId?: string; // Lu.ma style unique ID
   title: string;
   location: string;
   price: string;
@@ -28,7 +29,7 @@ export function SimilarEvents({ events }: SimilarEventsProps) {
         <ScrollArea className="w-full">
           <div className="flex space-x-4 pb-4 px-2">
             {events.map((event) => (
-              <Link key={event.id} href={`/events/${generateEventSlug(event)}`}>
+              <Link key={event.id} href={`/${event.uniqueId || String(event.id)}`}>
                 <div className="w-64 flex-shrink-0 group cursor-pointer p-1">
                   <div className="bg-background border-2 border-border rounded-xl overflow-hidden hover:border-primary transition-all duration-200 hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.01]">
                     {/* Image */}

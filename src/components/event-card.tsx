@@ -4,13 +4,14 @@ import type React from "react"
 import { Calendar, MapPin, Users, Bookmark, BookmarkCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { useState } from "react"
+import { useState, memo, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { cn, formatPrice } from "@/lib/utils"
 
 interface EventCardProps {
   id: string | number
+  uniqueId?: string // Lu.ma style unique ID
   title: string
   date: string
   location: string
@@ -25,12 +26,13 @@ interface EventCardProps {
     name: string
     avatar: string
   }>
-  status?: "pending" | "confirmed" | "cancelled"
+  status?: "pending" | "confirmed" | "cancelled" | "active"
   variant?: "list" | "grid"
 }
 
-export function EventCard({
+export const EventCard = memo(function EventCard({
   id,
+  uniqueId,
   title,
   date,
   location,
@@ -45,13 +47,13 @@ export function EventCard({
 }: EventCardProps) {
   const [saved, setSaved] = useState(isSaved)
 
-  const handleSaveToggle = (e: React.MouseEvent) => {
+  const handleSaveToggle = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
     setSaved(!saved)
-  }
+  }, [saved])
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     const date = new Date(dateString)
     return {
       day: date.getDate(),
@@ -63,21 +65,22 @@ export function EventCard({
         hour12: true,
       }),
     }
-  }
+  }, [])
 
   const formattedDate = formatDate(date)
   const displayedPrice = price === "Free" ? "Free" : formatPrice(price)
 
-  const getStatusClasses = (value: string) => {
+  const getStatusClasses = useCallback((value: string) => {
     if (value === "pending") return "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400"
     if (value === "cancelled") return "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
+    if (value === "active") return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
     return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400"
-  }
+  }, [])
 
   const isGrid = variant === "grid"
 
   return (
-    <Link href={`/events/${String(id)}`} className="group block h-full">
+    <Link href={`/${uniqueId || String(id)}`} className="group block h-full" prefetch={true}>
       <Card
         className={cn(
           "relative overflow-hidden border border-border/50 bg-background shadow-sm transition-all duration-200 cursor-pointer",
@@ -100,6 +103,9 @@ export function EventCard({
             className="object-cover transition-transform duration-200 group-hover:scale-105"
             sizes={isGrid ? "(max-width: 768px) 50vw, 20vw" : "160px"}
             priority={false}
+            loading="lazy"
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
           />
 
           <div className="absolute inset-0 bg-gradient-to-br from-black/10 via-transparent to-black/20" />
@@ -189,6 +195,7 @@ export function EventCard({
                     width={24}
                     height={24}
                     className="rounded-full border-2 border-white object-cover"
+                    loading="lazy"
                   />
                 ))}
               </div>
@@ -225,4 +232,4 @@ export function EventCard({
       </Card>
     </Link>
   )
-}
+})

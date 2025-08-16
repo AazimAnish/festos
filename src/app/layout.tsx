@@ -4,12 +4,14 @@ import "./globals.css";
 import { Header } from "@/components/header";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { RainbowKitProviderWrapper } from "@/components/providers/rainbowkit-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const instrumentSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
   subsets: ["latin"],
   weight: "400",
   display: "swap",
+  preload: true,
 });
 
 const inter = Inter({
@@ -17,6 +19,7 @@ const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "700"],
   display: "swap",
+  preload: true,
 });
 
 const robotoMono = Roboto_Mono({
@@ -24,7 +27,22 @@ const robotoMono = Roboto_Mono({
   subsets: ["latin"],
   weight: "400",
   display: "swap",
+  preload: true,
 });
+
+// Safely construct metadata base URL
+const getMetadataBase = () => {
+  try {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    if (siteUrl) {
+      return new URL(siteUrl);
+    }
+    return new URL("http://localhost:3000");
+  } catch {
+    console.warn("Invalid NEXT_PUBLIC_SITE_URL, falling back to localhost");
+    return new URL("http://localhost:3000");
+  }
+};
 
 export const metadata: Metadata = {
   title: {
@@ -41,7 +59,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  metadataBase: getMetadataBase(),
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -69,6 +87,10 @@ export const metadata: Metadata = {
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION,
   },
+  other: {
+    "theme-color": "#000000",
+    "color-scheme": "dark light",
+  },
 };
 
 export default function RootLayout({
@@ -83,6 +105,11 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/favicon.ico" />
         <meta name="theme-color" content="#000000" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+        <meta name="color-scheme" content="dark light" />
+        {/* Preload critical resources */}
+        <link rel="preload" href="/avalanche.webp" as="image" />
+        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="//fonts.gstatic.com" />
       </head>
       <body className="antialiased bg-background text-foreground">
         <ErrorBoundary>
@@ -91,6 +118,7 @@ export default function RootLayout({
             <main id="main-content" role="main">
               {children}
             </main>
+            <Toaster />
           </RainbowKitProviderWrapper>
         </ErrorBoundary>
       </body>

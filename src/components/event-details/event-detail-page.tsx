@@ -20,20 +20,23 @@ import { extractEventIdFromSlug } from "@/lib/utils";
 import Image from "next/image";
 
 interface EventDetailPageProps {
-  slug: string;
+  slug?: string;
+  uniqueId?: string;
+  eventId?: number;
 }
 
-export function EventDetailPage({ slug }: EventDetailPageProps) {
+export function EventDetailPage({ slug, uniqueId, eventId: propEventId }: EventDetailPageProps) {
   const [isRegistered] = useState(false); // Mock state - would come from API
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Extract event ID from slug for proper data fetching
-  const eventId = extractEventIdFromSlug(slug);
+  // Determine event ID based on available props
+  const eventId = propEventId || (slug ? extractEventIdFromSlug(slug) : 1);
 
   // Mock data - in real app this would come from API based on eventId
   const eventData = {
     id: eventId,
+    uniqueId: uniqueId || `event-${eventId}`,
     title: "ETHIndia 2025 🇮🇳",
     tagline: "The biggest Ethereum hackathon in Asia",
     location: "Bangalore, India",
@@ -222,7 +225,7 @@ export function EventDetailPage({ slug }: EventDetailPageProps) {
                             asChild
                             className="font-secondary text-sm px-6 py-3 h-auto border-2 border-primary bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all duration-200 rounded-xl"
                           >
-                            <a href={`/checkin/${eventData.id}`}>
+                            <a href={`/check-in/${eventData.id}`}>
                               <QrCode className="w-4 h-4 mr-2" />
                               Open Check-in Terminal
                             </a>

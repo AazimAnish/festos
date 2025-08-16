@@ -13,7 +13,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Add security headers
+  // Add security and performance headers
   const response = NextResponse.next()
   
   // Security headers
@@ -21,6 +21,20 @@ export function middleware(request: NextRequest) {
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('Referrer-Policy', 'origin-when-cross-origin')
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  
+  // Performance headers
+  response.headers.set('X-DNS-Prefetch-Control', 'on')
+  response.headers.set('X-XSS-Protection', '1; mode=block')
+  
+  // Cache control for static assets
+  if (pathname.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|webp|avif)$/)) {
+    response.headers.set('Cache-Control', 'public, max-age=31536000, immutable')
+  }
+  
+  // Cache control for HTML pages
+  if (pathname === '/' || pathname.startsWith('/discover') || pathname.startsWith('/create')) {
+    response.headers.set('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+  }
   
   // TODO: Add authentication logic here when needed
   return response

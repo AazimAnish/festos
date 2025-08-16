@@ -1,4 +1,5 @@
-import { EventDetailPage } from "@/components/event-details/event-detail-page";
+import { redirect } from "next/navigation";
+import { extractEventIdFromSlug } from "@/lib/utils";
 
 export default async function EventDetail({
   params,
@@ -6,5 +7,15 @@ export default async function EventDetail({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  return <EventDetailPage slug={slug} />;
+  
+  // Extract event ID from slug and redirect to new unique ID format
+  try {
+    const eventId = extractEventIdFromSlug(slug);
+    // In a real app, you would look up the unique ID from the database
+    // For now, we'll use a simple mapping or redirect to the ID-based URL
+    redirect(`/${eventId}`);
+  } catch {
+    // If slug parsing fails, redirect to discover page
+    redirect("/discover");
+  }
 }

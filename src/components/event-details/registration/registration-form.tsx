@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect } from "react";
+import { memo, useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle } from "lucide-react";
 
@@ -30,21 +30,18 @@ export const RegistrationForm = memo(function RegistrationForm({
   onClose 
 }: RegistrationFormProps) {
   const { state, canProceed, actions } = useRegistration(form);
-  const { isConnected, address, isAvalanche } = useWallet();
+  const { isConnected, address } = useWallet();
+  
+  // Use ref to store the connectWallet function to avoid dependency issues
+  const connectWalletRef = useRef(actions.connectWallet);
+  connectWalletRef.current = actions.connectWallet;
 
   // Update wallet state when wallet connects
   useEffect(() => {
-    if (isConnected && address) {
-      actions.connectWallet();
+    if (isConnected && address && !state.walletConnected) {
+      connectWalletRef.current();
     }
-  }, [isConnected, address, actions]);
-
-  // Update wallet state when wallet connects (wallet is already connected from dialog)
-  useEffect(() => {
-    if (isConnected && address && isAvalanche) {
-      actions.connectWallet();
-    }
-  }, [isConnected, address, isAvalanche, actions]);
+  }, [isConnected, address, state.walletConnected]);
 
   const handleDownloadCalendar = useCallback(() => {
     const calendarData = generateCalendarEvent(eventData);

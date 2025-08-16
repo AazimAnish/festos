@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Heart, Share2, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface EventHeroBannerProps {
   event: {
@@ -22,20 +22,9 @@ interface EventHeroBannerProps {
 
 export function EventHeroBanner({ event }: EventHeroBannerProps) {
   const [saved, setSaved] = useState(event.isSaved);
-  const router = useRouter();
 
   const handleSaveToggle = () => {
     setSaved(!saved);
-  };
-
-  const handleBackClick = () => {
-    // Check if there's a previous page in history
-    if (window.history.length > 1) {
-      router.back();
-    } else {
-      // Fallback to discover page if no history
-      router.push('/discover');
-    }
   };
 
   return (
@@ -48,6 +37,8 @@ export function EventHeroBanner({ event }: EventHeroBannerProps) {
         className="object-cover"
         priority
         sizes="100vw"
+        placeholder="blur"
+        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
       />
       
       {/* Enhanced Gradient Overlay */}
@@ -58,14 +49,15 @@ export function EventHeroBanner({ event }: EventHeroBannerProps) {
         <div className="flex items-center justify-between w-full">
           {/* Back Button - Top Left */}
           <div className="flex items-center">
-            <button
-              onClick={handleBackClick}
-              className="flex items-center gap-2 px-4 py-2 bg-background/90 text-foreground hover:bg-background/95 backdrop-blur-sm border border-border/20 rounded-xl cursor-pointer transition-all duration-200 hover:scale-105"
-              type="button"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="font-secondary text-sm">Back</span>
-            </button>
+            <Link href="/discover" prefetch={true}>
+              <button
+                className="flex items-center gap-2 px-4 py-2 bg-background/90 text-foreground hover:bg-background/95 backdrop-blur-sm border border-border/20 rounded-xl cursor-pointer transition-all duration-200 hover:scale-105"
+                type="button"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span className="font-secondary text-sm">Back</span>
+              </button>
+            </Link>
           </div>
           
           {/* Action Buttons - Top Right */}

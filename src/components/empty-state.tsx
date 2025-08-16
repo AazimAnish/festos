@@ -10,12 +10,14 @@ interface EmptyStateProps {
   description: string;
   action?: {
     label: string;
-    href: string;
+    href?: string;
+    onClick?: () => void;
     icon?: React.ReactNode;
   };
   secondaryAction?: {
     label: string;
-    href: string;
+    href?: string;
+    onClick?: () => void;
     icon?: React.ReactNode;
   };
   icon?: React.ReactNode;
@@ -54,28 +56,51 @@ export function EmptyState({
         {(action || secondaryAction) && (
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-6 pt-4 lg:pt-8">
             {action && (
-              <Link href={action.href}>
+              action.href ? (
+                <Link href={action.href}>
+                  <Button
+                    size="lg"
+                    className="w-full sm:w-auto font-secondary px-6 lg:px-8 py-3 lg:py-4 rounded-xl transition-all duration-200 ease-out tracking-tight"
+                  >
+                    {action.icon && <span className="mr-2 lg:mr-3">{action.icon}</span>}
+                    {action.label}
+                  </Button>
+                </Link>
+              ) : (
                 <Button
                   size="lg"
                   className="w-full sm:w-auto font-secondary px-6 lg:px-8 py-3 lg:py-4 rounded-xl transition-all duration-200 ease-out tracking-tight"
+                  onClick={action.onClick}
                 >
                   {action.icon && <span className="mr-2 lg:mr-3">{action.icon}</span>}
                   {action.label}
                 </Button>
-              </Link>
+              )
             )}
             
             {secondaryAction && (
-              <Link href={secondaryAction.href}>
+              secondaryAction.href ? (
+                <Link href={secondaryAction.href}>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full sm:w-auto font-secondary px-6 lg:px-8 py-3 lg:py-4 rounded-xl transition-all duration-200 ease-out tracking-tight"
+                  >
+                    {secondaryAction.icon && <span className="mr-2 lg:mr-3">{secondaryAction.icon}</span>}
+                    {secondaryAction.label}
+                  </Button>
+                </Link>
+              ) : (
                 <Button
                   variant="outline"
                   size="lg"
                   className="w-full sm:w-auto font-secondary px-6 lg:px-8 py-3 lg:py-4 rounded-xl transition-all duration-200 ease-out tracking-tight"
+                  onClick={secondaryAction.onClick}
                 >
                   {secondaryAction.icon && <span className="mr-2 lg:mr-3">{secondaryAction.icon}</span>}
                   {secondaryAction.label}
                 </Button>
-              </Link>
+              )
             )}
           </div>
         )}

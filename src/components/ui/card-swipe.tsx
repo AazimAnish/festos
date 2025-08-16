@@ -6,7 +6,7 @@ import { Swiper, SwiperSlide } from "swiper/react"
 import "swiper/css/effect-cards"
 import { EffectCards } from "swiper/modules"
 import "swiper/css"
-import { Autoplay, Pagination, Navigation } from "swiper/modules"
+import { Autoplay } from "swiper/modules"
 
 interface CarouselProps {
   images: { src: string; alt: string }[]
@@ -16,9 +16,12 @@ interface CarouselProps {
 
 export const CardSwipe: React.FC<CarouselProps> = ({
   images,
-  autoplayDelay = 1500,
+  autoplayDelay = 2000,
   slideShadows = false,
 }) => {
+  // Limit to 6 images for better performance
+  const limitedImages = images.slice(0, 6);
+
   const css = `
   .swiper {
     width: 100%;
@@ -96,10 +99,10 @@ export const CardSwipe: React.FC<CarouselProps> = ({
           perSlideOffset: 8,
           perSlideRotate: 2,
         }}
-        modules={[EffectCards, Autoplay, Pagination, Navigation]}
+        modules={[EffectCards, Autoplay]}
         className="w-full max-w-full"
       >
-        {images.map((image, index) => (
+        {limitedImages.map((image, index) => (
           <SwiperSlide key={index}>
             <div className="w-full h-full rounded-3xl overflow-hidden">
               <Image
@@ -108,7 +111,10 @@ export const CardSwipe: React.FC<CarouselProps> = ({
                 height={500}
                 className="w-full h-full object-cover rounded-2xl"
                 alt={image.alt}
-                priority={index < 3}
+                priority={index < 2}
+                loading={index < 2 ? "eager" : "lazy"}
+                placeholder="blur"
+                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
               />
             </div>
           </SwiperSlide>

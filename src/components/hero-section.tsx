@@ -36,20 +36,12 @@ export function HeroSection() {
               <div className="responsive-spacing text-center lg:text-left">
                 
                 {/* Avalanche Badge */}
-                <FadeIn
-                  variant="up"
-                  timing="hero-badge"
-                  className="flex justify-center lg:justify-start"
-                >
+                <div className="flex justify-center lg:justify-start mb-6">
                   <AvalancheBadge />
-                </FadeIn>
+                </div>
                 
                 {/* Hero Text */}
-                <FadeIn
-                  variant="up"
-                  timing="hero-text"
-                  className="responsive-spacing"
-                >
+                <div className="responsive-spacing mb-8">
                   <h1 className="font-primary text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold leading-[1.05] text-foreground tracking-tight">
                     For the culture.<br />
                     On the <span className="text-primary">chain.</span>
@@ -57,15 +49,11 @@ export function HeroSection() {
                   <p className="font-tertiary text-lg sm:text-xl md:text-2xl lg:text-3xl max-w-lg mx-auto lg:mx-0 text-muted-foreground leading-relaxed tracking-tight">
                     Create fests that live forever.
                   </p>
-                </FadeIn>
+                </div>
 
                 {/* Action Buttons */}
-                <FadeIn
-                  variant="up"
-                  timing="hero-buttons"
-                  className="flex flex-col sm:flex-row gap-4 lg:gap-6 justify-center lg:justify-start pt-4 lg:pt-8"
-                >
-                  <Link href="/create">
+                <div className="flex flex-col sm:flex-row gap-4 lg:gap-6 justify-center lg:justify-start pt-4 lg:pt-8">
+                  <Link href="/create" prefetch={true}>
                     <Button
                       size="lg"
                       className="w-full sm:w-auto font-secondary text-base lg:text-lg px-8 lg:px-12 py-4 lg:py-6 h-auto bg-primary text-primary-foreground rounded-xl transition-all duration-200 ease-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg tracking-tight"
@@ -73,7 +61,7 @@ export function HeroSection() {
                       🎉 Throw a Fest
                     </Button>
                   </Link>
-                  <Link href="/discover">
+                  <Link href="/discover" prefetch={true}>
                     <Button
                       variant="outline"
                       size="lg"
@@ -82,7 +70,7 @@ export function HeroSection() {
                       🎟️ Explore Fests
                     </Button>
                   </Link>
-                </FadeIn>
+                </div>
                 
               </div>
             </FadeIn>
@@ -97,17 +85,13 @@ export function HeroSection() {
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-primary/40 blur-3xl rounded-full scale-100 sm:scale-110 lg:scale-125 xl:scale-150 opacity-60" />
 
               {/* Card Container */}
-              <FadeIn
-                variant="scale"
-                timing="hero-card"
-                className="w-full max-w-[280px] sm:max-w-[320px] md:max-w-[360px] lg:max-w-[400px] xl:max-w-[440px] 2xl:max-w-[480px] relative z-10"
-              >
+              <div className="w-full max-w-[280px] sm:max-w-[320px] md:max-w-[360px] lg:max-w-[400px] xl:max-w-[440px] 2xl:max-w-[480px] relative z-10">
                 <CardSwipe
                   images={CARD_IMAGES}
                   autoplayDelay={2000}
                   slideShadows={false}
                 />
-              </FadeIn>
+              </div>
             </FadeIn>
             
           </div>

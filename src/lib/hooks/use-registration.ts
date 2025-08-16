@@ -55,7 +55,7 @@ export function useRegistration(form: FormField[]) {
     }
   }, [state.currentStep, state.formData, state.walletConnected, state.termsAccepted, form]);
 
-  // Actions
+  // Actions - properly memoized with stable references
   const setCurrentStep = useCallback((step: number) => {
     setState(prev => ({ ...prev, currentStep: step }));
   }, []);
@@ -105,17 +105,27 @@ export function useRegistration(form: FormField[]) {
     });
   }, []);
 
+  // Memoize the actions object to prevent unnecessary re-renders
+  const actions = useMemo(() => ({
+    setCurrentStep,
+    updateFormData,
+    connectWallet,
+    setTermsAccepted,
+    submitRegistration,
+    resetRegistration,
+  }), [
+    setCurrentStep,
+    updateFormData,
+    connectWallet,
+    setTermsAccepted,
+    submitRegistration,
+    resetRegistration,
+  ]);
+
   return {
     state,
     progress,
     canProceed,
-    actions: {
-      setCurrentStep,
-      updateFormData,
-      connectWallet,
-      setTermsAccepted,
-      submitRegistration,
-      resetRegistration,
-    },
+    actions,
   };
 } 

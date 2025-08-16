@@ -15,6 +15,7 @@ import { LocationPicker } from "@/components/event-creation/location-picker"
 import { CapacityDialog } from "@/components/event-creation/capacity-dialog"
 import { POPDialog } from "@/components/event-creation/pop-dialog"
 import { TicketPriceDialog } from "@/components/event-creation/ticket-price-dialog"
+import { EventCreationSuccess } from "@/components/event-creation/event-creation-success"
 
 export function EventCreationPage() {
   type PopConfig = {
@@ -23,6 +24,7 @@ export function EventCreationPage() {
     recipientsCount?: number
     deliveryTime: string
   }
+  
   const [eventName, setEventName] = useState("")
   const [visibility, setVisibility] = useState("public")
   const [startDate, setStartDate] = useState<Date>()
@@ -38,6 +40,15 @@ export function EventCreationPage() {
   const [popEnabled, setPopEnabled] = useState(false)
   const [popConfig, setPopConfig] = useState<PopConfig | null>(null)
   const [isPopDialogOpen, setIsPopDialogOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
+  const [createdEvent, setCreatedEvent] = useState<{
+    title: string;
+    date: string;
+    location: string;
+    uniqueId: string;
+  } | null>(null)
+  
   const popSummary = popConfig
     ? popConfig.recipientsMode === "all"
       ? "All attendees"
@@ -88,6 +99,81 @@ export function EventCreationPage() {
     setIsTicketDialogOpen(false)
   }
 
+  const handleCreateEvent = async () => {
+    // Add validation check with console logging for debugging
+    console.log('Validation check:', {
+      eventName: !!eventName,
+      startDate: !!startDate,
+      location: !!location,
+      eventNameValue: eventName,
+      startDateValue: startDate,
+      locationValue: location,
+      isFormValid: isFormValid()
+    });
+
+    if (!isFormValid()) {
+      // You could add proper validation and error handling here
+      console.log('Validation failed:', { eventName, startDate, location });
+      return
+    }
+
+    setIsSubmitting(true)
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    
+    // Generate a unique ID for the event (in real app, this would come from the API)
+    const uniqueId = Math.random().toString(36).substring(2, 8)
+    
+    const eventData = {
+      title: eventName,
+      date: startDate?.toLocaleDateString() || '',
+      location: location,
+      uniqueId: uniqueId,
+    }
+    
+    setCreatedEvent(eventData)
+    setIsSuccess(true)
+    setIsSubmitting(false)
+  }
+
+  const handleReset = () => {
+    setIsSuccess(false)
+    setCreatedEvent(null)
+    setEventName("")
+    setVisibility("public")
+    setStartDate(undefined)
+    setEndDate(undefined)
+    setTimezone("America/New_York")
+    setLocation("")
+    setDescription("")
+    setTicketType("free")
+    setTicketPrice("")
+    setRequireApproval(false)
+    setCapacity("unlimited")
+    setPopEnabled(false)
+    setPopConfig(null)
+  }
+
+  // Validation helper function
+  const isFormValid = () => {
+    const hasEventName = eventName.trim().length > 0;
+    const hasStartDate = startDate instanceof Date && !isNaN(startDate.getTime());
+    const hasLocation = location.trim().length > 0;
+    
+    return hasEventName && hasStartDate && hasLocation;
+  }
+
+  // Show success component if event was created successfully
+  if (isSuccess && createdEvent) {
+    return (
+      <EventCreationSuccess 
+        eventData={createdEvent}
+        onClose={handleReset}
+      />
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-6 space-y-8">
@@ -95,11 +181,16 @@ export function EventCreationPage() {
         <div className="flex items-center justify-between gap-6">
           <div className="flex-1">
             <Input
-              placeholder="Event name"
+              placeholder="Event name *"
               value={eventName}
               onChange={(e) => setEventName(e.target.value)}
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold border-none shadow-none h-auto bg-transparent placeholder:text-muted-foreground focus-visible:ring-0 font-primary leading-[1.05] tracking-tight text-primary"
+              className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold border-none shadow-none h-auto py-4 bg-transparent placeholder:text-muted-foreground focus-visible:ring-0 font-primary leading-[1.2] tracking-tight ${
+                eventName.trim().length === 0 ? 'text-muted-foreground' : 'text-primary'
+              }`}
             />
+            {eventName.trim().length === 0 && (
+              <p className="text-sm text-muted-foreground mt-2">Event name is required</p>
+            )}
           </div>
           <Select value={visibility} onValueChange={setVisibility}>
             <SelectTrigger className="w-32 h-9 rounded-lg border-border">
@@ -131,32 +222,42 @@ export function EventCreationPage() {
           {/* Right Column - Event Details */}
           <div className="lg:col-span-2 space-y-6">
             {/* Date & Time */}
-            <div className="grid grid-cols-4 gap-4">
-              <div className="col-span-3">
-                <DateTimePicker
-                  startDate={startDate}
-                  endDate={endDate}
-                  onStartDateChange={setStartDate}
-                  onEndDateChange={setEndDate}
-                />
+            <div className="space-y-2">
+              <div className="grid grid-cols-4 gap-4">
+                <div className="col-span-3">
+                  <DateTimePicker
+                    startDate={startDate}
+                    endDate={endDate}
+                    onStartDateChange={setStartDate}
+                    onEndDateChange={setEndDate}
+                  />
+                </div>
+                <div className="col-span-1">
+                  <Select value={timezone} onValueChange={setTimezone}>
+                    <SelectTrigger className="h-12 rounded-lg">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="America/New_York">EST</SelectItem>
+                      <SelectItem value="America/Los_Angeles">PST</SelectItem>
+                      <SelectItem value="Europe/London">GMT</SelectItem>
+                      <SelectItem value="Asia/Tokyo">JST</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="col-span-1">
-                <Select value={timezone} onValueChange={setTimezone}>
-                  <SelectTrigger className="h-12 rounded-lg">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="America/New_York">EST</SelectItem>
-                    <SelectItem value="America/Los_Angeles">PST</SelectItem>
-                    <SelectItem value="Europe/London">GMT</SelectItem>
-                    <SelectItem value="Asia/Tokyo">JST</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {(!startDate || !(startDate instanceof Date) || isNaN(startDate.getTime())) && (
+                <p className="text-sm text-muted-foreground">Start date and time are required</p>
+              )}
             </div>
 
             {/* Location */}
-            <LocationPicker value={location} onChange={setLocation} onlyOffline={Boolean(startDate)} />
+            <div className="space-y-2">
+              <LocationPicker value={location} onChange={setLocation} onlyOffline={Boolean(startDate)} />
+              {location.trim().length === 0 && (
+                <p className="text-sm text-muted-foreground">Location is required</p>
+              )}
+            </div>
 
             {/* Description */}
             <div>
@@ -272,7 +373,20 @@ export function EventCreationPage() {
               <Button variant="outline" className="flex-1 h-12 rounded-xl bg-transparent">
                 Save Draft
               </Button>
-              <Button className="flex-1 h-12 rounded-xl bg-primary hover:bg-primary/90">Create Event</Button>
+              <Button 
+                onClick={handleCreateEvent}
+                disabled={isSubmitting || !isFormValid()}
+                className="flex-1 h-12 rounded-xl bg-primary hover:bg-primary/90"
+              >
+                {isSubmitting ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Creating Event...</span>
+                  </div>
+                ) : (
+                  "Create Event"
+                )}
+              </Button>
             </div>
           </div>
         </div>

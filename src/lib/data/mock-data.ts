@@ -1,5 +1,6 @@
 export interface SampleEvent {
   id: number;
+  uniqueId: string; // Lu.ma style unique ID
   title: string;
   location: string;
   price: string;
@@ -26,6 +27,7 @@ export const EVENT_COORDINATES: Record<number, [number, number]> = {
 export const MOCK_EVENTS: SampleEvent[] = [
   {
     id: 1,
+    uniqueId: "fpvxrdl3", // Lu.ma style unique ID
     title: "ETHIndia 2025 🇮🇳",
     location: "Bangalore, India",
     price: "0.01 ETH",
@@ -38,6 +40,7 @@ export const MOCK_EVENTS: SampleEvent[] = [
   },
   {
     id: 2,
+    uniqueId: "web3delhi",
     title: "Web3 Delhi Summit",
     location: "New Delhi, India",
     price: "0.05 ETH",
@@ -50,6 +53,7 @@ export const MOCK_EVENTS: SampleEvent[] = [
   },
   {
     id: 3,
+    uniqueId: "mumbaiblock",
     title: "Mumbai Blockchain Fest",
     location: "Mumbai, India",
     price: "Free",
@@ -62,6 +66,7 @@ export const MOCK_EVENTS: SampleEvent[] = [
   },
   {
     id: 4,
+    uniqueId: "chennainft",
     title: "Chennai NFT Expo",
     location: "Chennai, India",
     price: "0.1 ETH",
@@ -74,6 +79,7 @@ export const MOCK_EVENTS: SampleEvent[] = [
   },
   {
     id: 5,
+    uniqueId: "hydcrypto",
     title: "Hyderabad Crypto Gaming",
     location: "Hyderabad, India",
     price: "0.03 ETH",
@@ -86,6 +92,7 @@ export const MOCK_EVENTS: SampleEvent[] = [
   },
   {
     id: 6,
+    uniqueId: "punedefi",
     title: "Pune DeFi Workshop",
     location: "Pune, India",
     price: "0.02 ETH",
@@ -98,6 +105,7 @@ export const MOCK_EVENTS: SampleEvent[] = [
   },
   {
     id: 7,
+    uniqueId: "kolkataweb3",
     title: "Kolkata Web3 Meetup",
     location: "Kolkata, India",
     price: "Free",
@@ -110,6 +118,7 @@ export const MOCK_EVENTS: SampleEvent[] = [
   },
   {
     id: 8,
+    uniqueId: "ahmedabadblk",
     title: "Ahmedabad Blockchain",
     location: "Ahmedabad, India",
     price: "0.04 ETH",
