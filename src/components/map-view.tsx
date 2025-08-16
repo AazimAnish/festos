@@ -11,6 +11,7 @@ import { LocationDialog } from "@/components/ui/location-dialog"
 import { Loading } from "@/components/ui/loading"
 import type { SampleEvent } from "@/lib/data/mock-data"
 import { DEFAULT_LOCATION } from "@/lib/data/mock-data"
+import { toast } from "sonner"
 
 interface MapViewProps {
   events: SampleEvent[]
@@ -30,8 +31,8 @@ export function MapView({ events, isOpen, onClose, onClearFilters }: MapViewProp
   useEffect(() => {
     if (!isOpen || !mapContainer.current) return
 
-    // Show location dialog on first open
-    if (!userLocation) {
+    // Show location dialog on first open if no user location is set
+    if (!userLocation && !mapError) {
       setShowLocationDialog(true)
       return
     }
@@ -60,7 +61,7 @@ export function MapView({ events, isOpen, onClose, onClearFilters }: MapViewProp
             },
           ],
         },
-        center: [userLocation.lng, userLocation.lat], // Use user location
+        center: userLocation ? [userLocation.lng, userLocation.lat] : [DEFAULT_LOCATION.lng, DEFAULT_LOCATION.lat], // Use user location or default
         zoom: 8,
         attributionControl: false,
       })
@@ -196,17 +197,31 @@ export function MapView({ events, isOpen, onClose, onClearFilters }: MapViewProp
         map.current = null
       }
     }
-  }, [isOpen, events, userLocation])
+  }, [isOpen, events, userLocation, mapError])
+
+  useEffect(() => {
+    if (userLocation) {
+      map.current?.setCenter([userLocation.lng, userLocation.lat]);
+    }
+  }, [userLocation, mapError]);
 
   const handleLocationGranted = (coords: { lat: number; lng: number }) => {
     setUserLocation(coords)
     setShowLocationDialog(false)
+    toast.success("📍 Location access granted! Showing events near you.", {
+      description: "We'll use your location to show personalized event recommendations.",
+      duration: 4000,
+    })
   }
 
   const handleLocationDenied = () => {
     // Default to India (New Delhi)
     setUserLocation(DEFAULT_LOCATION)
     setShowLocationDialog(false)
+    toast.info("🌍 Using default location (India)", {
+      description: "You can change your location later in settings.",
+      duration: 4000,
+    })
   }
 
   if (!isOpen) return null

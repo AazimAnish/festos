@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Calendar } from "@/components/ui/calendar"
 import { Slider } from "@/components/ui/slider"
 import { FadeIn } from "@/components/ui/fade-in"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import { CalendarIcon, X } from "lucide-react"
+import { DayPicker } from "react-day-picker"
 
 interface Filters {
   search: string
@@ -30,6 +30,11 @@ interface FilterPanelProps {
 
 export function FilterPanel({ isOpen, onClose, filters, onFilterChange, onClearFilters }: FilterPanelProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(filters.date)
+
+  // Synchronize selectedDate with filters.date
+  useEffect(() => {
+    setSelectedDate(filters.date)
+  }, [filters.date])
 
   if (!isOpen) return null
 
@@ -133,7 +138,7 @@ export function FilterPanel({ isOpen, onClose, filters, onFilterChange, onClearF
 
               {/* Calendar */}
               <div className="border-2 border-border rounded-xl p-3 sm:p-4 lg:p-6 bg-background">
-                <Calendar
+                <DayPicker
                   mode="single"
                   selected={selectedDate}
                   onSelect={handleDateSelect}
@@ -144,19 +149,13 @@ export function FilterPanel({ isOpen, onClose, filters, onFilterChange, onClearF
                     months: "flex flex-col space-y-4",
                     month: "space-y-4",
                     nav: "flex items-center justify-between",
-                    button_previous:
-                      "h-8 w-8 lg:h-10 lg:w-10 bg-transparent p-0 opacity-50 hover:opacity-100 border border-border rounded-lg hover:bg-accent/20 transition-all duration-200 flex items-center justify-center",
-                    button_next:
-                      "h-8 w-8 lg:h-10 lg:w-10 bg-transparent p-0 opacity-50 hover:opacity-100 border border-border rounded-lg hover:bg-accent/20 transition-all duration-200 flex items-center justify-center",
-                    caption:
-                      "flex justify-center pt-1 relative items-center text-sm lg:text-base font-medium font-secondary text-foreground",
-                    caption_label: "text-sm lg:text-base font-medium font-secondary text-foreground tracking-tight",
+                    caption: "flex justify-center pt-1 relative items-center text-sm font-medium",
+                    caption_label: "text-sm font-medium",
                     table: "w-full border-collapse space-y-1",
                     weekdays: "flex",
-                    weekday:
-                      "text-muted-foreground rounded-md w-9 lg:w-10 font-normal text-[0.8rem] lg:text-sm font-secondary tracking-tight",
+                    weekday: "text-muted-foreground rounded-md w-9 font-normal text-xs",
                     week: "flex w-full mt-2",
-                    day: "h-9 w-9 lg:h-10 lg:w-10 p-0 font-normal aria-selected:opacity-100 hover:bg-accent/20 hover:text-accent-foreground rounded-lg transition-all duration-200",
+                    day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-accent/20 hover:text-accent-foreground rounded-lg transition-all duration-200",
                     today: "bg-accent/20 text-accent-foreground font-semibold border border-accent",
                     outside: "text-muted-foreground opacity-50",
                     disabled: "text-muted-foreground opacity-50",

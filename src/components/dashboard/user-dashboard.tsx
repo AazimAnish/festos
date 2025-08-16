@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { EventCard } from "@/components/event-card"
 import { EmptyState } from "@/components/empty-state"
 import { useWallet } from "@/lib/hooks/use-wallet"
+import { useTickets } from "@/lib/hooks/use-tickets"
 import { MOCK_EVENTS } from "@/lib/data/mock-data"
 import {
   Calendar,
@@ -53,59 +54,6 @@ const userData = {
   },
 }
 
-// Mock NFT tickets
-const mockTickets = [
-  {
-    id: 1,
-    eventName: "ETH Denver 2025",
-    image: "/ticket.png",
-    date: "2025-02-28",
-    status: "valid",
-    type: "VIP",
-    transferable: true,
-  },
-  {
-    id: 2,
-    eventName: "Web3 Delhi Summit",
-    image: "/ticket.png",
-    date: "2025-01-15",
-    status: "valid",
-    type: "General",
-    transferable: true,
-  },
-  {
-    id: 3,
-    eventName: "Mumbai Blockchain Fest",
-    image: "/ticket.png",
-    date: "2024-03-10",
-    status: "used",
-    type: "General",
-    transferable: false,
-  },
-]
-
-// Mock marketplace listings
-const mockListings = [
-  {
-    id: 1,
-    eventName: "ETH Denver 2025",
-    image: "/ticket.png",
-    price: "0.25 ETH",
-    listed: "2024-01-15",
-    status: "active",
-    views: 45,
-  },
-  {
-    id: 2,
-    eventName: "Web3 Delhi Summit",
-    image: "/ticket.png",
-    price: "0.1 ETH",
-    listed: "2024-01-10",
-    status: "sold",
-    views: 87,
-  },
-]
-
 // Dashboard stats configuration
 const dashboardStatsConfig = [
   {
@@ -148,6 +96,7 @@ const createdEvents = MOCK_EVENTS.slice(0, 4)
 
 export function UserDashboard() {
   const { isConnected } = useWallet()
+  const { ownedTickets, getUserListings } = useTickets();
   const [activeTab, setActiveTab] = useState("overview")
   
   // In a real app, we would check if the user is connected
@@ -317,13 +266,13 @@ export function UserDashboard() {
               </Button>
             </div>
 
-            {mockTickets.length > 0 ? (
+            {ownedTickets.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {mockTickets.map((ticket) => (
+                {ownedTickets.map((ticket) => (
                   <Card key={ticket.id} className="overflow-hidden group rounded-xl border border-border/50 bg-background shadow-sm hover:shadow-lg hover:border-border transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1">
                     <div className="relative">
                       <Image
-                        src={ticket.image}
+                        src={ticket.eventImage}
                         alt={ticket.eventName}
                         width={400}
                         height={200}
@@ -342,9 +291,9 @@ export function UserDashboard() {
                       <div className="flex items-center justify-between mb-3">
                         <div className="font-secondary text-sm text-muted-foreground flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          {new Date(ticket.date).toLocaleDateString()}
+                          {new Date(ticket.eventDate).toLocaleDateString()}
                         </div>
-                        <Badge variant="outline">{ticket.type}</Badge>
+                        <Badge variant="outline">{ticket.ticketType}</Badge>
                       </div>
                       <div className="flex items-center justify-between mt-4">
                         <Button variant="outline" size="sm" className="gap-1">
@@ -521,13 +470,13 @@ export function UserDashboard() {
             My Tickets
           </h2>
           
-          {mockTickets.length > 0 ? (
+          {ownedTickets.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {mockTickets.map((ticket) => (
+              {ownedTickets.map((ticket) => (
                 <Card key={ticket.id} className="overflow-hidden group rounded-xl border border-border/50 bg-background shadow-sm hover:shadow-lg hover:border-border transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1">
                   <div className="relative">
                     <Image
-                      src={ticket.image}
+                      src={ticket.eventImage}
                       alt={ticket.eventName}
                       width={400}
                       height={200}
@@ -546,9 +495,9 @@ export function UserDashboard() {
                     <div className="flex items-center justify-between mb-3">
                       <div className="font-secondary text-sm text-muted-foreground flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
-                        {new Date(ticket.date).toLocaleDateString()}
+                        {new Date(ticket.eventDate).toLocaleDateString()}
                       </div>
-                      <Badge variant="outline">{ticket.type}</Badge>
+                      <Badge variant="outline">{ticket.ticketType}</Badge>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 mt-4">
                       <Button variant="default" size="sm" className="gap-1">
@@ -626,13 +575,13 @@ export function UserDashboard() {
             </Button>
           </div>
           
-          {mockListings.length > 0 ? (
+          {getUserListings().length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {mockListings.map((listing) => (
+              {getUserListings().map((listing) => (
                 <Card key={listing.id} className="overflow-hidden group rounded-xl border border-border/50 bg-background shadow-sm hover:shadow-lg hover:border-border transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1">
                   <div className="relative">
                     <Image
-                      src={listing.image}
+                      src={listing.eventImage}
                       alt={listing.eventName}
                       width={400}
                       height={200}
@@ -654,7 +603,7 @@ export function UserDashboard() {
                       </div>
                       <div className="font-secondary text-sm text-muted-foreground flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
-                        Listed: {new Date(listing.listed).toLocaleDateString()}
+                        Listed: {new Date(listing.listedAt).toLocaleDateString()}
                       </div>
                     </div>
                     

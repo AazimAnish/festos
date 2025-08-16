@@ -91,14 +91,14 @@ export function Header() {
                 whileTap={{ scale: 0.95 }}
               >
                 <Image
-                  src="/ticket.png"
+                  src="/tickets.png"
                   alt="Festos Logo"
                   fill
                   className="object-cover rounded-xl transition-all duration-200"
                   priority
                 />
               </motion.div>
-              <span className="font-primary font-black text-xl lg:text-2xl text-foreground tracking-tight">
+              <span className="font-primary font-black text-xl lg:text-2xl text-primary tracking-tight">
                 Festos
               </span>
             </Link>
