@@ -14,22 +14,25 @@ const instrumentSerif = Instrument_Serif({
   weight: "400",
   display: "swap",
   preload: true,
+  fallback: ["Georgia", "serif"],
 });
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "700"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
   preload: true,
+  fallback: ["-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
 });
 
 const robotoMono = Roboto_Mono({
   variable: "--font-roboto-mono",
   subsets: ["latin"],
-  weight: "400",
+  weight: ["400", "500"],
   display: "swap",
   preload: true,
+  fallback: ["SF Mono", "Monaco", "Inconsolata", "monospace"],
 });
 
 // Safely construct metadata base URL

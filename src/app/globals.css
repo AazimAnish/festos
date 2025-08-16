@@ -241,6 +241,8 @@
     letter-spacing: -0.022em; /* Apple's preferred letter spacing */
     /* Enhanced font rendering */
     font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    /* Font fallback system */
+    font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
 
   /* Apple-inspired typography improvements */
@@ -254,6 +256,7 @@
     font-weight: 600;
     letter-spacing: -0.025em;
     line-height: 1.1;
+    font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 
   h1 {
@@ -279,6 +282,7 @@
     @apply font-mono;
     line-height: 1.47059;
     letter-spacing: -0.022em;
+    font-family: var(--font-roboto-mono), "SF Mono", Monaco, Inconsolata, monospace;
   }
 
   /* Apple-inspired focus styles */
