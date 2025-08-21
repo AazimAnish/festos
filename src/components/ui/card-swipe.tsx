@@ -1,17 +1,17 @@
-"use client"
+'use client';
 
-import React from "react"
-import Image from "next/image"
-import { Swiper, SwiperSlide } from "swiper/react"
-import "swiper/css/effect-cards"
-import { EffectCards } from "swiper/modules"
-import "swiper/css"
-import { Autoplay } from "swiper/modules"
+import React from 'react';
+import Image from 'next/image';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css/effect-cards';
+import { EffectCards } from 'swiper/modules';
+import 'swiper/css';
+import { Autoplay } from 'swiper/modules';
 
 interface CarouselProps {
-  images: { src: string; alt: string }[]
-  autoplayDelay?: number
-  slideShadows?: boolean
+  images: { src: string; alt: string }[];
+  autoplayDelay?: number;
+  slideShadows?: boolean;
 }
 
 export const CardSwipe: React.FC<CarouselProps> = ({
@@ -79,20 +79,20 @@ export const CardSwipe: React.FC<CarouselProps> = ({
       border-radius: var(--radius-sm);
     }
   }
-  `
+  `;
 
   return (
-    <div className="w-full h-full flex items-center justify-center">
+    <div className='w-full h-full flex items-center justify-center'>
       <style>{css}</style>
       <Swiper
         autoplay={{
           delay: autoplayDelay,
           disableOnInteraction: false,
         }}
-        effect={"cards"}
+        effect={'cards'}
         grabCursor={true}
         loop={true}
-        slidesPerView={"auto"}
+        slidesPerView={'auto'}
         rewind={true}
         cardsEffect={{
           slideShadows: slideShadows,
@@ -100,26 +100,26 @@ export const CardSwipe: React.FC<CarouselProps> = ({
           perSlideRotate: 2,
         }}
         modules={[EffectCards, Autoplay]}
-        className="w-full max-w-full"
+        className='w-full max-w-full'
       >
         {limitedImages.map((image, index) => (
           <SwiperSlide key={index}>
-            <div className="w-full h-full rounded-3xl overflow-hidden">
+            <div className='w-full h-full rounded-3xl overflow-hidden'>
               <Image
                 src={image.src}
                 width={400}
                 height={500}
-                className="w-full h-full object-cover rounded-2xl"
+                className='w-full h-full object-cover rounded-2xl'
                 alt={image.alt}
                 priority={index < 2}
-                loading={index < 2 ? "eager" : "lazy"}
-                placeholder="blur"
-                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+                loading={index < 2 ? 'eager' : 'lazy'}
+                placeholder='blur'
+                blurDataURL='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k='
               />
             </div>
           </SwiperSlide>
         ))}
       </Swiper>
     </div>
-  )
-}
+  );
+};

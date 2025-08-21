@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
 import {
@@ -11,7 +11,7 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 } from 'chart.js';
 import { Line, Bar } from 'react-chartjs-2';
 
@@ -61,10 +61,10 @@ interface TooltipContext {
   label: string;
 }
 
-export function CheckInChart({ 
-  data, 
+export function CheckInChart({
+  data,
   isLoading = false,
-  chartType = 'line'
+  chartType = 'line',
 }: CheckInChartProps) {
   const [chartData, setChartData] = useState<ChartData | null>(null);
 
@@ -82,7 +82,10 @@ export function CheckInChart({
               label: 'Check-ins',
               data: data.map(item => item.count),
               borderColor: 'rgba(16, 185, 129, 1)', // Success color
-              backgroundColor: chartType === 'line' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.7)',
+              backgroundColor:
+                chartType === 'line'
+                  ? 'rgba(16, 185, 129, 0.1)'
+                  : 'rgba(16, 185, 129, 0.7)',
               borderWidth: 2,
               tension: 0.3,
               fill: chartType === 'line',
@@ -90,8 +93,8 @@ export function CheckInChart({
               pointBackgroundColor: 'rgba(16, 185, 129, 1)',
               barPercentage: 0.7,
               categoryPercentage: 0.8,
-            }
-          ]
+            },
+          ],
         };
       }
 
@@ -106,7 +109,7 @@ export function CheckInChart({
       mockData.push(3);
       mockLabels.push('8:30 AM');
       mockData.push(12);
-      
+
       // Generate hourly check-in data
       for (let hour = eventStart; hour <= eventEnd; hour++) {
         // Morning peak at 9-10 AM, afternoon lull, then smaller peak at 2-3 PM
@@ -122,7 +125,7 @@ export function CheckInChart({
         } else {
           count = Math.floor(Math.random() * 20) + 10; // Random between 10-30
         }
-        
+
         mockLabels.push(`${hour % 12 || 12}:00 ${hour >= 12 ? 'PM' : 'AM'}`);
         mockData.push(count);
 
@@ -139,7 +142,10 @@ export function CheckInChart({
             label: 'Check-ins',
             data: mockData,
             borderColor: 'rgba(16, 185, 129, 1)', // Success color
-            backgroundColor: chartType === 'line' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.7)',
+            backgroundColor:
+              chartType === 'line'
+                ? 'rgba(16, 185, 129, 0.1)'
+                : 'rgba(16, 185, 129, 0.7)',
             borderWidth: 2,
             tension: 0.3,
             fill: chartType === 'line',
@@ -147,8 +153,8 @@ export function CheckInChart({
             pointBackgroundColor: 'rgba(16, 185, 129, 1)',
             barPercentage: 0.7,
             categoryPercentage: 0.8,
-          }
-        ]
+          },
+        ],
       };
     };
 
@@ -167,10 +173,10 @@ export function CheckInChart({
         mode: 'index' as const,
         intersect: false,
         callbacks: {
-          label: function(context: TooltipContext) {
+          label: function (context: TooltipContext) {
             return `Check-ins: ${context.raw as number}`;
-          }
-        }
+          },
+        },
       },
     },
     scales: {
@@ -190,7 +196,7 @@ export function CheckInChart({
           font: {
             size: 12,
           },
-        }
+        },
       },
       x: {
         grid: {
@@ -212,23 +218,23 @@ export function CheckInChart({
 
   if (isLoading) {
     return (
-      <div className="h-64 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className='h-64 flex items-center justify-center'>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
       </div>
     );
   }
 
   if (!chartData) {
     return (
-      <div className="h-64 flex items-center justify-center">
-        <p className="text-muted-foreground">No data available</p>
+      <div className='h-64 flex items-center justify-center'>
+        <p className='text-muted-foreground'>No data available</p>
       </div>
     );
   }
 
   // Render the appropriate chart type
   return (
-    <div className="h-64">
+    <div className='h-64'>
       {chartType === 'line' ? (
         <Line data={chartData} options={options} />
       ) : (

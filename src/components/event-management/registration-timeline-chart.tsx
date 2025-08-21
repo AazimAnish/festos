@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
 import {
@@ -10,7 +10,7 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 
@@ -56,7 +56,10 @@ interface TooltipContext {
   label: string;
 }
 
-export function RegistrationTimelineChart({ data, isLoading = false }: RegistrationTimelineChartProps) {
+export function RegistrationTimelineChart({
+  data,
+  isLoading = false,
+}: RegistrationTimelineChartProps) {
   const [chartData, setChartData] = useState<ChartData | null>(null);
 
   // Generate mock data if none is provided
@@ -67,7 +70,12 @@ export function RegistrationTimelineChart({ data, isLoading = false }: Registrat
       // If data is provided, use it. Otherwise, generate mock data
       if (data && data.length > 0) {
         return {
-          labels: data.map(item => new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })),
+          labels: data.map(item =>
+            new Date(item.date).toLocaleDateString(undefined, {
+              month: 'short',
+              day: 'numeric',
+            })
+          ),
           datasets: [
             {
               label: 'Registrations',
@@ -79,8 +87,8 @@ export function RegistrationTimelineChart({ data, isLoading = false }: Registrat
               fill: true,
               pointRadius: 3,
               pointBackgroundColor: 'rgba(99, 102, 241, 1)',
-            }
-          ]
+            },
+          ],
         };
       }
 
@@ -92,7 +100,9 @@ export function RegistrationTimelineChart({ data, isLoading = false }: Registrat
       for (let i = 29; i >= 0; i--) {
         const date = new Date();
         date.setDate(today.getDate() - i);
-        labels.push(date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
+        labels.push(
+          date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+        );
 
         // Generate some plausible registration data with a peak in the middle
         let count;
@@ -123,8 +133,8 @@ export function RegistrationTimelineChart({ data, isLoading = false }: Registrat
             fill: true,
             pointRadius: 3,
             pointBackgroundColor: 'rgba(99, 102, 241, 1)',
-          }
-        ]
+          },
+        ],
       };
     };
 
@@ -143,10 +153,10 @@ export function RegistrationTimelineChart({ data, isLoading = false }: Registrat
         mode: 'index' as const,
         intersect: false,
         callbacks: {
-          label: function(context: TooltipContext) {
+          label: function (context: TooltipContext) {
             return `Registrations: ${context.raw as number}`;
-          }
-        }
+          },
+        },
       },
     },
     scales: {
@@ -166,7 +176,7 @@ export function RegistrationTimelineChart({ data, isLoading = false }: Registrat
           font: {
             size: 12,
           },
-        }
+        },
       },
       x: {
         grid: {
@@ -183,22 +193,22 @@ export function RegistrationTimelineChart({ data, isLoading = false }: Registrat
 
   if (isLoading) {
     return (
-      <div className="h-64 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className='h-64 flex items-center justify-center'>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
       </div>
     );
   }
 
   if (!chartData) {
     return (
-      <div className="h-64 flex items-center justify-center">
-        <p className="text-muted-foreground">No data available</p>
+      <div className='h-64 flex items-center justify-center'>
+        <p className='text-muted-foreground'>No data available</p>
       </div>
     );
   }
 
   return (
-    <div className="h-64">
+    <div className='h-64'>
       <Line data={chartData} options={options} />
     </div>
   );

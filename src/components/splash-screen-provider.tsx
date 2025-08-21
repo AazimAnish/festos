@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { createContext, useContext, ReactNode } from "react";
-import { useSplashScreen } from "@/lib/hooks/use-splash-screen";
-import { SplashScreen } from "@/components/splash-screen";
+import { createContext, useContext, ReactNode } from 'react';
+import { useSplashScreen } from '@/lib/hooks/use-splash-screen';
+import { SplashScreen } from '@/components/splash-screen';
 
 interface SplashScreenContextType {
   showSplash: boolean;
@@ -10,12 +10,16 @@ interface SplashScreenContextType {
   isFirstVisit: boolean;
 }
 
-const SplashScreenContext = createContext<SplashScreenContextType | undefined>(undefined);
+const SplashScreenContext = createContext<SplashScreenContextType | undefined>(
+  undefined
+);
 
 export function useSplashScreenContext() {
   const context = useContext(SplashScreenContext);
   if (context === undefined) {
-    throw new Error("useSplashScreenContext must be used within a SplashScreenProvider");
+    throw new Error(
+      'useSplashScreenContext must be used within a SplashScreenProvider'
+    );
   }
   return context;
 }

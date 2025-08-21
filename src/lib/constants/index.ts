@@ -1,6 +1,6 @@
 /**
  * Application Constants
- * 
+ *
  * This file contains all application-wide constants organized by category.
  * Following clean code principles, all magic numbers and strings are defined here.
  */
@@ -60,8 +60,10 @@ export const VALIDATION_MESSAGES = {
   INVALID_EMAIL: 'Please enter a valid email address',
   INVALID_WALLET_ADDRESS: 'Please enter a valid wallet address',
   INVALID_URL: 'Please enter a valid URL',
-  TOO_LONG: (field: string, max: number) => `${field} must be ${max} characters or less`,
-  TOO_SHORT: (field: string, min: number) => `${field} must be at least ${min} characters`,
+  TOO_LONG: (field: string, max: number) =>
+    `${field} must be ${max} characters or less`,
+  TOO_SHORT: (field: string, min: number) =>
+    `${field} must be at least ${min} characters`,
   INVALID_DATE: 'Please enter a valid date',
   FUTURE_DATE_REQUIRED: 'Date must be in the future',
   END_DATE_AFTER_START: 'End date must be after start date',

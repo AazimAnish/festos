@@ -1,20 +1,21 @@
 /**
  * Event Service
- * 
+ *
  * This service handles all event-related business logic following clean code principles.
  * It separates business logic from data access and presentation layers.
  */
 
 import { createClient } from '@/lib/supabase/server';
-import { getFilebaseClient, generateEventMetadataKey, generateEventImageKey } from '@/lib/filebase/client';
+import {
+  getFilebaseClient,
+  generateEventMetadataKey,
+  generateEventImageKey,
+} from '@/lib/filebase/client';
 import { createEventOnAvalanche } from '@/lib/contracts/avalanche-client';
 import type { CreateEventParams } from '@/lib/contracts/types/EventFactory';
 import type { CreateEventInput } from '@/lib/schemas/event';
 import { parseEther } from 'viem';
-import { 
-  NotFoundError, 
-  ValidationError
-} from '@/lib/utils/error-handler';
+import { NotFoundError, ValidationError } from '@/lib/utils/error-handler';
 import { EVENT_CONFIG } from '@/lib/constants';
 
 export interface EventCreationResult {
@@ -83,7 +84,7 @@ export class EventService {
     try {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-      
+
       if (supabaseUrl && supabaseKey) {
         this.supabase = await createClient();
       } else {
@@ -109,8 +110,12 @@ export class EventService {
     const userId = await this.getOrCreateUser(input.walletAddress);
 
     // Convert dates to Unix timestamps
-    const startTime = BigInt(Math.floor(new Date(input.startDate).getTime() / 1000));
-    const endTime = BigInt(Math.floor(new Date(input.endDate).getTime() / 1000));
+    const startTime = BigInt(
+      Math.floor(new Date(input.startDate).getTime() / 1000)
+    );
+    const endTime = BigInt(
+      Math.floor(new Date(input.endDate).getTime() / 1000)
+    );
 
     // Validate dates
     this.validateEventDates(startTime, endTime);
@@ -125,10 +130,21 @@ export class EventService {
     const filebaseResult = await this.uploadToFilebase(eventId, input, userId);
 
     // Create on blockchain
-    const blockchainResult = await this.createOnBlockchain(input, startTime, endTime, ticketPriceWei);
+    const blockchainResult = await this.createOnBlockchain(
+      input,
+      startTime,
+      endTime,
+      ticketPriceWei
+    );
 
     // Store in database
-    const databaseResult = await this.storeInDatabase(input, userId, eventId, blockchainResult, filebaseResult);
+    const databaseResult = await this.storeInDatabase(
+      input,
+      userId,
+      eventId,
+      blockchainResult,
+      filebaseResult
+    );
 
     return {
       eventId: databaseResult?.id || eventId,
@@ -152,7 +168,7 @@ export class EventService {
    */
   async getEventById(eventId: string): Promise<EventData | null> {
     await this.initializeSupabase();
-    
+
     if (!this.supabase) {
       throw new NotFoundError('Database not available');
     }
@@ -178,7 +194,7 @@ export class EventService {
    */
   async getEventBySlug(slug: string): Promise<EventData | null> {
     await this.initializeSupabase();
-    
+
     if (!this.supabase) {
       throw new NotFoundError('Database not available');
     }
@@ -204,7 +220,7 @@ export class EventService {
    */
   async getEventsByCreator(creatorId: string): Promise<EventData[]> {
     await this.initializeSupabase();
-    
+
     if (!this.supabase) {
       throw new NotFoundError('Database not available');
     }
@@ -225,9 +241,12 @@ export class EventService {
   /**
    * Search events
    */
-  async searchEvents(query: string, filters?: Record<string, unknown>): Promise<EventData[]> {
+  async searchEvents(
+    query: string,
+    filters?: Record<string, unknown>
+  ): Promise<EventData[]> {
     await this.initializeSupabase();
-    
+
     if (!this.supabase) {
       throw new NotFoundError('Database not available');
     }
@@ -239,7 +258,9 @@ export class EventService {
       .gte('start_date', new Date().toISOString());
 
     if (query) {
-      queryBuilder = queryBuilder.or(`title.ilike.%${query}%,description.ilike.%${query}%,location.ilike.%${query}%`);
+      queryBuilder = queryBuilder.or(
+        `title.ilike.%${query}%,description.ilike.%${query}%,location.ilike.%${query}%`
+      );
     }
 
     if (filters?.category) {
@@ -247,10 +268,15 @@ export class EventService {
     }
 
     if (filters?.location) {
-      queryBuilder = queryBuilder.ilike('location', `%${filters.location as string}%`);
+      queryBuilder = queryBuilder.ilike(
+        'location',
+        `%${filters.location as string}%`
+      );
     }
 
-    const { data: events, error } = await queryBuilder.order('start_date', { ascending: true });
+    const { data: events, error } = await queryBuilder.order('start_date', {
+      ascending: true,
+    });
 
     if (error) {
       throw new Error(`Failed to search events: ${error.message}`);
@@ -268,7 +294,9 @@ export class EventService {
     }
 
     if (input.title.length > EVENT_CONFIG.MAX_TITLE_LENGTH) {
-      throw new ValidationError(`Title must be ${EVENT_CONFIG.MAX_TITLE_LENGTH} characters or less`);
+      throw new ValidationError(
+        `Title must be ${EVENT_CONFIG.MAX_TITLE_LENGTH} characters or less`
+      );
     }
 
     if (!input.description.trim()) {
@@ -276,7 +304,9 @@ export class EventService {
     }
 
     if (input.description.length > EVENT_CONFIG.MAX_DESCRIPTION_LENGTH) {
-      throw new ValidationError(`Description must be ${EVENT_CONFIG.MAX_DESCRIPTION_LENGTH} characters or less`);
+      throw new ValidationError(
+        `Description must be ${EVENT_CONFIG.MAX_DESCRIPTION_LENGTH} characters or less`
+      );
     }
 
     if (!input.location.trim()) {
@@ -284,11 +314,18 @@ export class EventService {
     }
 
     if (input.location.length > EVENT_CONFIG.MAX_LOCATION_LENGTH) {
-      throw new ValidationError(`Location must be ${EVENT_CONFIG.MAX_LOCATION_LENGTH} characters or less`);
+      throw new ValidationError(
+        `Location must be ${EVENT_CONFIG.MAX_LOCATION_LENGTH} characters or less`
+      );
     }
 
-    if (input.maxCapacity < 0 || input.maxCapacity > EVENT_CONFIG.MAX_CAPACITY) {
-      throw new ValidationError(`Capacity must be between 0 and ${EVENT_CONFIG.MAX_CAPACITY}`);
+    if (
+      input.maxCapacity < 0 ||
+      input.maxCapacity > EVENT_CONFIG.MAX_CAPACITY
+    ) {
+      throw new ValidationError(
+        `Capacity must be between 0 and ${EVENT_CONFIG.MAX_CAPACITY}`
+      );
     }
   }
 
@@ -297,7 +334,7 @@ export class EventService {
    */
   private validateEventDates(startTime: bigint, endTime: bigint): void {
     const now = BigInt(Math.floor(Date.now() / 1000));
-    
+
     if (startTime <= now) {
       throw new ValidationError('Start time must be in the future');
     }
@@ -360,10 +397,12 @@ export class EventService {
       // Create new user
       const { data: newUser, error: createError } = await this.supabase
         .from('users')
-        .insert([{
-          wallet_address: walletAddress.toLowerCase(),
-          created_at: new Date().toISOString(),
-        }])
+        .insert([
+          {
+            wallet_address: walletAddress.toLowerCase(),
+            created_at: new Date().toISOString(),
+          },
+        ])
         .select('id')
         .single();
 
@@ -382,8 +421,8 @@ export class EventService {
    * Upload event data to Filebase
    */
   private async uploadToFilebase(
-    eventId: string, 
-    input: CreateEventInput, 
+    eventId: string,
+    input: CreateEventInput,
     userId: string
   ): Promise<{ metadataUrl?: string; imageUrl?: string } | null> {
     try {
@@ -416,7 +455,10 @@ export class EventService {
 
       // Upload metadata
       const metadataKey = generateEventMetadataKey(eventId);
-      const metadataResult = await filebaseClient.uploadMetadata(metadataKey, eventMetadata);
+      const metadataResult = await filebaseClient.uploadMetadata(
+        metadataKey,
+        eventMetadata
+      );
 
       let imageUrl: string | undefined;
 
@@ -426,10 +468,13 @@ export class EventService {
           const imageResponse = await fetch(input.bannerImage);
           if (imageResponse.ok) {
             const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
-            const imageKey = generateEventImageKey(eventId, 'banner-image.webp');
+            const imageKey = generateEventImageKey(
+              eventId,
+              'banner-image.webp'
+            );
             const imageResult = await filebaseClient.uploadImage(
-              imageKey, 
-              imageBuffer, 
+              imageKey,
+              imageBuffer,
               'image/jpeg',
               true, // Enable compression
               'banner' // Use banner compression preset
@@ -459,7 +504,12 @@ export class EventService {
     startTime: bigint,
     endTime: bigint,
     ticketPriceWei: bigint
-  ): Promise<{ eventId: number; transactionHash: string; chainId: number; address: string } | null> {
+  ): Promise<{
+    eventId: number;
+    transactionHash: string;
+    chainId: number;
+    address: string;
+  } | null> {
     if (!input.privateKey || input.privateKey.trim() === '') {
       return null;
     }
@@ -503,7 +553,12 @@ export class EventService {
     input: CreateEventInput,
     userId: string,
     eventId: string,
-    blockchainResult: { eventId: number; transactionHash: string; chainId: number; address: string } | null,
+    blockchainResult: {
+      eventId: number;
+      transactionHash: string;
+      chainId: number;
+      address: string;
+    } | null,
     filebaseResult: { metadataUrl?: string; imageUrl?: string } | null
   ): Promise<{ id: string; slug: string } | null> {
     if (!this.supabase) {
@@ -549,7 +604,9 @@ export class EventService {
         if (dbError.code === '42P01') {
           throw new Error('Events table not found');
         }
-        throw new Error(`Failed to create event in database: ${dbError.message}`);
+        throw new Error(
+          `Failed to create event in database: ${dbError.message}`
+        );
       }
 
       const slug = this.generateSlug(input.title);

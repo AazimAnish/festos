@@ -1,0 +1,27 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": false,
+    "resolveJsonModule": true,
+    "isolatedModules": false,
+    "noEmit": true,
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "noImplicitThis": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["test/**/*.ts", "foundry-tests/**/*.ts"],
+  "exclude": ["node_modules", "src/**/*"]
+}

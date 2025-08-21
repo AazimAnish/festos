@@ -1,5 +1,5 @@
 export interface FormField {
-  type: "text" | "email" | "select";
+  type: 'text' | 'email' | 'select';
   label: string;
   required: boolean;
   options?: string[];
@@ -38,4 +38,4 @@ export interface RegistrationState {
 export interface RegistrationFormData {
   form: FormField[];
   eventData: EventData;
-} 
+}

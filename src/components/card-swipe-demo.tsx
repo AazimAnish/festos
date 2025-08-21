@@ -1,13 +1,13 @@
-import React from "react"
-import { Swiper, SwiperSlide } from "swiper/react"
-import "swiper/css/effect-cards"
-import { EffectCards, Autoplay } from "swiper/modules"
-import "swiper/css"
-import { EventCard } from "./event-card"
-import { SAMPLE_EVENTS } from "@/lib/data/sample-events"
+import React from 'react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css/effect-cards';
+import { EffectCards, Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import { EventCard } from './event-card';
+import { SAMPLE_EVENTS } from '@/lib/data/sample-events';
 
 // Take first 6 events for the carousel
-const HERO_EVENTS = SAMPLE_EVENTS.slice(0, 6)
+const HERO_EVENTS = SAMPLE_EVENTS.slice(0, 6);
 
 // Custom CSS for event cards in Swiper
 const swiperStyles = `
@@ -69,17 +69,17 @@ const swiperStyles = `
 
 const CardSwipeDemo = () => {
   return (
-    <div className="w-full">
+    <div className='w-full'>
       <style>{swiperStyles}</style>
       <Swiper
         autoplay={{
           delay: 3000,
           disableOnInteraction: false,
         }}
-        effect={"cards"}
+        effect={'cards'}
         grabCursor={true}
         loop={true}
-        slidesPerView={"auto"}
+        slidesPerView={'auto'}
         rewind={true}
         cardsEffect={{
           slideShadows: false,
@@ -87,22 +87,18 @@ const CardSwipeDemo = () => {
           perSlideRotate: 2,
         }}
         modules={[EffectCards, Autoplay]}
-        className="w-full max-w-full"
+        className='w-full max-w-full'
       >
-        {HERO_EVENTS.map((event) => (
+        {HERO_EVENTS.map(event => (
           <SwiperSlide key={event.id}>
-            <div className="w-full h-full rounded-3xl overflow-hidden transform transition-transform duration-300 hover:scale-[1.02] event-card">
-              <EventCard
-                {...event}
-                variant="hero"
-                status="confirmed"
-              />
+            <div className='w-full h-full rounded-3xl overflow-hidden transform transition-transform duration-300 hover:scale-[1.02] event-card'>
+              <EventCard {...event} variant='hero' status='confirmed' />
             </div>
           </SwiperSlide>
         ))}
       </Swiper>
     </div>
-  )
-}
+  );
+};
 
-export default CardSwipeDemo
+export default CardSwipeDemo;

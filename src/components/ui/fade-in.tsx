@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { motion, type MotionProps, easeOut } from "framer-motion";
-import { ReactNode, memo } from "react";
+import { motion, type MotionProps, easeOut } from 'framer-motion';
+import { ReactNode, memo } from 'react';
 
 interface FadeInProps {
   children: ReactNode;
-  variant?: "up" | "left" | "right" | "scale" | "down";
-  timing?: "fast" | "normal" | "slow";
+  variant?: 'up' | 'left' | 'right' | 'scale' | 'down';
+  timing?: 'fast' | 'normal' | 'slow';
   delay?: number;
   duration?: number;
   className?: string;
@@ -24,37 +24,37 @@ const variants: Record<string, MotionProps> = {
   up: {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.6, ease: easeOut }
+    transition: { duration: 0.6, ease: easeOut },
   },
   left: {
     initial: { opacity: 0, x: -20 },
     animate: { opacity: 1, x: 0 },
-    transition: { duration: 0.6, ease: easeOut }
+    transition: { duration: 0.6, ease: easeOut },
   },
   right: {
     initial: { opacity: 0, x: 20 },
     animate: { opacity: 1, x: 0 },
-    transition: { duration: 0.6, ease: easeOut }
+    transition: { duration: 0.6, ease: easeOut },
   },
   scale: {
     initial: { opacity: 0, scale: 0.95 },
     animate: { opacity: 1, scale: 1 },
-    transition: { duration: 0.6, ease: easeOut }
+    transition: { duration: 0.6, ease: easeOut },
   },
   down: {
     initial: { opacity: 0, y: -20 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.6, ease: easeOut }
-  }
+    transition: { duration: 0.6, ease: easeOut },
+  },
 };
 
-export const FadeIn = memo(function FadeIn({ 
-  children, 
-  variant = "up", 
-  timing = "normal",
-  delay = 0, 
+export const FadeIn = memo(function FadeIn({
+  children,
+  variant = 'up',
+  timing = 'normal',
+  delay = 0,
   duration,
-  className = ""
+  className = '',
 }: FadeInProps) {
   // Use predefined timing or custom values
   const finalDelay = timingConfigs[timing]?.delay ?? delay;
@@ -68,16 +68,13 @@ export const FadeIn = memo(function FadeIn({
       ...selectedVariant.transition,
       delay: finalDelay,
       duration: finalDuration,
-      ease: finalEase
-    }
+      ease: finalEase,
+    },
   };
 
   return (
-    <motion.div
-      className={className}
-      {...finalVariant}
-    >
+    <motion.div className={className} {...finalVariant}>
       {children}
     </motion.div>
   );
-}); 
+});

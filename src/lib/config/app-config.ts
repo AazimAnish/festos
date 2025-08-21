@@ -1,6 +1,6 @@
 /**
  * Application Configuration
- * 
+ *
  * This file contains all application configuration following clean code principles.
  * Environment variables and configuration are centralized here for better maintainability.
  */
@@ -74,7 +74,11 @@ export const appConfig = {
 
   // File storage
   fileStorage: {
-    enabled: !!(env.FILEBASE_ACCESS_KEY_ID && env.FILEBASE_SECRET_ACCESS_KEY && env.FILEBASE_BUCKET),
+    enabled: !!(
+      env.FILEBASE_ACCESS_KEY_ID &&
+      env.FILEBASE_SECRET_ACCESS_KEY &&
+      env.FILEBASE_BUCKET
+    ),
     provider: 'filebase',
     accessKeyId: env.FILEBASE_ACCESS_KEY_ID,
     secretAccessKey: env.FILEBASE_SECRET_ACCESS_KEY,
@@ -154,11 +158,15 @@ export function validateConfig(): { isValid: boolean; errors: string[] } {
 
   // Optional but recommended
   if (!env.FILEBASE_ACCESS_KEY_ID) {
-    console.warn('FILEBASE_ACCESS_KEY_ID not set - file storage will be disabled');
+    console.warn(
+      'FILEBASE_ACCESS_KEY_ID not set - file storage will be disabled'
+    );
   }
 
   if (!env.FILEBASE_SECRET_ACCESS_KEY) {
-    console.warn('FILEBASE_SECRET_ACCESS_KEY not set - file storage will be disabled');
+    console.warn(
+      'FILEBASE_SECRET_ACCESS_KEY not set - file storage will be disabled'
+    );
   }
 
   if (!env.FILEBASE_BUCKET) {
@@ -166,7 +174,9 @@ export function validateConfig(): { isValid: boolean; errors: string[] } {
   }
 
   if (!env.AVALANCHE_RPC_URL && !env.AVALANCHE_TESTNET_RPC_URL) {
-    console.warn('No Avalanche RPC URL set - blockchain features will be disabled');
+    console.warn(
+      'No Avalanche RPC URL set - blockchain features will be disabled'
+    );
   }
 
   return {
@@ -180,7 +190,7 @@ export function validateConfig(): { isValid: boolean; errors: string[] } {
  */
 export function getEnvironmentConfig() {
   const config = validateConfig();
-  
+
   if (!config.isValid) {
     console.error('Configuration validation failed:', config.errors);
   }
@@ -194,7 +204,9 @@ export function getEnvironmentConfig() {
 /**
  * Check if a feature is enabled
  */
-export function isFeatureEnabled(feature: keyof typeof appConfig.features): boolean {
+export function isFeatureEnabled(
+  feature: keyof typeof appConfig.features
+): boolean {
   return appConfig.features[feature];
 }
 
@@ -230,7 +242,7 @@ export function getBlockchainConfig(network: 'mainnet' | 'testnet') {
  * Get current blockchain configuration based on environment
  */
 export function getCurrentBlockchainConfig() {
-  return env.IS_PRODUCTION 
+  return env.IS_PRODUCTION
     ? getBlockchainConfig('mainnet')
     : getBlockchainConfig('testnet');
 }

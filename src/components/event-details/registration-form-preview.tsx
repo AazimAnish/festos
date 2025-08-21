@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { memo } from "react";
-import { RegistrationForm } from "./registration/registration-form";
-import type { FormField, EventData } from "@/types/registration";
+import { memo } from 'react';
+import { RegistrationForm } from './registration/registration-form';
+import type { FormField, EventData } from '@/types/registration';
 
 interface RegistrationFormPreviewProps {
   form: FormField[];
@@ -10,10 +10,12 @@ interface RegistrationFormPreviewProps {
   onClose?: () => void;
 }
 
-export const RegistrationFormPreview = memo(function RegistrationFormPreview({ 
-  form, 
+export const RegistrationFormPreview = memo(function RegistrationFormPreview({
+  form,
   eventData,
-  onClose 
+  onClose,
 }: RegistrationFormPreviewProps) {
-  return <RegistrationForm form={form} eventData={eventData} onClose={onClose} />;
-}); 
+  return (
+    <RegistrationForm form={form} eventData={eventData} onClose={onClose} />
+  );
+});

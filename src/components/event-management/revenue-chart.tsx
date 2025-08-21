@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import {
@@ -12,7 +12,7 @@ import {
   Title,
 } from 'chart.js';
 import { Doughnut, Bar } from 'react-chartjs-2';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Register ChartJS components
 ChartJS.register(
@@ -43,12 +43,13 @@ interface RevenueChartProps {
   isLoading?: boolean;
 }
 
-// Using any for tooltip context to match Chart.js complex types
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TooltipContext = any;
+// Import Chart.js types for proper typing
+import type { TooltipItem } from 'chart.js';
 
 export function RevenueChart({ data, isLoading = false }: RevenueChartProps) {
-  const [chartView, setChartView] = useState<'distribution' | 'timeline'>('distribution');
+  const [chartView, setChartView] = useState<'distribution' | 'timeline'>(
+    'distribution'
+  );
 
   // Generate mock data if none is provided
   const chartData = data || {
@@ -117,14 +118,17 @@ export function RevenueChart({ data, isLoading = false }: RevenueChartProps) {
       },
       tooltip: {
         callbacks: {
-          label: function(context: TooltipContext) {
+          label: function (context: TooltipItem<'doughnut'>) {
             const label = context.label || '';
-            const value = context.raw as number || 0;
-            const total = context.chart.data.datasets[0].data.reduce((a: number, b: number | null) => a + (b || 0), 0);
-            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+            const value = (context.raw as number) || 0;
+            const total = (
+              context.chart.data.datasets[0].data as number[]
+            ).reduce((a: number, b: number) => a + b, 0);
+            const percentage =
+              total > 0 ? Math.round((value / total) * 100) : 0;
             return `${label}: ${percentage}% (${value}%)`;
-          }
-        }
+          },
+        },
       },
     },
     cutout: '65%',
@@ -139,10 +143,10 @@ export function RevenueChart({ data, isLoading = false }: RevenueChartProps) {
       },
       tooltip: {
         callbacks: {
-          label: function(context: TooltipContext) {
+          label: function (context: TooltipItem<'bar'>) {
             return `Revenue: ${context.raw as number} ${chartData.currency || 'ETH'}`;
-          }
-        }
+          },
+        },
       },
     },
     scales: {
@@ -168,38 +172,42 @@ export function RevenueChart({ data, isLoading = false }: RevenueChartProps) {
 
   if (isLoading) {
     return (
-      <div className="h-64 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className='h-64 flex items-center justify-center'>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <Tabs value={chartView} onValueChange={(v) => setChartView(v as 'distribution' | 'timeline')} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6 rounded-lg">
+    <div className='space-y-4'>
+      <Tabs
+        value={chartView}
+        onValueChange={v => setChartView(v as 'distribution' | 'timeline')}
+        className='w-full'
+      >
+        <TabsList className='grid w-full grid-cols-2 mb-6 rounded-lg'>
           <TabsTrigger
-            className="rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-            value="distribution"
+            className='rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground'
+            value='distribution'
           >
             Ticket Types
           </TabsTrigger>
           <TabsTrigger
-            className="rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-            value="timeline"
+            className='rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground'
+            value='timeline'
           >
             Revenue Timeline
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="distribution" className="space-y-4">
-          <div className="h-64">
+        <TabsContent value='distribution' className='space-y-4'>
+          <div className='h-64'>
             <Doughnut data={distributionData} options={pieOptions} />
           </div>
         </TabsContent>
-        
-        <TabsContent value="timeline" className="space-y-4">
-          <div className="h-64">
+
+        <TabsContent value='timeline' className='space-y-4'>
+          <div className='h-64'>
             <Bar data={timelineData} options={barOptions} />
           </div>
         </TabsContent>

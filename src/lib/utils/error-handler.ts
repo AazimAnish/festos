@@ -1,6 +1,6 @@
 /**
  * Error Handling Utilities
- * 
+ *
  * This file contains centralized error handling utilities following clean code principles.
  * All error handling logic is centralized here for consistency and maintainability.
  */
@@ -14,11 +14,15 @@ export class AppError extends Error {
   public readonly statusCode: number;
   public readonly isOperational: boolean;
 
-  constructor(message: string, statusCode: number = 500, isOperational: boolean = true) {
+  constructor(
+    message: string,
+    statusCode: number = 500,
+    isOperational: boolean = true
+  ) {
     super(message);
     this.statusCode = statusCode;
     this.isOperational = isOperational;
-    
+
     // Maintains proper stack trace for where our error was thrown (only available on V8)
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, AppError);
@@ -69,7 +73,7 @@ export const asyncHandler = <T extends unknown[], R>(
   fn: (...args: T) => Promise<R>
 ) => {
   return (...args: T): Promise<R> => {
-    return Promise.resolve(fn(...args)).catch((error) => {
+    return Promise.resolve(fn(...args)).catch(error => {
       console.error('Async operation failed:', error);
       throw error;
     });
@@ -187,7 +191,7 @@ export const databaseErrorHandler = (error: unknown): string => {
 
   if (error && typeof error === 'object' && 'code' in error) {
     const dbError = error as { code: string };
-    
+
     switch (dbError.code) {
       case '23505': // Unique violation
         return 'This record already exists.';
@@ -216,7 +220,7 @@ export const validationErrorHandler = (error: unknown): string => {
   if (error && typeof error === 'object' && 'issues' in error) {
     const validationError = error as { issues?: Array<{ message?: string }> };
     const firstIssue = validationError.issues?.[0];
-    
+
     if (firstIssue?.message) {
       return firstIssue.message;
     }

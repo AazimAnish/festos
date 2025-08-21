@@ -1,6 +1,6 @@
 /**
  * Server-Side Image Compression Utilities
- * 
+ *
  * This file contains utilities for compressing images on the server side only.
  * It should only be imported in API routes, server components, or server actions.
  */
@@ -109,13 +109,16 @@ export function getOptimalPreset(
   imageType: 'banner' | 'thumbnail' | 'profile' | 'general',
   originalSize: number
 ): CompressionPreset {
-  const basePreset = COMPRESSION_PRESETS[imageType.toUpperCase() as keyof typeof COMPRESSION_PRESETS];
-  
+  const basePreset =
+    COMPRESSION_PRESETS[
+      imageType.toUpperCase() as keyof typeof COMPRESSION_PRESETS
+    ];
+
   // If image is very large (>5MB), use maximum compression
   if (originalSize > 5 * 1024 * 1024) {
     return COMPRESSION_PRESETS.MAXIMUM;
   }
-  
+
   // If image is large (>2MB), reduce quality slightly
   if (originalSize > 2 * 1024 * 1024) {
     const reducedQuality = Math.max(basePreset.quality - 10, 60);
@@ -124,16 +127,18 @@ export function getOptimalPreset(
       quality: reducedQuality,
     };
   }
-  
+
   return basePreset;
 }
 
 /**
  * Detect image format from buffer
  */
-export async function detectImageFormat(buffer: Buffer): Promise<SupportedFormat> {
+export async function detectImageFormat(
+  buffer: Buffer
+): Promise<SupportedFormat> {
   const metadata = await sharp(buffer).metadata();
-  
+
   switch (metadata.format) {
     case 'jpeg':
     case 'jpg':
@@ -154,7 +159,7 @@ export async function detectImageFormat(buffer: Buffer): Promise<SupportedFormat
  */
 export async function getImageMetadata(buffer: Buffer): Promise<ImageMetadata> {
   const metadata = await sharp(buffer).metadata();
-  
+
   return {
     width: metadata.width || 0,
     height: metadata.height || 0,
@@ -194,7 +199,7 @@ export async function compressImage(
 
   // Apply format-specific compression
   let compressedBuffer: Buffer;
-  
+
   switch (format) {
     case 'webp':
       compressedBuffer = await sharpInstance
@@ -205,7 +210,7 @@ export async function compressImage(
         })
         .toBuffer();
       break;
-      
+
     case 'jpeg':
       compressedBuffer = await sharpInstance
         .jpeg({
@@ -215,7 +220,7 @@ export async function compressImage(
         })
         .toBuffer();
       break;
-      
+
     case 'png':
       compressedBuffer = await sharpInstance
         .png({
@@ -226,7 +231,7 @@ export async function compressImage(
         })
         .toBuffer();
       break;
-      
+
     case 'avif':
       compressedBuffer = await sharpInstance
         .avif({
@@ -235,14 +240,14 @@ export async function compressImage(
         })
         .toBuffer();
       break;
-      
+
     default:
       throw new Error(`Unsupported format: ${format}`);
   }
 
   // Get final metadata
   const finalMetadata = await getImageMetadata(compressedBuffer);
-  
+
   return {
     buffer: compressedBuffer,
     originalSize,
@@ -265,13 +270,13 @@ export async function smartCompress(
 ): Promise<CompressionResult> {
   const originalMetadata = await getImageMetadata(buffer);
   const originalSize = buffer.length;
-  
+
   // Get optimal preset
   const preset = getOptimalPreset(imageType, originalSize);
-  
+
   // Determine best format based on image characteristics
   let optimalFormat: SupportedFormat = preset.format;
-  
+
   if (originalMetadata.hasAlpha && preset.format === 'webp') {
     // Keep WebP for images with transparency
     optimalFormat = 'webp';
@@ -306,28 +311,37 @@ export async function smartCompress(
 /**
  * Compress image for banner upload
  */
-export async function compressBannerImage(buffer: Buffer): Promise<CompressionResult> {
+export async function compressBannerImage(
+  buffer: Buffer
+): Promise<CompressionResult> {
   return smartCompress(buffer, 'banner', 2 * 1024 * 1024); // Target 2MB max
 }
 
 /**
  * Compress image for thumbnail upload
  */
-export async function compressThumbnailImage(buffer: Buffer): Promise<CompressionResult> {
+export async function compressThumbnailImage(
+  buffer: Buffer
+): Promise<CompressionResult> {
   return smartCompress(buffer, 'thumbnail', 500 * 1024); // Target 500KB max
 }
 
 /**
  * Compress image for profile upload
  */
-export async function compressProfileImage(buffer: Buffer): Promise<CompressionResult> {
+export async function compressProfileImage(
+  buffer: Buffer
+): Promise<CompressionResult> {
   return smartCompress(buffer, 'profile', 1 * 1024 * 1024); // Target 1MB max
 }
 
 /**
  * Validate image before compression
  */
-export function validateImage(buffer: Buffer): { isValid: boolean; error?: string } {
+export function validateImage(buffer: Buffer): {
+  isValid: boolean;
+  error?: string;
+} {
   // Check file size
   if (buffer.length > FILE_CONFIG.MAX_IMAGE_SIZE) {
     return {
@@ -375,10 +389,10 @@ export function getCompressionStats(
  */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
-  
+
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }

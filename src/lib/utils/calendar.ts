@@ -26,4 +26,4 @@ export function downloadCalendarFile(calendarData: string, eventTitle: string) {
   a.download = `${eventTitle.replace(/\s+/g, '_')}.ics`;
   a.click();
   URL.revokeObjectURL(url);
-} 
+}

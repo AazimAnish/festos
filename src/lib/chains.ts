@@ -45,9 +45,4 @@ export const avalancheFuji = {
 } as const satisfies Chain;
 
 // Export all chains
-export const chains = [
-  mainnet,
-  sepolia,
-  avalanche,
-  avalancheFuji,
-] as const; 
+export const chains = [mainnet, sepolia, avalanche, avalancheFuji] as const;

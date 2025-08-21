@@ -15,14 +15,21 @@ export async function POST(request: NextRequest) {
 
     // Determine success message based on what was created
     let message: string = SUCCESS_MESSAGES.EVENT_CREATED;
-    if (result.createdOn.blockchain && result.createdOn.database && result.createdOn.filebase) {
+    if (
+      result.createdOn.blockchain &&
+      result.createdOn.database &&
+      result.createdOn.filebase
+    ) {
       message = 'Event created successfully across all platforms';
     } else if (result.createdOn.blockchain && result.createdOn.filebase) {
-      message = 'Event created on blockchain and Filebase (database not available)';
+      message =
+        'Event created on blockchain and Filebase (database not available)';
     } else if (result.createdOn.database && result.createdOn.filebase) {
-      message = 'Event created in database and Filebase (blockchain not available)';
+      message =
+        'Event created in database and Filebase (blockchain not available)';
     } else if (result.createdOn.filebase) {
-      message = 'Event created on Filebase only (blockchain and database not available)';
+      message =
+        'Event created on Filebase only (blockchain and database not available)';
     } else {
       message = 'Event metadata prepared (no storage platforms available)';
     }
@@ -41,22 +48,22 @@ export async function POST(request: NextRequest) {
         contractAddress: result.contractAddress,
       },
       message,
-      createdOn: result.createdOn
+      createdOn: result.createdOn,
     });
-
   } catch (error) {
     const errorResponse = apiErrorHandler(error);
-    const responseBody: Record<string, unknown> = { error: errorResponse.error };
+    const responseBody: Record<string, unknown> = {
+      error: errorResponse.error,
+    };
     if (errorResponse.details) {
       responseBody.details = errorResponse.details;
     }
-    return NextResponse.json(responseBody, { status: errorResponse.statusCode });
+    return NextResponse.json(responseBody, {
+      status: errorResponse.statusCode,
+    });
   }
 }
 
 export async function GET() {
-  return NextResponse.json(
-    { error: 'Method not allowed' },
-    { status: 405 }
-  );
+  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
 }

@@ -1,18 +1,24 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { 
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import {
   Plus,
   Trash2,
   Copy,
@@ -27,13 +33,26 @@ import {
   Calendar,
   MapPin,
   Phone,
-  Mail
-} from "lucide-react";
-import { toast } from "sonner";
+  Mail,
+} from 'lucide-react';
+import { toast } from 'sonner';
 
 interface FormField {
   id: string;
-  type: 'text' | 'textarea' | 'email' | 'phone' | 'number' | 'date' | 'location' | 'checkbox' | 'toggle' | 'radio' | 'select' | 'poll' | 'rating';
+  type:
+    | 'text'
+    | 'textarea'
+    | 'email'
+    | 'phone'
+    | 'number'
+    | 'date'
+    | 'location'
+    | 'checkbox'
+    | 'toggle'
+    | 'radio'
+    | 'select'
+    | 'poll'
+    | 'rating';
   label: string;
   placeholder?: string;
   required: boolean;
@@ -84,10 +103,16 @@ const fieldTypes = [
   { value: 'rating', label: 'Rating', icon: Star },
 ];
 
-export function RegistrationFormBuilder({ eventId: _eventId }: RegistrationFormBuilderProps) { // eslint-disable-line @typescript-eslint/no-unused-vars
+export function RegistrationFormBuilder({
+  eventId,
+}: RegistrationFormBuilderProps) {
   const [fields, setFields] = useState<FormField[]>(defaultFields);
   const [editingField, setEditingField] = useState<FormField | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
+
+  // Event-specific data that would be fetched using eventId
+  const eventTitle = 'ETHIndia 2025'; // Would be fetched using eventId
+  const currentFieldCount = fields.length;
 
   const addField = (type: FormField['type']) => {
     const newField: FormField = {
@@ -95,18 +120,21 @@ export function RegistrationFormBuilder({ eventId: _eventId }: RegistrationFormB
       type,
       label: `New ${type.charAt(0).toUpperCase() + type.slice(1)} Field`,
       required: false,
-      options: type === 'radio' || type === 'select' || type === 'poll' ? ['Option 1', 'Option 2'] : undefined,
+      options:
+        type === 'radio' || type === 'select' || type === 'poll'
+          ? ['Option 1', 'Option 2']
+          : undefined,
     };
-    
+
     setFields([...fields, newField]);
     setEditingField(newField);
     toast.success('Field added successfully');
   };
 
   const updateField = (id: string, updates: Partial<FormField>) => {
-    setFields(fields.map(field => 
-      field.id === id ? { ...field, ...updates } : field
-    ));
+    setFields(
+      fields.map(field => (field.id === id ? { ...field, ...updates } : field))
+    );
   };
 
   const deleteField = (id: string) => {
@@ -133,50 +161,56 @@ export function RegistrationFormBuilder({ eventId: _eventId }: RegistrationFormB
 
   const renderFieldEditor = (field: FormField) => {
     return (
-      <Card className="mb-4">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Edit Field</CardTitle>
+      <Card className='mb-4'>
+        <CardHeader className='pb-3'>
+          <CardTitle className='text-lg'>Edit Field</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+        <CardContent className='space-y-4'>
+          <div className='grid grid-cols-2 gap-4'>
             <div>
-              <Label htmlFor="field-label">Field Label</Label>
+              <Label htmlFor='field-label'>Field Label</Label>
               <Input
-                id="field-label"
+                id='field-label'
                 value={field.label}
-                onChange={(e) => updateField(field.id, { label: e.target.value })}
-                placeholder="Enter field label"
+                onChange={e => updateField(field.id, { label: e.target.value })}
+                placeholder='Enter field label'
               />
             </div>
             <div>
-              <Label htmlFor="field-placeholder">Placeholder</Label>
+              <Label htmlFor='field-placeholder'>Placeholder</Label>
               <Input
-                id="field-placeholder"
+                id='field-placeholder'
                 value={field.placeholder || ''}
-                onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
-                placeholder="Enter placeholder text"
+                onChange={e =>
+                  updateField(field.id, { placeholder: e.target.value })
+                }
+                placeholder='Enter placeholder text'
               />
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className='flex items-center space-x-2'>
             <Switch
-              id="required"
+              id='required'
               checked={field.required}
-              onCheckedChange={(checked) => updateField(field.id, { required: checked })}
+              onCheckedChange={checked =>
+                updateField(field.id, { required: checked })
+              }
             />
-            <Label htmlFor="required">Required field</Label>
+            <Label htmlFor='required'>Required field</Label>
           </div>
 
-          {(field.type === 'radio' || field.type === 'select' || field.type === 'poll') && (
+          {(field.type === 'radio' ||
+            field.type === 'select' ||
+            field.type === 'poll') && (
             <div>
               <Label>Options</Label>
-              <div className="space-y-2">
+              <div className='space-y-2'>
                 {field.options?.map((option, index) => (
-                  <div key={index} className="flex items-center gap-2">
+                  <div key={index} className='flex items-center gap-2'>
                     <Input
                       value={option}
-                      onChange={(e) => {
+                      onChange={e => {
                         const newOptions = [...(field.options || [])];
                         newOptions[index] = e.target.value;
                         updateField(field.id, { options: newOptions });
@@ -184,26 +218,31 @@ export function RegistrationFormBuilder({ eventId: _eventId }: RegistrationFormB
                       placeholder={`Option ${index + 1}`}
                     />
                     <Button
-                      variant="outline"
-                      size="sm"
+                      variant='outline'
+                      size='sm'
                       onClick={() => {
-                        const newOptions = field.options?.filter((_, i) => i !== index);
+                        const newOptions = field.options?.filter(
+                          (_, i) => i !== index
+                        );
                         updateField(field.id, { options: newOptions });
                       }}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className='w-4 h-4' />
                     </Button>
                   </div>
                 ))}
                 <Button
-                  variant="outline"
-                  size="sm"
+                  variant='outline'
+                  size='sm'
                   onClick={() => {
-                    const newOptions = [...(field.options || []), `Option ${(field.options?.length || 0) + 1}`];
+                    const newOptions = [
+                      ...(field.options || []),
+                      `Option ${(field.options?.length || 0) + 1}`,
+                    ];
                     updateField(field.id, { options: newOptions });
                   }}
                 >
-                  <Plus className="w-4 h-4 mr-2" />
+                  <Plus className='w-4 h-4 mr-2' />
                   Add Option
                 </Button>
               </div>
@@ -236,29 +275,21 @@ export function RegistrationFormBuilder({ eventId: _eventId }: RegistrationFormB
             />
           );
         case 'date':
-          return (
-            <Input
-              type="date"
-              required={field.required}
-            />
-          );
+          return <Input type='date' required={field.required} />;
         case 'location':
           return (
-            <Input
-              placeholder="Enter location"
-              required={field.required}
-            />
+            <Input placeholder='Enter location' required={field.required} />
           );
         case 'checkbox':
           return (
-            <div className="flex items-center space-x-2">
+            <div className='flex items-center space-x-2'>
               <Checkbox id={field.id} required={field.required} />
               <Label htmlFor={field.id}>{field.label}</Label>
             </div>
           );
         case 'toggle':
           return (
-            <div className="flex items-center space-x-2">
+            <div className='flex items-center space-x-2'>
               <Switch id={field.id} required={field.required} />
               <Label htmlFor={field.id}>{field.label}</Label>
             </div>
@@ -267,7 +298,7 @@ export function RegistrationFormBuilder({ eventId: _eventId }: RegistrationFormB
           return (
             <RadioGroup required={field.required}>
               {field.options?.map((option, index) => (
-                <div key={index} className="flex items-center space-x-2">
+                <div key={index} className='flex items-center space-x-2'>
                   <RadioGroupItem value={option} id={`${field.id}_${index}`} />
                   <Label htmlFor={`${field.id}_${index}`}>{option}</Label>
                 </div>
@@ -278,7 +309,7 @@ export function RegistrationFormBuilder({ eventId: _eventId }: RegistrationFormB
           return (
             <Select required={field.required}>
               <SelectTrigger>
-                <SelectValue placeholder="Select an option" />
+                <SelectValue placeholder='Select an option' />
               </SelectTrigger>
               <SelectContent>
                 {field.options?.map((option, index) => (
@@ -291,9 +322,9 @@ export function RegistrationFormBuilder({ eventId: _eventId }: RegistrationFormB
           );
         case 'poll':
           return (
-            <div className="space-y-2">
+            <div className='space-y-2'>
               {field.options?.map((option, index) => (
-                <div key={index} className="flex items-center space-x-2">
+                <div key={index} className='flex items-center space-x-2'>
                   <RadioGroupItem value={option} id={`${field.id}_${index}`} />
                   <Label htmlFor={`${field.id}_${index}`}>{option}</Label>
                 </div>
@@ -302,12 +333,12 @@ export function RegistrationFormBuilder({ eventId: _eventId }: RegistrationFormB
           );
         case 'rating':
           return (
-            <div className="flex items-center space-x-1">
-              {[1, 2, 3, 4, 5].map((star) => (
+            <div className='flex items-center space-x-1'>
+              {[1, 2, 3, 4, 5].map(star => (
                 <button
                   key={star}
-                  type="button"
-                  className="text-2xl text-muted-foreground hover:text-yellow-400 transition-colors"
+                  type='button'
+                  className='text-2xl text-muted-foreground hover:text-yellow-400 transition-colors'
                 >
                   ★
                 </button>
@@ -315,15 +346,15 @@ export function RegistrationFormBuilder({ eventId: _eventId }: RegistrationFormB
             </div>
           );
         default:
-          return <Input placeholder="Field preview" />;
+          return <Input placeholder='Field preview' />;
       }
     };
 
     return (
-      <div className="space-y-2">
-        <Label className="flex items-center gap-2">
+      <div className='space-y-2'>
+        <Label className='flex items-center gap-2'>
           {field.label}
-          {field.required && <span className="text-destructive">*</span>}
+          {field.required && <span className='text-destructive'>*</span>}
         </Label>
         {renderInput()}
       </div>
@@ -331,97 +362,117 @@ export function RegistrationFormBuilder({ eventId: _eventId }: RegistrationFormB
   };
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
         <div>
-          <h2 className="font-primary text-xl font-bold text-foreground">Registration Form Builder</h2>
-          <p className="font-secondary text-sm text-muted-foreground">
+          <h2 className='font-primary text-xl font-bold text-foreground'>
+            {eventTitle} - Registration Form Builder
+          </h2>
+          <p className='font-secondary text-sm text-muted-foreground'>
             Customize your registration form with custom questions and fields
+            (Event ID: {eventId}) - {currentFieldCount} fields configured
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className='flex items-center gap-3'>
           <Button
-            variant="outline"
+            variant='outline'
             onClick={() => setPreviewMode(!previewMode)}
-            className="gap-2"
+            className='gap-2'
           >
-            {previewMode ? <Settings className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            {previewMode ? (
+              <Settings className='w-4 h-4' />
+            ) : (
+              <Eye className='w-4 h-4' />
+            )}
             {previewMode ? 'Edit Mode' : 'Preview Mode'}
           </Button>
-          <Button onClick={saveForm} className="gap-2">
+          <Button onClick={saveForm} className='gap-2'>
             Save Form
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
         {/* Form Builder */}
-        <div className="space-y-4">
+        <div className='space-y-4'>
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Form Fields</CardTitle>
+              <CardTitle className='text-lg'>Form Fields</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {fields.map((field) => (
-                  <div key={field.id} className="border rounded-lg p-4 hover:bg-muted/20 transition-colors">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">{field.type}</Badge>
-                        {field.required && <Badge variant="destructive">Required</Badge>}
+              <div className='space-y-4'>
+                {fields.map(field => (
+                  <div
+                    key={field.id}
+                    className='border rounded-lg p-4 hover:bg-muted/20 transition-colors'
+                  >
+                    <div className='flex items-center justify-between mb-3'>
+                      <div className='flex items-center gap-2'>
+                        <Badge variant='outline'>{field.type}</Badge>
+                        {field.required && (
+                          <Badge variant='destructive'>Required</Badge>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className='flex items-center gap-2'>
                         <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setEditingField(editingField?.id === field.id ? null : field)}
+                          variant='ghost'
+                          size='sm'
+                          onClick={() =>
+                            setEditingField(
+                              editingField?.id === field.id ? null : field
+                            )
+                          }
                         >
-                          <Settings className="w-4 h-4" />
+                          <Settings className='w-4 h-4' />
                         </Button>
                         <Button
-                          variant="ghost"
-                          size="sm"
+                          variant='ghost'
+                          size='sm'
                           onClick={() => duplicateField(field)}
                         >
-                          <Copy className="w-4 h-4" />
+                          <Copy className='w-4 h-4' />
                         </Button>
                         <Button
-                          variant="ghost"
-                          size="sm"
+                          variant='ghost'
+                          size='sm'
                           onClick={() => deleteField(field.id)}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className='w-4 h-4' />
                         </Button>
                       </div>
                     </div>
                     <div>
-                      <h4 className="font-medium">{field.label}</h4>
+                      <h4 className='font-medium'>{field.label}</h4>
                       {field.placeholder && (
-                        <p className="text-sm text-muted-foreground">{field.placeholder}</p>
+                        <p className='text-sm text-muted-foreground'>
+                          {field.placeholder}
+                        </p>
                       )}
                     </div>
                   </div>
                 ))}
               </div>
 
-              <Separator className="my-6" />
+              <Separator className='my-6' />
 
               <div>
-                <h4 className="font-medium mb-3">Add New Field</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {fieldTypes.map((type) => {
+                <h4 className='font-medium mb-3'>Add New Field</h4>
+                <div className='grid grid-cols-2 sm:grid-cols-3 gap-2'>
+                  {fieldTypes.map(type => {
                     const Icon = type.icon;
                     return (
                       <Button
                         key={type.value}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => addField(type.value as FormField['type'])}
-                        className="h-auto p-3 flex flex-col items-center gap-2"
+                        variant='outline'
+                        size='sm'
+                        onClick={() =>
+                          addField(type.value as FormField['type'])
+                        }
+                        className='h-auto p-3 flex flex-col items-center gap-2'
                       >
-                        <Icon className="w-4 h-4" />
-                        <span className="text-xs">{type.label}</span>
+                        <Icon className='w-4 h-4' />
+                        <span className='text-xs'>{type.label}</span>
                       </Button>
                     );
                   })}
@@ -434,17 +485,15 @@ export function RegistrationFormBuilder({ eventId: _eventId }: RegistrationFormB
         </div>
 
         {/* Form Preview */}
-        <div className="space-y-4">
+        <div className='space-y-4'>
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Form Preview</CardTitle>
+              <CardTitle className='text-lg'>Form Preview</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
-                {fields.map((field) => (
-                  <div key={field.id}>
-                    {renderFieldPreview(field)}
-                  </div>
+              <div className='space-y-6'>
+                {fields.map(field => (
+                  <div key={field.id}>{renderFieldPreview(field)}</div>
                 ))}
               </div>
             </CardContent>

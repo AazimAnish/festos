@@ -1,24 +1,35 @@
-"use client";
+'use client';
 
-import confetti from "canvas-confetti";
-import { useEffect } from "react";
+import confetti from 'canvas-confetti';
+import { useEffect } from 'react';
 
 interface ConfettiFireworksProps {
   trigger?: boolean;
   duration?: number;
 }
 
-export function ConfettiFireworks({ trigger = false, duration = 5000 }: ConfettiFireworksProps) {
+export function ConfettiFireworks({
+  trigger = false,
+  duration = 5000,
+}: ConfettiFireworksProps) {
   useEffect(() => {
     if (!trigger) return;
 
     const animationEnd = Date.now() + duration;
-    const defaults = { 
-      startVelocity: 30, 
-      spread: 360, 
-      ticks: 60, 
+    const defaults = {
+      startVelocity: 30,
+      spread: 360,
+      ticks: 60,
       zIndex: 9999,
-      colors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8']
+      colors: [
+        '#FF6B6B',
+        '#4ECDC4',
+        '#45B7D1',
+        '#96CEB4',
+        '#FFEAA7',
+        '#DDA0DD',
+        '#98D8C8',
+      ],
     };
 
     const randomInRange = (min: number, max: number) =>
@@ -32,20 +43,20 @@ export function ConfettiFireworks({ trigger = false, duration = 5000 }: Confetti
       }
 
       const particleCount = 50 * (timeLeft / duration);
-      
+
       // Multiple confetti bursts from different positions
       confetti({
         ...defaults,
         particleCount,
         origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
       });
-      
+
       confetti({
         ...defaults,
         particleCount,
         origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
       });
-      
+
       // Center burst
       confetti({
         ...defaults,
@@ -58,4 +69,4 @@ export function ConfettiFireworks({ trigger = false, duration = 5000 }: Confetti
   }, [trigger, duration]);
 
   return null; // This component doesn't render anything visible
-} 
+}

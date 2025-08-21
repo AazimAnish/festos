@@ -1,17 +1,21 @@
 /**
  * Form Validation Utilities
- * 
+ *
  * This file contains utilities for form validation following clean code principles.
  * It provides reusable validation functions and error handling.
  */
 
 import { z } from 'zod';
-import { VALIDATION_MESSAGES, ERROR_MESSAGES, EVENT_CONFIG } from '@/lib/constants';
+import {
+  VALIDATION_MESSAGES,
+  ERROR_MESSAGES,
+  EVENT_CONFIG,
+} from '@/lib/constants';
 
 /**
  * Generic validation result type
  */
-export type ValidationResult<T> = 
+export type ValidationResult<T> =
   | {
       success: true;
       data: T;
@@ -80,7 +84,10 @@ export async function validateFormDataAsync<T>(
 /**
  * Validate required field
  */
-export function validateRequired(value: unknown, fieldName: string): string | null {
+export function validateRequired(
+  value: unknown,
+  fieldName: string
+): string | null {
   if (!value || (typeof value === 'string' && !value.trim())) {
     return `${fieldName} is required`;
   }
@@ -145,7 +152,7 @@ export function validateUrl(url: string): string | null {
 export function validateFutureDate(date: Date | string): string | null {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   const now = new Date();
-  
+
   if (dateObj <= now) {
     return VALIDATION_MESSAGES.FUTURE_DATE_REQUIRED;
   }
@@ -155,10 +162,13 @@ export function validateFutureDate(date: Date | string): string | null {
 /**
  * Validate date range (end date after start date)
  */
-export function validateDateRange(startDate: Date | string, endDate: Date | string): string | null {
+export function validateDateRange(
+  startDate: Date | string,
+  endDate: Date | string
+): string | null {
   const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
   const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
-  
+
   if (end <= start) {
     return VALIDATION_MESSAGES.END_DATE_AFTER_START;
   }
@@ -194,7 +204,10 @@ export function validateFileSize(file: File, maxSize: number): string | null {
 /**
  * Validate file type
  */
-export function validateFileType(file: File, allowedTypes: string[]): string | null {
+export function validateFileType(
+  file: File,
+  allowedTypes: string[]
+): string | null {
   if (!allowedTypes.includes(file.type)) {
     return `File type must be one of: ${allowedTypes.join(', ')}`;
   }
@@ -208,51 +221,71 @@ export const eventValidation = {
   title: (title: string): string | null => {
     const required = validateRequired(title, 'Title');
     if (required) return required;
-    
-    return validateStringLength(title, 'Title', 1, EVENT_CONFIG.MAX_TITLE_LENGTH);
+
+    return validateStringLength(
+      title,
+      'Title',
+      1,
+      EVENT_CONFIG.MAX_TITLE_LENGTH
+    );
   },
 
   description: (description: string): string | null => {
     const required = validateRequired(description, 'Description');
     if (required) return required;
-    
-    return validateStringLength(description, 'Description', 1, EVENT_CONFIG.MAX_DESCRIPTION_LENGTH);
+
+    return validateStringLength(
+      description,
+      'Description',
+      1,
+      EVENT_CONFIG.MAX_DESCRIPTION_LENGTH
+    );
   },
 
   location: (location: string): string | null => {
     const required = validateRequired(location, 'Location');
     if (required) return required;
-    
-    return validateStringLength(location, 'Location', 1, EVENT_CONFIG.MAX_LOCATION_LENGTH);
+
+    return validateStringLength(
+      location,
+      'Location',
+      1,
+      EVENT_CONFIG.MAX_LOCATION_LENGTH
+    );
   },
 
   capacity: (capacity: number): string | null => {
-    return validateNumericRange(capacity, 'Capacity', 0, EVENT_CONFIG.MAX_CAPACITY);
+    return validateNumericRange(
+      capacity,
+      'Capacity',
+      0,
+      EVENT_CONFIG.MAX_CAPACITY
+    );
   },
 
   ticketPrice: (price: string): string | null => {
     const required = validateRequired(price, 'Ticket price');
     if (required) return required;
-    
+
     const numPrice = parseFloat(price);
     if (isNaN(numPrice) || numPrice < 0) {
       return 'Ticket price must be a valid positive number';
     }
-    
+
     return null;
   },
 
   dates: (startDate: string, endDate: string): string | null => {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    
+
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
       return VALIDATION_MESSAGES.INVALID_DATE;
     }
-    
+
     const futureDate = validateFutureDate(start);
     if (futureDate) return futureDate;
-    
+
     return validateDateRange(start, end);
   },
 
@@ -281,17 +314,21 @@ export function createFieldValidator<T>(
  * Validate multiple fields and return all errors
  */
 export function validateMultipleFields(
-  validations: Array<{ field: string; value: unknown; validator: (value: unknown) => string | null }>
+  validations: Array<{
+    field: string;
+    value: unknown;
+    validator: (value: unknown) => string | null;
+  }>
 ): Record<string, string> {
   const errors: Record<string, string> = {};
-  
+
   validations.forEach(({ field, value, validator }) => {
     const error = validator(value);
     if (error) {
       errors[field] = error;
     }
   });
-  
+
   return errors;
 }
 
@@ -303,9 +340,9 @@ export function createDebouncedValidator<T>(
   delay: number = 300
 ) {
   let timeoutId: NodeJS.Timeout;
-  
+
   return (value: T): Promise<string | null> => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
         const error = validator(value);

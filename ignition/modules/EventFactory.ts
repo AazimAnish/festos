@@ -1,8 +1,8 @@
-import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
 
-export default buildModule("EventFactoryModule", (m) => {
+export default buildModule('EventFactoryModule', m => {
   // Deploy the EventFactory contract
-  const eventFactory = m.contract("EventFactory");
+  const eventFactory = m.contract('EventFactory');
 
   // Optional: Set initial platform fee (default is 2.5%)
   // m.call(eventFactory, "updatePlatformFee", [300]); // 3%

@@ -8,7 +8,7 @@ export function useWallet() {
   const { address, isConnected, isConnecting, isDisconnected } = useAccount();
   const chainId = useChainId();
   const { switchChain } = useSwitchChain();
-  
+
   const { data: balance } = useBalance({
     address,
     chainId,
@@ -34,7 +34,10 @@ export function useWallet() {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
-  const formatBalance = (balance: bigint | undefined, decimals: number = 18) => {
+  const formatBalance = (
+    balance: bigint | undefined,
+    decimals: number = 18
+  ) => {
     if (!balance) return '0';
     const formatted = Number(balance) / Math.pow(10, decimals);
     return formatted.toFixed(4);
@@ -46,21 +49,21 @@ export function useWallet() {
     isConnected,
     isConnecting,
     isDisconnected,
-    
+
     // Chain state
     chainId,
     isAvalanche,
     isTestnet,
-    
+
     // Balance
     balance,
-    
+
     // Actions
     switchToAvalanche,
     switchToAvalancheTestnet,
-    
+
     // Utilities
     formatAddress,
     formatBalance,
   };
-} 
+}

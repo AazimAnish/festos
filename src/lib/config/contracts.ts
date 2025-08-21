@@ -4,35 +4,41 @@ export const CONTRACT_ADDRESSES = {
   localhost: {
     EventFactory: '0x5FbDB2315678afecb367f032d93F642f64180aa3', // Default Hardhat address
   },
-  
+
   // Test networks
   sepolia: {
     EventFactory: process.env.NEXT_PUBLIC_SEPOLIA_EVENT_FACTORY_ADDRESS || '',
   },
-  
+
   // Main networks
   mainnet: {
     EventFactory: process.env.NEXT_PUBLIC_MAINNET_EVENT_FACTORY_ADDRESS || '',
   },
-  
+
   // Avalanche networks
   avalanche: {
     EventFactory: process.env.NEXT_PUBLIC_AVALANCHE_EVENT_FACTORY_ADDRESS || '',
   },
-  
+
   avalancheFuji: {
-    EventFactory: process.env.NEXT_PUBLIC_AVALANCHE_FUJI_EVENT_FACTORY_ADDRESS || '',
+    EventFactory:
+      process.env.NEXT_PUBLIC_AVALANCHE_FUJI_EVENT_FACTORY_ADDRESS || '',
   },
 } as const;
 
 // Get contract address for current network
-export function getContractAddress(contractName: keyof typeof CONTRACT_ADDRESSES.localhost, chainId?: number): string {
+export function getContractAddress(
+  contractName: keyof typeof CONTRACT_ADDRESSES.localhost,
+  chainId?: number
+): string {
   const network = getNetworkFromChainId(chainId);
   return CONTRACT_ADDRESSES[network]?.[contractName] || '';
 }
 
 // Map chain IDs to network names
-function getNetworkFromChainId(chainId?: number): keyof typeof CONTRACT_ADDRESSES {
+function getNetworkFromChainId(
+  chainId?: number
+): keyof typeof CONTRACT_ADDRESSES {
   switch (chainId) {
     case 1:
       return 'mainnet';
@@ -62,8 +68,8 @@ export const CONTRACT_ABIS = {
         { type: 'address', name: 'creator', indexed: true },
         { type: 'string', name: 'title' },
         { type: 'uint256', name: 'startTime' },
-        { type: 'uint256', name: 'ticketPrice' }
-      ]
+        { type: 'uint256', name: 'ticketPrice' },
+      ],
     },
     {
       type: 'event',
@@ -72,8 +78,8 @@ export const CONTRACT_ABIS = {
         { type: 'uint256', name: 'ticketId', indexed: true },
         { type: 'uint256', name: 'eventId', indexed: true },
         { type: 'address', name: 'attendee', indexed: true },
-        { type: 'uint256', name: 'price' }
-      ]
+        { type: 'uint256', name: 'price' },
+      ],
     },
     // Read functions
     {
@@ -96,9 +102,9 @@ export const CONTRACT_ABIS = {
         { type: 'bool', name: 'hasPOAP' },
         { type: 'string', name: 'poapMetadata' },
         { type: 'uint256', name: 'createdAt' },
-        { type: 'uint256', name: 'updatedAt' }
+        { type: 'uint256', name: 'updatedAt' },
       ],
-      stateMutability: 'view'
+      stateMutability: 'view',
     },
     {
       type: 'function',
@@ -111,9 +117,9 @@ export const CONTRACT_ABIS = {
         { type: 'uint256', name: 'purchaseTime' },
         { type: 'bool', name: 'isUsed' },
         { type: 'bool', name: 'isApproved' },
-        { type: 'uint256', name: 'pricePaid' }
+        { type: 'uint256', name: 'pricePaid' },
       ],
-      stateMutability: 'view'
+      stateMutability: 'view',
     },
     {
       type: 'function',
@@ -122,64 +128,64 @@ export const CONTRACT_ABIS = {
       outputs: [
         { type: 'uint256', name: 'totalRevenue' },
         { type: 'uint256', name: 'totalTicketsSold' },
-        { type: 'uint256', name: 'totalAttendees' }
+        { type: 'uint256', name: 'totalAttendees' },
       ],
-      stateMutability: 'view'
+      stateMutability: 'view',
     },
     {
       type: 'function',
       name: 'getUserEvents',
       inputs: [{ type: 'address', name: 'user' }],
       outputs: [{ type: 'uint256[]', name: '' }],
-      stateMutability: 'view'
+      stateMutability: 'view',
     },
     {
       type: 'function',
       name: 'getUserTickets',
       inputs: [{ type: 'address', name: 'user' }],
       outputs: [{ type: 'uint256[]', name: '' }],
-      stateMutability: 'view'
+      stateMutability: 'view',
     },
     {
       type: 'function',
       name: 'hasTicket',
       inputs: [
         { type: 'uint256', name: 'eventId' },
-        { type: 'address', name: 'user' }
+        { type: 'address', name: 'user' },
       ],
       outputs: [{ type: 'bool', name: '' }],
-      stateMutability: 'view'
+      stateMutability: 'view',
     },
     {
       type: 'function',
       name: 'getUserTicketId',
       inputs: [
         { type: 'uint256', name: 'eventId' },
-        { type: 'address', name: 'user' }
+        { type: 'address', name: 'user' },
       ],
       outputs: [{ type: 'uint256', name: '' }],
-      stateMutability: 'view'
+      stateMutability: 'view',
     },
     {
       type: 'function',
       name: 'getTotalEvents',
       inputs: [],
       outputs: [{ type: 'uint256', name: '' }],
-      stateMutability: 'view'
+      stateMutability: 'view',
     },
     {
       type: 'function',
       name: 'getTotalTickets',
       inputs: [],
       outputs: [{ type: 'uint256', name: '' }],
-      stateMutability: 'view'
+      stateMutability: 'view',
     },
     {
       type: 'function',
       name: 'platformFee',
       inputs: [],
       outputs: [{ type: 'uint256', name: '' }],
-      stateMutability: 'view'
+      stateMutability: 'view',
     },
     // Write functions
     {
@@ -195,31 +201,31 @@ export const CONTRACT_ABIS = {
         { type: 'uint256', name: 'ticketPrice' },
         { type: 'bool', name: 'requireApproval' },
         { type: 'bool', name: 'hasPOAP' },
-        { type: 'string', name: 'poapMetadata' }
+        { type: 'string', name: 'poapMetadata' },
       ],
       outputs: [{ type: 'uint256', name: '' }],
-      stateMutability: 'nonpayable'
+      stateMutability: 'nonpayable',
     },
     {
       type: 'function',
       name: 'purchaseTicket',
       inputs: [{ type: 'uint256', name: 'eventId' }],
       outputs: [],
-      stateMutability: 'payable'
+      stateMutability: 'payable',
     },
     {
       type: 'function',
       name: 'approveTicket',
       inputs: [{ type: 'uint256', name: 'ticketId' }],
       outputs: [],
-      stateMutability: 'nonpayable'
+      stateMutability: 'nonpayable',
     },
     {
       type: 'function',
       name: 'useTicket',
       inputs: [{ type: 'uint256', name: 'ticketId' }],
       outputs: [],
-      stateMutability: 'nonpayable'
+      stateMutability: 'nonpayable',
     },
     {
       type: 'function',
@@ -233,18 +239,18 @@ export const CONTRACT_ABIS = {
         { type: 'uint256', name: 'endTime' },
         { type: 'uint256', name: 'maxCapacity' },
         { type: 'uint256', name: 'ticketPrice' },
-        { type: 'bool', name: 'requireApproval' }
+        { type: 'bool', name: 'requireApproval' },
       ],
       outputs: [],
-      stateMutability: 'nonpayable'
+      stateMutability: 'nonpayable',
     },
     {
       type: 'function',
       name: 'cancelEvent',
       inputs: [{ type: 'uint256', name: 'eventId' }],
       outputs: [],
-      stateMutability: 'nonpayable'
-    }
+      stateMutability: 'nonpayable',
+    },
   ] as const,
 } as const;
 
@@ -252,7 +258,7 @@ export const CONTRACT_ABIS = {
 export const CONTRACT_CONFIG = {
   // Platform fee in basis points (2.5%)
   DEFAULT_PLATFORM_FEE: 250,
-  
+
   // Gas limits for different operations
   GAS_LIMITS: {
     CREATE_EVENT: 500000,
@@ -262,7 +268,7 @@ export const CONTRACT_CONFIG = {
     UPDATE_EVENT: 300000,
     CANCEL_EVENT: 100000,
   },
-  
+
   // Event statuses
   EVENT_STATUS: {
     DRAFT: 'draft',
@@ -270,7 +276,7 @@ export const CONTRACT_CONFIG = {
     CANCELLED: 'cancelled',
     COMPLETED: 'completed',
   },
-  
+
   // Ticket statuses
   TICKET_STATUS: {
     PENDING: 'pending',

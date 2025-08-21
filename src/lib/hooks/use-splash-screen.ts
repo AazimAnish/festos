@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
 export function useSplashScreen() {
   const [showSplash, setShowSplash] = useState(true);
@@ -9,16 +9,16 @@ export function useSplashScreen() {
 
   useEffect(() => {
     setIsClient(true);
-    
+
     // Check if this is the first visit
-    const hasVisited = localStorage.getItem("festos-has-visited");
-    
+    const hasVisited = localStorage.getItem('festos-has-visited');
+
     if (hasVisited) {
       setIsFirstVisit(false);
       setShowSplash(false);
     } else {
       // Mark as visited
-      localStorage.setItem("festos-has-visited", "true");
+      localStorage.setItem('festos-has-visited', 'true');
     }
   }, []);
 
@@ -29,6 +29,6 @@ export function useSplashScreen() {
   return {
     showSplash: isClient && isFirstVisit && showSplash,
     handleSplashComplete,
-    isFirstVisit
+    isFirstVisit,
   };
 }

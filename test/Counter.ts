@@ -1,15 +1,15 @@
 // We don't have Ethereum specific assertions in Hardhat 3 yet
-import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import assert from 'node:assert/strict';
+import { describe, it } from 'node:test';
 
-import { network } from "hardhat";
+import { network } from 'hardhat';
 
-describe("Counter", async function () {
+describe('Counter', async function () {
   const { viem } = await network.connect();
   const publicClient = await viem.getPublicClient();
 
-  it("Should increment by 1", async function () {
-    const counter = await viem.deployContract("Counter");
+  it('Should increment by 1', async function () {
+    const counter = await viem.deployContract('Counter');
 
     await counter.write.inc();
 
@@ -18,8 +18,8 @@ describe("Counter", async function () {
     assert.equal(count, BigInt(1));
   });
 
-  it("Should increment by a given amount", async function () {
-    const counter = await viem.deployContract("Counter");
+  it('Should increment by a given amount', async function () {
+    const counter = await viem.deployContract('Counter');
 
     await counter.write.incBy([BigInt(1)]);
 
@@ -28,8 +28,8 @@ describe("Counter", async function () {
     assert.equal(count, BigInt(1));
   });
 
-  it("The sum of the Increment events should match the current value", async function () {
-    const counter = await viem.deployContract("Counter");
+  it('The sum of the Increment events should match the current value', async function () {
+    const counter = await viem.deployContract('Counter');
     const deploymentBlockNumber = await publicClient.getBlockNumber();
 
     // run a series of increments
@@ -40,7 +40,7 @@ describe("Counter", async function () {
     const events = await publicClient.getContractEvents({
       address: counter.address,
       abi: counter.abi,
-      eventName: "Increment",
+      eventName: 'Increment',
       fromBlock: deploymentBlockNumber,
       strict: true,
     });
@@ -48,7 +48,11 @@ describe("Counter", async function () {
     // check that the aggregated events match the current value
     let total = BigInt(0);
     for (const event of events) {
-      total += (event.args?.by as bigint) || BigInt(0);
+      // Type assertion for event args
+      const args = event.args as { by: bigint } | undefined;
+      if (args?.by) {
+        total += args.by;
+      }
     }
 
     assert.equal(total, await counter.read.x());

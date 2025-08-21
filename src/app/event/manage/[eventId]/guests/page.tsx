@@ -1,4 +1,4 @@
-import { EventManagementPage } from "@/components/event-management/event-management-page";
+import { EventManagementPage } from '@/components/event-management/event-management-page';
 
 interface EventGuestsPageProps {
   params: Promise<{
@@ -6,8 +6,10 @@ interface EventGuestsPageProps {
   }>;
 }
 
-export default async function EventGuestsPage({ params }: EventGuestsPageProps) {
+export default async function EventGuestsPage({
+  params,
+}: EventGuestsPageProps) {
   const { eventId } = await params;
-  
-  return <EventManagementPage eventId={eventId} activeTab="guests" />;
+
+  return <EventManagementPage eventId={eventId} activeTab='guests' />;
 }

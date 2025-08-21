@@ -1,4 +1,9 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 export interface FilebaseUploadResult {
@@ -50,7 +55,7 @@ export class FilebaseClient {
       });
 
       const result = await this.client.send(command);
-      
+
       return {
         key,
         url: `${this.config.endpoint}/${this.config.bucket}/${key}`,
@@ -91,11 +96,11 @@ export class FilebaseClient {
     if (compress) {
       try {
         // Import server-side compression utilities
-        const { 
-          smartCompress, 
-          validateImage, 
-          getCompressionStats, 
-          formatFileSize 
+        const {
+          smartCompress,
+          validateImage,
+          getCompressionStats,
+          formatFileSize,
         } = await import('@/lib/utils/image-compression-server');
 
         // Validate image first
@@ -107,14 +112,18 @@ export class FilebaseClient {
         // Compress image
         const compressionResult = await smartCompress(imageBuffer, imageType);
         finalBuffer = compressionResult.buffer;
-        
+
         // Update content type based on compressed format
         finalContentType = `image/${compressionResult.format}`;
-        
+
         // Log compression statistics
-        compressionStats = getCompressionStats(imageBuffer.length, finalBuffer.length);
-        console.log(`Image compression: ${formatFileSize(imageBuffer.length)} → ${formatFileSize(finalBuffer.length)} (${compressionStats.sizeReductionPercent.toFixed(1)}% reduction)`);
-        
+        compressionStats = getCompressionStats(
+          imageBuffer.length,
+          finalBuffer.length
+        );
+        console.log(
+          `Image compression: ${formatFileSize(imageBuffer.length)} → ${formatFileSize(finalBuffer.length)} (${compressionStats.sizeReductionPercent.toFixed(1)}% reduction)`
+        );
       } catch (error) {
         console.warn('Image compression failed, uploading original:', error);
         // Continue with original image if compression fails
@@ -135,7 +144,7 @@ export class FilebaseClient {
       });
 
       const result = await this.client.send(command);
-      
+
       if (!result.Body) {
         throw new Error('No file content received');
       }
@@ -145,7 +154,7 @@ export class FilebaseClient {
       for await (const chunk of result.Body as AsyncIterable<Uint8Array>) {
         chunks.push(chunk);
       }
-      
+
       return Buffer.concat(chunks);
     } catch (error) {
       console.error('Filebase get file error:', error);
@@ -252,7 +261,9 @@ export function getFilebaseClient(): FilebaseClient {
 
     // Validate configuration
     if (!config.accessKeyId || !config.secretAccessKey || !config.bucket) {
-      throw new Error('Filebase configuration incomplete. Please check environment variables.');
+      throw new Error(
+        'Filebase configuration incomplete. Please check environment variables.'
+      );
     }
 
     filebaseClient = new FilebaseClient(config);
@@ -281,6 +292,9 @@ export function generateEventMetadataKey(eventId: string): string {
 /**
  * Generate a key for event images
  */
-export function generateEventImageKey(eventId: string, filename: string): string {
+export function generateEventImageKey(
+  eventId: string,
+  filename: string
+): string {
   return `events/${eventId}/images/${filename}`;
 }

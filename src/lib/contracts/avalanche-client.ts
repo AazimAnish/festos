@@ -1,12 +1,23 @@
-import { createPublicClient, createWalletClient, http, parseEther, type Address, decodeEventLog } from 'viem';
+import {
+  createPublicClient,
+  createWalletClient,
+  http,
+  parseEther,
+  type Address,
+  decodeEventLog,
+} from 'viem';
 import { avalanche, avalancheFuji } from '@/lib/chains';
 import { getContractAddress } from '@/lib/config/contracts';
 import { CONTRACT_ABIS } from '@/lib/config/contracts';
 import type { CreateEventParams } from '@/lib/contracts/types/EventFactory';
 
 // Avalanche RPC URLs
-const AVALANCHE_RPC_URL = process.env.NEXT_PUBLIC_AVALANCHE_RPC_URL || 'https://api.avax.network/ext/bc/C/rpc';
-const AVALANCHE_FUJI_RPC_URL = process.env.NEXT_PUBLIC_AVALANCHE_FUJI_RPC_URL || 'https://api.avax-test.network/ext/bc/C/rpc';
+const AVALANCHE_RPC_URL =
+  process.env.NEXT_PUBLIC_AVALANCHE_RPC_URL ||
+  'https://api.avax.network/ext/bc/C/rpc';
+const AVALANCHE_FUJI_RPC_URL =
+  process.env.NEXT_PUBLIC_AVALANCHE_FUJI_RPC_URL ||
+  'https://api.avax-test.network/ext/bc/C/rpc';
 
 // Create public client for Avalanche mainnet
 export function createAvalanchePublicClient() {
@@ -44,16 +55,21 @@ export function createAvalancheFujiWalletClient(privateKey: string) {
 
 // Get EventFactory contract instance for Avalanche mainnet
 export function getAvalancheEventFactoryContract(privateKey?: string) {
-  const contractAddress = getContractAddress('EventFactory', avalanche.id) as Address;
-  
+  const contractAddress = getContractAddress(
+    'EventFactory',
+    avalanche.id
+  ) as Address;
+
   if (!contractAddress) {
-    throw new Error('EventFactory contract address not found for Avalanche mainnet');
+    throw new Error(
+      'EventFactory contract address not found for Avalanche mainnet'
+    );
   }
-  
+
   if (privateKey) {
     const walletClient = createAvalancheWalletClient(privateKey);
     const publicClient = createAvalanchePublicClient();
-    
+
     return {
       address: contractAddress,
       abi: CONTRACT_ABIS.EventFactory,
@@ -62,7 +78,7 @@ export function getAvalancheEventFactoryContract(privateKey?: string) {
     };
   } else {
     const publicClient = createAvalanchePublicClient();
-    
+
     return {
       address: contractAddress,
       abi: CONTRACT_ABIS.EventFactory,
@@ -73,16 +89,21 @@ export function getAvalancheEventFactoryContract(privateKey?: string) {
 
 // Get EventFactory contract instance for Avalanche Fuji testnet
 export function getAvalancheFujiEventFactoryContract(privateKey?: string) {
-  const contractAddress = getContractAddress('EventFactory', avalancheFuji.id) as Address;
-  
+  const contractAddress = getContractAddress(
+    'EventFactory',
+    avalancheFuji.id
+  ) as Address;
+
   if (!contractAddress) {
-    throw new Error('EventFactory contract address not found for Avalanche Fuji testnet');
+    throw new Error(
+      'EventFactory contract address not found for Avalanche Fuji testnet'
+    );
   }
-  
+
   if (privateKey) {
     const walletClient = createAvalancheFujiWalletClient(privateKey);
     const publicClient = createAvalancheFujiPublicClient();
-    
+
     return {
       address: contractAddress,
       abi: CONTRACT_ABIS.EventFactory,
@@ -91,7 +112,7 @@ export function getAvalancheFujiEventFactoryContract(privateKey?: string) {
     };
   } else {
     const publicClient = createAvalancheFujiPublicClient();
-    
+
     return {
       address: contractAddress,
       abi: CONTRACT_ABIS.EventFactory,
@@ -106,19 +127,20 @@ export async function createEventOnAvalanche(
   privateKey: string,
   isTestnet: boolean = false
 ): Promise<{ eventId: bigint; transactionHash: string }> {
-  const contract = isTestnet 
+  const contract = isTestnet
     ? getAvalancheFujiEventFactoryContract(privateKey)
     : getAvalancheEventFactoryContract(privateKey);
-  
+
   if (!contract.walletClient) {
     throw new Error('Wallet client not available');
   }
-  
+
   // Convert ticket price to wei if it's a string
-  const ticketPrice = typeof params.ticketPrice === 'string' 
-    ? parseEther(params.ticketPrice)
-    : params.ticketPrice;
-  
+  const ticketPrice =
+    typeof params.ticketPrice === 'string'
+      ? parseEther(params.ticketPrice)
+      : params.ticketPrice;
+
   // Prepare contract parameters
   const contractParams = [
     params.title,
@@ -132,7 +154,7 @@ export async function createEventOnAvalanche(
     params.hasPOAP,
     params.poapMetadata,
   ] as const;
-  
+
   // Send transaction
   const hash = await contract.walletClient.writeContract({
     address: contract.address,
@@ -140,10 +162,12 @@ export async function createEventOnAvalanche(
     functionName: 'createEvent',
     args: contractParams,
   });
-  
+
   // Wait for transaction confirmation
-  const receipt = await contract.publicClient.waitForTransactionReceipt({ hash });
-  
+  const receipt = await contract.publicClient.waitForTransactionReceipt({
+    hash,
+  });
+
   // Parse event logs to get the event ID
   const eventCreatedLog = receipt.logs.find(log => {
     try {
@@ -157,19 +181,19 @@ export async function createEventOnAvalanche(
       return false;
     }
   });
-  
+
   if (!eventCreatedLog) {
     throw new Error('EventCreated event not found in transaction logs');
   }
-  
+
   const decoded = decodeEventLog({
     abi: contract.abi,
     data: eventCreatedLog.data,
     topics: eventCreatedLog.topics,
   });
-  
+
   const eventId = decoded.args.eventId;
-  
+
   return {
     eventId,
     transactionHash: hash,
@@ -181,16 +205,16 @@ export async function getEventFromAvalanche(
   eventId: bigint,
   isTestnet: boolean = false
 ) {
-  const contract = isTestnet 
+  const contract = isTestnet
     ? getAvalancheFujiEventFactoryContract()
     : getAvalancheEventFactoryContract();
-  
+
   const event = await contract.publicClient.readContract({
     address: contract.address,
     abi: contract.abi,
     functionName: 'getEvent',
     args: [eventId],
   });
-  
+
   return event;
 }

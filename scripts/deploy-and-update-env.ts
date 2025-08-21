@@ -8,19 +8,21 @@ dotenv.config({ path: join(process.cwd(), '.env.local') });
 
 async function deployContracts() {
   const { viem } = await network.connect();
-  
+
   // Get network info from the connected network
-  const networkName = process.argv.includes('--network') 
-    ? process.argv[process.argv.indexOf('--network') + 1] 
+  const networkName = process.argv.includes('--network')
+    ? process.argv[process.argv.indexOf('--network') + 1]
     : 'hardhat';
-  
+
   console.log(`Deploying contracts to network: ${networkName}`);
   console.log(`PRIVATE_KEY loaded: ${process.env.PRIVATE_KEY ? 'YES' : 'NO'}`);
 
   // Check private key format
   if (process.env.PRIVATE_KEY) {
     const privateKey = process.env.PRIVATE_KEY;
-    console.log(`Private key format: ${privateKey.startsWith('0x') ? '0x prefix' : 'no 0x prefix'}`);
+    console.log(
+      `Private key format: ${privateKey.startsWith('0x') ? '0x prefix' : 'no 0x prefix'}`
+    );
     console.log(`Private key length: ${privateKey.length}`);
   }
 
@@ -33,16 +35,19 @@ async function deployContracts() {
   await updateEnvironmentVariables(networkName, eventFactory.address);
 
   console.log('Environment variables updated successfully!');
-  
+
   return eventFactory.address;
 }
 
-async function updateEnvironmentVariables(networkName: string | undefined, contractAddress: string) {
+async function updateEnvironmentVariables(
+  networkName: string | undefined,
+  contractAddress: string
+) {
   const envPath = join(process.cwd(), '.env.local');
   const envExamplePath = join(process.cwd(), '.env.example');
-  
+
   let envContent = '';
-  
+
   // Read existing .env.local if it exists
   if (existsSync(envPath)) {
     envContent = readFileSync(envPath, 'utf8');
@@ -54,10 +59,13 @@ async function updateEnvironmentVariables(networkName: string | undefined, contr
   // Update contract address based on network
   const envVarName = getContractEnvVarName(networkName);
   const envVarPattern = new RegExp(`^${envVarName}=.*$`, 'm');
-  
+
   if (envVarPattern.test(envContent)) {
     // Replace existing variable
-    envContent = envContent.replace(envVarPattern, `${envVarName}=${contractAddress}`);
+    envContent = envContent.replace(
+      envVarPattern,
+      `${envVarName}=${contractAddress}`
+    );
   } else {
     // Add new variable
     envContent += `\n# Contract Addresses (auto-generated)\n${envVarName}=${contractAddress}\n`;
@@ -89,12 +97,12 @@ function getContractEnvVarName(networkName: string | undefined): string {
 
 // Main execution
 deployContracts()
-  .then((address) => {
+  .then(address => {
     console.log('✅ Deployment completed successfully!');
     console.log('📄 Contract address:', address);
     process.exit(0);
   })
-  .catch((error) => {
+  .catch(error => {
     console.error('❌ Deployment failed:', error);
     process.exit(1);
   });

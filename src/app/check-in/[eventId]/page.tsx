@@ -1,4 +1,4 @@
-import { CheckInPage } from "@/components/check-in/check-in-page";
+import { CheckInPage } from '@/components/check-in/check-in-page';
 
 interface CheckInPageProps {
   params: Promise<{
@@ -8,6 +8,6 @@ interface CheckInPageProps {
 
 export default async function CheckIn({ params }: CheckInPageProps) {
   const { eventId } = await params;
-  
+
   return <CheckInPage eventId={eventId} />;
 }

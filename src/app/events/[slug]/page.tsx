@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
-import { extractEventIdFromSlug } from "@/lib/utils";
+import { redirect } from 'next/navigation';
+import { extractEventIdFromSlug } from '@/lib/utils';
 
 export default async function EventDetail({
   params,
@@ -7,7 +7,7 @@ export default async function EventDetail({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  
+
   // Extract event ID from slug and redirect to new unique ID format
   try {
     const eventId = extractEventIdFromSlug(slug);
@@ -16,6 +16,6 @@ export default async function EventDetail({
     redirect(`/${eventId}`);
   } catch {
     // If slug parsing fails, redirect to discover page
-    redirect("/discover");
+    redirect('/discover');
   }
 }

@@ -5,6 +5,7 @@ A comprehensive Web3 event platform built with Next.js, Supabase, Filebase, and 
 ## 🚀 Features
 
 ### Core Features
+
 - **Event Creation & Management**: Create events with customizable parameters
 - **Blockchain Ticketing**: Purchase, approve, and use tickets on-chain
 - **POAP Integration**: Proof of Presence tokens for attendees
@@ -14,6 +15,7 @@ A comprehensive Web3 event platform built with Next.js, Supabase, Filebase, and 
 - **Real-time Updates**: Live event updates and notifications
 
 ### Technical Stack
+
 - **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
 - **Backend**: Next.js API Routes, Supabase (PostgreSQL)
 - **Blockchain**: Avalanche, Hardhat, Viem, Wagmi
@@ -24,11 +26,13 @@ A comprehensive Web3 event platform built with Next.js, Supabase, Filebase, and 
 ## 📋 Prerequisites
 
 ### Required Software
+
 - **Node.js** 18+ (recommended: 20.x)
 - **Bun** (for faster package management)
 - **Git**
 
 ### Check Versions
+
 ```bash
 node --version  # Should be 18+ or 20.x
 bun --version   # Should be latest
@@ -38,6 +42,7 @@ git --version   # Any recent version
 ## 🛠️ Installation & Setup
 
 ### 1. Clone and Install Dependencies
+
 ```bash
 # Clone the repository
 git clone <your-repo-url>
@@ -51,6 +56,7 @@ npm install
 ```
 
 ### 2. Environment Configuration
+
 ```bash
 # Copy environment template
 cp env.example .env.local
@@ -62,6 +68,7 @@ code .env.local
 ```
 
 ### 3. Required Environment Variables
+
 ```bash
 # Essential for basic functionality
 NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=your_wallet_connect_project_id
@@ -96,6 +103,79 @@ export FILEBASE_BUCKET=your_bucket_name
 
 # Run the setup script
 bun run setup-filebase
+```
+
+## 🏗️ Build & Deployment
+
+### Local Development
+
+```bash
+# Start development server
+bun run dev
+
+# Type checking (catches TypeScript errors)
+bun run type-check
+
+# Linting
+bun run lint
+
+# Full build with type checking
+bun run build:check
+```
+
+### Catching Build Issues Locally
+
+To avoid deployment failures, always run these commands before pushing:
+
+```bash
+# 1. Type check (catches TypeScript errors)
+bun run type-check
+
+# 2. Lint (catches code style and potential issues)
+bun run lint
+
+# 3. Build (ensures everything compiles)
+bun run build
+
+# Or run all at once
+bun run build:check
+```
+
+### Common Build Issues & Solutions
+
+#### TypeScript Errors in Test Files
+
+If you see errors like `Property 'by' does not exist on type 'never'`:
+
+- Test files are excluded from the main build via `tsconfig.json`
+- Use `tsconfig.test.json` for test-specific TypeScript configuration
+- Ensure test files are in `test/` or `foundry-tests/` directories
+
+#### Vercel Deployment Issues
+
+- Test files are automatically excluded via `.vercelignore`
+- TypeScript configuration excludes test directories
+- Use `bun run build:check` to catch issues locally
+
+### Production Deployment
+
+#### Vercel (Recommended)
+
+```bash
+# Deploy to Vercel
+vercel --prod
+
+# Or connect your GitHub repo for automatic deployments
+```
+
+#### Manual Deployment
+
+```bash
+# Build for production
+bun run build
+
+# Start production server
+bun run start
 ```
 
 #### Manual Setup
@@ -144,26 +224,30 @@ your-bucket/
 
 #### Environment Variables
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `FILEBASE_ACCESS_KEY_ID` | ✅ | - | Your Filebase access key |
-| `FILEBASE_SECRET_ACCESS_KEY` | ✅ | - | Your Filebase secret key |
-| `FILEBASE_BUCKET` | ✅ | - | Your Filebase bucket name |
-| `FILEBASE_ENDPOINT` | ❌ | `https://s3.filebase.com` | Filebase S3 endpoint |
-| `FILEBASE_REGION` | ❌ | `us-east-1` | S3 region (not used by Filebase) |
+| Variable                     | Required | Default                   | Description                      |
+| ---------------------------- | -------- | ------------------------- | -------------------------------- |
+| `FILEBASE_ACCESS_KEY_ID`     | ✅       | -                         | Your Filebase access key         |
+| `FILEBASE_SECRET_ACCESS_KEY` | ✅       | -                         | Your Filebase secret key         |
+| `FILEBASE_BUCKET`            | ✅       | -                         | Your Filebase bucket name        |
+| `FILEBASE_ENDPOINT`          | ❌       | `https://s3.filebase.com` | Filebase S3 endpoint             |
+| `FILEBASE_REGION`            | ❌       | `us-east-1`               | S3 region (not used by Filebase) |
 
 #### Troubleshooting
 
 **Error: "configuration incomplete"**
+
 - Set all required environment variables
 
 **Error: "credentials invalid"**
+
 - Check your API keys at [Filebase Account Keys](https://filebase.com/account/keys)
 
 **Error: "bucket not found"**
+
 - Create a bucket in your Filebase dashboard
 
 **Error: "permission denied"**
+
 - Ensure your API key has read/write permissions for the bucket
 
 #### Benefits
@@ -186,7 +270,7 @@ const eventId = 'unique-event-id';
 const metadata = { title: 'My Event', ... };
 
 const result = await client.uploadMetadata(
-  generateEventMetadataKey(eventId), 
+  generateEventMetadataKey(eventId),
   metadata
 );
 // result.url contains the public URL
@@ -209,6 +293,7 @@ const presignedUrl = await client.generatePresignedUrl(
 #### Production Deployment
 
 1. **Environment Setup**
+
    ```bash
    FILEBASE_ACCESS_KEY_ID=prod_access_key
    FILEBASE_SECRET_ACCESS_KEY=prod_secret_key
@@ -257,6 +342,7 @@ The application will show which platforms were used for storage:
 ## 🗄️ Database Setup
 
 ### Supabase Setup (Optional)
+
 ```bash
 # Option 1: Use Supabase CLI
 supabase init
@@ -269,6 +355,7 @@ supabase start
 ```
 
 ### Run Database Schema
+
 ```bash
 # Copy the schema to your Supabase SQL editor
 cat supabase-schema.sql
@@ -280,6 +367,7 @@ supabase db push
 ## 🔧 Smart Contract Setup
 
 ### 1. Compile Contracts
+
 ```bash
 # Compile smart contracts
 bun run hardhat compile
@@ -289,6 +377,7 @@ npm run hardhat compile
 ```
 
 ### 2. Deploy Contracts (Optional)
+
 ```bash
 # Deploy to local network
 bun run hardhat run scripts/deploy-and-update-env.ts --network localhost
@@ -303,6 +392,7 @@ bun run hardhat run scripts/deploy-and-update-env.ts --network avalanche
 ## 🚀 Development Commands
 
 ### Essential Commands (All Working)
+
 ```bash
 # Start development server
 bun run dev
@@ -318,6 +408,7 @@ bun run lint
 ```
 
 ### Smart Contract Testing
+
 ```bash
 # Run all tests (✅ WORKING)
 bun run hardhat test
@@ -335,7 +426,9 @@ bun run hardhat clean
 ## 🧪 Testing
 
 ### Test Results
+
 **✅ All Tests Passing (8/8)**
+
 ```
 Counter
   ✔ Should increment by 1
@@ -353,6 +446,7 @@ EventFactory (Working)
 ```
 
 ### Run Tests
+
 ```bash
 # Run all tests
 bun run hardhat test
@@ -365,6 +459,7 @@ bun run hardhat test nodejs    # TypeScript tests only
 ## 🏗️ Architecture
 
 ### System Components
+
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Frontend      │───▶│   Next.js API   │───▶│   Supabase DB   │
@@ -380,12 +475,14 @@ bun run hardhat test nodejs    # TypeScript tests only
 ```
 
 ### Web3Storage Implementation
+
 - **User-Specific Spaces**: Each user gets a unique space identified by DID
 - **DID-Based Authentication**: No shared tokens, secure local key storage
 - **Multiple Upload Methods**: Single file, metadata, and directory uploads
 - **IPFS Gateway Integration**: Multiple gateway support for content access
 
 ### Smart Contract Features
+
 - **Event Creation**: Create events with title, description, location, dates, capacity, pricing
 - **Ticket Sales**: Purchase tickets with automatic payment processing
 - **Approval System**: Optional approval workflow for ticket purchases
@@ -396,16 +493,19 @@ bun run hardhat test nodejs    # TypeScript tests only
 ## 🔐 Authentication & Security
 
 ### Wallet Authentication
+
 - **RainbowKit Integration**: Seamless wallet connection
 - **Multi-Chain Support**: Avalanche mainnet and Fuji testnet
 - **Wallet Address Validation**: Secure wallet address verification
 
 ### Web3Storage Security
+
 - **DID-Based Auth**: Each user has unique Decentralized Identifier
 - **Local Key Management**: Keys stored locally, not in environment
 - **Space Registration**: Optional email registration for service access
 
 ### Database Security
+
 - **Row Level Security (RLS)**: Supabase RLS policies for data protection
 - **User Isolation**: Users can only access their own data
 - **Input Validation**: Zod schema validation for all inputs
@@ -413,12 +513,14 @@ bun run hardhat test nodejs    # TypeScript tests only
 ## 📱 Frontend Features
 
 ### UI Components
+
 - **Modern Design**: Clean, responsive design with Tailwind CSS
 - **Component Library**: Radix UI primitives for accessibility
 - **Animations**: Framer Motion for smooth interactions
 - **Icons**: Lucide React icons throughout the interface
 
 ### User Experience
+
 - **Real-time Updates**: Live event updates and notifications
 - **Responsive Design**: Works on desktop, tablet, and mobile
 - **Dark/Light Mode**: Theme switching support
@@ -427,13 +529,14 @@ bun run hardhat test nodejs    # TypeScript tests only
 ## 🔧 Configuration
 
 ### Hardhat Configuration
+
 ```typescript
 // hardhat.config.ts
-import { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox-viem";
+import { HardhatUserConfig } from 'hardhat/config';
+import '@nomicfoundation/hardhat-toolbox-viem';
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.28",
+  solidity: '0.8.28',
   networks: {
     avalanche: {
       url: process.env.NEXT_PUBLIC_AVALANCHE_RPC_URL,
@@ -450,16 +553,17 @@ export default config;
 ```
 
 ### Next.js Configuration
+
 ```typescript
 // next.config.ts
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   experimental: {
-    optimizePackageImports: ["@radix-ui/react-icons"],
+    optimizePackageImports: ['@radix-ui/react-icons'],
   },
   images: {
-    domains: ["w3s.link", "ipfs.io"],
+    domains: ['w3s.link', 'ipfs.io'],
   },
 };
 
@@ -469,6 +573,7 @@ export default nextConfig;
 ## 🚀 Deployment
 
 ### Frontend Deployment
+
 ```bash
 # Build for production
 bun run build
@@ -481,6 +586,7 @@ vercel --prod
 ```
 
 ### Smart Contract Deployment
+
 ```bash
 # Deploy to testnet
 bun run hardhat run scripts/deploy-and-update-env.ts --network avalancheFuji
@@ -494,12 +600,14 @@ bun run hardhat run scripts/deploy-and-update-env.ts --network avalanche
 ### Common Issues
 
 #### 1. Web3Storage Import Errors
+
 ```bash
 # Error: Module not found: Can't resolve '@web3-storage/w3up-client/did'
 # Solution: Fixed in latest version - uses correct w3up-client API
 ```
 
 #### 2. Supabase Connection Issues
+
 ```bash
 # Error: relation "public.users" does not exist
 # Solution: Run the database schema in Supabase
@@ -507,18 +615,21 @@ cat supabase-schema.sql
 ```
 
 #### 3. Contract Deployment Issues
+
 ```bash
 # Error: Insufficient funds
 # Solution: Ensure wallet has enough AVAX for deployment
 ```
 
 #### 4. Test Failures
+
 ```bash
 # Error: viem.getWallets is not a function
 # Solution: Use correct viem API - fixed in latest version
 ```
 
 ### Debug Commands
+
 ```bash
 # Check environment variables
 echo $NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID
@@ -536,6 +647,7 @@ bun run hardhat test test/EventFactory.working.test.ts
 ## 📚 API Reference
 
 ### Event Creation API
+
 ```typescript
 POST /api/events/create
 {
@@ -555,6 +667,7 @@ POST /api/events/create
 ```
 
 ### Web3Storage Client
+
 ```typescript
 import { getWeb3StorageClient } from '@/lib/web3storage/did-client';
 
@@ -605,6 +718,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 # 📋 Codebase Optimization Summary
 
 ## Overview
+
 This section documents the comprehensive optimization work performed on the Festos codebase, following Next.js best practices, clean code architecture principles, and official documentation from Supabase and Filebase.
 
 ## ✅ Completed Optimizations
@@ -612,18 +726,21 @@ This section documents the comprehensive optimization work performed on the Fest
 ### 1. Clean Code Architecture Implementation
 
 #### **Centralized Constants** (`src/lib/constants/index.ts`)
+
 - ✅ All magic numbers and strings moved to centralized constants
 - ✅ Organized by category (API, Event, File, Blockchain, UI, Pagination, etc.)
 - ✅ Type-safe constant definitions using `as const`
 - ✅ Validation messages, error messages, and success messages centralized
 
 #### **Validation Layer** (`src/lib/schemas/event.ts`)
+
 - ✅ Centralized Zod validation schemas for all event operations
 - ✅ Reusable validation patterns with proper error messages
 - ✅ Type-safe input/output types generated from schemas
 - ✅ Separation of concerns: validation logic isolated from business logic
 
 #### **Error Handling** (`src/lib/utils/error-handler.ts`)
+
 - ✅ Custom error classes extending base Error with proper typing
 - ✅ Specialized error handlers for different operations (API, file, blockchain, database)
 - ✅ Centralized error message formatting and user-friendly error creation
@@ -632,6 +749,7 @@ This section documents the comprehensive optimization work performed on the Fest
 ### 2. Service Layer Architecture
 
 #### **Event Service** (`src/lib/services/event-service.ts`)
+
 - ✅ Complete separation of business logic from presentation layer
 - ✅ Single responsibility principle - handles all event-related operations
 - ✅ Proper error handling and validation
@@ -640,6 +758,7 @@ This section documents the comprehensive optimization work performed on the Fest
 - ✅ Comprehensive CRUD operations with proper typing
 
 #### **API Route Optimization** (`src/app/api/events/create/route.ts`)
+
 - ✅ Reduced from 388 lines to 44 lines (88% reduction)
 - ✅ Proper use of service layer instead of inline business logic
 - ✅ Centralized error handling with consistent API responses
@@ -649,6 +768,7 @@ This section documents the comprehensive optimization work performed on the Fest
 ### 3. React Hook Optimization
 
 #### **Optimized Event Hooks** (`src/lib/hooks/use-events-optimized.ts`)
+
 - ✅ React Query integration for caching and optimistic updates
 - ✅ Proper query key management for cache invalidation
 - ✅ Debounced search functionality
@@ -660,6 +780,7 @@ This section documents the comprehensive optimization work performed on the Fest
 ### 4. Configuration Management
 
 #### **Centralized App Configuration** (`src/lib/config/app-config.ts`)
+
 - ✅ Environment variable validation and management
 - ✅ Feature flag support
 - ✅ Service availability checking
@@ -669,6 +790,7 @@ This section documents the comprehensive optimization work performed on the Fest
 ### 5. Utility Organization
 
 #### **Modular Utility Structure**
+
 - ✅ `src/lib/utils/cn.ts` - Tailwind CSS class utilities
 - ✅ `src/lib/utils/event-helpers.ts` - Event-specific utility functions
 - ✅ `src/lib/utils/form-validation.ts` - Reusable validation functions
@@ -678,6 +800,7 @@ This section documents the comprehensive optimization work performed on the Fest
 ### 6. Type Safety Improvements
 
 #### **Comprehensive Type Definitions** (`src/types/models.ts`)
+
 - ✅ Complete TypeScript interfaces for all data models
 - ✅ Proper entity relationships and base interfaces
 - ✅ Union types for status and enum values
@@ -687,6 +810,7 @@ This section documents the comprehensive optimization work performed on the Fest
 ### 7. Code Cleanup
 
 #### **Removed Redundant Files and Folders**
+
 - ✅ Deleted old `use-events.ts` hook (replaced with optimized version)
 - ✅ Removed empty directories (`src/lib/stores`, `src/lib/web3storage`)
 - ✅ Consolidated utility functions into organized modules
@@ -695,6 +819,7 @@ This section documents the comprehensive optimization work performed on the Fest
 ### 8. Build Optimization
 
 #### **Performance Improvements**
+
 - ✅ **Bundle Size Reduction**: Routes reduced from ~13kB to ~11kB on average (15% improvement)
 - ✅ **Clean Build**: Zero errors and warnings
 - ✅ **Type Safety**: Strict TypeScript compilation
@@ -703,6 +828,7 @@ This section documents the comprehensive optimization work performed on the Fest
 ## 📊 Optimization Metrics and Results
 
 ### Before Optimization
+
 - Build errors: Multiple TypeScript and linting errors
 - Bundle sizes: 12.6-13kB per route average
 - Code organization: Mixed responsibilities, inline business logic
@@ -710,6 +836,7 @@ This section documents the comprehensive optimization work performed on the Fest
 - Validation: Scattered validation logic
 
 ### After Optimization
+
 - Build errors: **0 errors, 0 warnings** ✅
 - Bundle sizes: **9.46-12.4kB per route** (average reduction of ~15%) ✅
 - Code organization: **Clean architecture with proper separation of concerns** ✅
@@ -719,30 +846,35 @@ This section documents the comprehensive optimization work performed on the Fest
 ## 🏗️ Architecture Benefits
 
 ### 1. **Maintainability**
+
 - Clear separation of concerns
 - Single responsibility principle
 - DRY (Don't Repeat Yourself) implementation
 - Centralized configuration and constants
 
 ### 2. **Scalability**
+
 - Service layer can easily accommodate new features
 - Modular hook system for component reusability
 - Extensible validation and error handling
 - Configuration-driven feature flags
 
 ### 3. **Developer Experience**
+
 - Type-safe development with comprehensive TypeScript support
 - Consistent API patterns across the application
 - Clear error messages and validation feedback
 - Organized file structure for easy navigation
 
 ### 4. **Performance**
+
 - React Query caching reduces unnecessary API calls
 - Optimized bundle sizes through proper code organization
 - Lazy loading and initialization patterns
 - Debounced search to prevent excessive requests
 
 ### 5. **Reliability**
+
 - Comprehensive error handling and recovery
 - Graceful fallbacks when services are unavailable
 - Proper validation at all layers
@@ -759,6 +891,7 @@ The Festos application includes a comprehensive image compression system optimiz
 ## 🎯 **Key Features**
 
 ### **Smart Compression Algorithm**
+
 - **Multi-format support**: JPEG, PNG, WebP, AVIF
 - **Automatic format detection**: Chooses optimal format based on image characteristics
 - **Quality optimization**: Different presets for different use cases
@@ -767,13 +900,13 @@ The Festos application includes a comprehensive image compression system optimiz
 
 ### **Compression Presets**
 
-| Preset | Quality | Max Dimensions | Target Size | Use Case |
-|--------|---------|----------------|-------------|----------|
-| **BANNER** | 85% | 1920×1080 | 2MB | Event banners, hero images |
-| **THUMBNAIL** | 75% | 400×300 | 500KB | Event thumbnails, previews |
-| **PROFILE** | 80% | 512×512 | 1MB | User profile pictures |
-| **GENERAL** | 80% | 1200×800 | 1.5MB | General event images |
-| **MAXIMUM** | 60% | 800×600 | 1MB | Large files requiring maximum compression |
+| Preset        | Quality | Max Dimensions | Target Size | Use Case                                  |
+| ------------- | ------- | -------------- | ----------- | ----------------------------------------- |
+| **BANNER**    | 85%     | 1920×1080      | 2MB         | Event banners, hero images                |
+| **THUMBNAIL** | 75%     | 400×300        | 500KB       | Event thumbnails, previews                |
+| **PROFILE**   | 80%     | 512×512        | 1MB         | User profile pictures                     |
+| **GENERAL**   | 80%     | 1200×800       | 1.5MB       | General event images                      |
+| **MAXIMUM**   | 60%     | 800×600        | 1MB         | Large files requiring maximum compression |
 
 ### **Storage Optimization Benefits**
 
@@ -785,17 +918,20 @@ The Festos application includes a comprehensive image compression system optimiz
 ## 🏗️ **Compression Architecture**
 
 ### **Server-Side Compression** (`src/lib/utils/image-compression-server.ts`)
+
 - Uses **Sharp** library for high-performance image processing
 - Runs only on server-side to avoid client bundle issues
 - Handles all compression logic in API routes and server components
 
 ### **Client-Side Validation** (`src/lib/utils/image-upload.ts`)
+
 - Basic file validation before upload
 - File type and size checking
 - Preview generation for user feedback
 - No compression logic to keep bundle size small
 
 ### **Filebase Integration** (`src/lib/filebase/client.ts`)
+
 - Automatic compression on upload
 - Format conversion to WebP for better compression
 - Compression statistics logging
@@ -803,12 +939,14 @@ The Festos application includes a comprehensive image compression system optimiz
 ## 📊 **Compression Results**
 
 ### **Typical Compression Ratios**
+
 - **JPEG → WebP**: 25-35% size reduction
 - **PNG → WebP**: 50-70% size reduction (for opaque images)
 - **Large files (>5MB)**: 60-80% size reduction
 - **Overall average**: 40-60% size reduction
 
 ### **Quality vs Size Trade-offs**
+
 - **High quality (85%)**: Minimal visual loss, moderate compression
 - **Medium quality (80%)**: Balanced quality and compression
 - **Low quality (60%)**: Maximum compression, noticeable quality loss
@@ -816,6 +954,7 @@ The Festos application includes a comprehensive image compression system optimiz
 ## 🚀 **Usage Examples**
 
 ### **API Route Usage**
+
 ```typescript
 // In API route for event creation
 import { compressBannerImage } from '@/lib/utils/image-compression-server';
@@ -823,13 +962,14 @@ import { compressBannerImage } from '@/lib/utils/image-compression-server';
 // Compress banner image before upload
 const compressionResult = await compressBannerImage(imageBuffer);
 const uploadResult = await filebaseClient.uploadFile(
-  imageKey, 
-  compressionResult.buffer, 
+  imageKey,
+  compressionResult.buffer,
   `image/${compressionResult.format}`
 );
 ```
 
 ### **Component Usage**
+
 ```typescript
 // In React component
 import { processImageForUpload } from '@/lib/utils/image-upload';
@@ -839,7 +979,7 @@ const handleImageUpload = async (file: File) => {
     maxSize: 5 * 1024 * 1024, // 5MB
     allowedFormats: ['image/jpeg', 'image/png', 'image/webp'],
   });
-  
+
   if (result.success) {
     // Upload to API with compression
     await uploadImage(result.buffer);
@@ -848,6 +988,7 @@ const handleImageUpload = async (file: File) => {
 ```
 
 ### **Filebase Client Usage**
+
 ```typescript
 // Automatic compression on upload
 const result = await filebaseClient.uploadImage(
@@ -862,12 +1003,15 @@ const result = await filebaseClient.uploadImage(
 ## 📈 **Performance Monitoring**
 
 ### **Compression Statistics**
+
 The system logs detailed compression statistics:
+
 ```
 Image compression: 5.2 MB → 1.8 MB (65.4% reduction)
 ```
 
 ### **Metrics Tracked**
+
 - Original file size
 - Compressed file size
 - Compression ratio
@@ -878,6 +1022,7 @@ Image compression: 5.2 MB → 1.8 MB (65.4% reduction)
 ## 🛡️ **Error Handling**
 
 ### **Validation Checks**
+
 - File type validation
 - File size limits
 - Image format detection
@@ -885,6 +1030,7 @@ Image compression: 5.2 MB → 1.8 MB (65.4% reduction)
 - Dimension validation
 
 ### **Fallback Strategy**
+
 - If compression fails, uploads original image
 - Graceful degradation for unsupported formats
 - Error logging for debugging
@@ -892,16 +1038,19 @@ Image compression: 5.2 MB → 1.8 MB (65.4% reduction)
 ## 🔄 **Compression Workflow**
 
 ### **1. Client-Side Validation**
+
 ```
 User selects image → File validation → Preview generation → Upload to API
 ```
 
 ### **2. Server-Side Processing**
+
 ```
 API receives image → Format detection → Compression → Filebase upload → Return URL
 ```
 
 ### **3. Storage Optimization**
+
 ```
 Original image → Smart compression → WebP conversion → Optimized storage
 ```
@@ -909,16 +1058,19 @@ Original image → Smart compression → WebP conversion → Optimized storage
 ## 🎨 **Quality Guidelines**
 
 ### **Banner Images**
+
 - **Recommended**: 1920×1080, WebP format
 - **Quality**: 85% for sharp text and details
 - **File size**: Target under 2MB
 
 ### **Thumbnail Images**
+
 - **Recommended**: 400×300, WebP format
 - **Quality**: 75% for good balance
 - **File size**: Target under 500KB
 
 ### **Profile Images**
+
 - **Recommended**: 512×512, WebP format
 - **Quality**: 80% for good detail
 - **File size**: Target under 1MB

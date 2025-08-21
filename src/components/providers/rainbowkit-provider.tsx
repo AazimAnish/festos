@@ -16,10 +16,8 @@ export function RainbowKitProviderWrapper({
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider locale="en-US">
-          {children}
-        </RainbowKitProvider>
+        <RainbowKitProvider locale='en-US'>{children}</RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
-} 
+}

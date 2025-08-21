@@ -1,12 +1,16 @@
 /**
  * Optimized Events Hook
- * 
+ *
  * This hook provides a clean interface for event-related operations following React best practices.
  * It uses React Query for caching, optimistic updates, and error handling.
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { eventService, type EventData, type EventCreationResult } from '@/lib/services/event-service';
+import {
+  eventService,
+  type EventData,
+  type EventCreationResult,
+} from '@/lib/services/event-service';
 import type { CreateEventInput, EventSearchInput } from '@/lib/schemas/event';
 import { toast } from 'sonner';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '@/lib/constants';
@@ -16,11 +20,14 @@ import React from 'react'; // Added missing import for React
 export const eventQueryKeys = {
   all: ['events'] as const,
   lists: () => [...eventQueryKeys.all, 'list'] as const,
-  list: (filters: EventSearchInput) => [...eventQueryKeys.lists(), filters] as const,
+  list: (filters: EventSearchInput) =>
+    [...eventQueryKeys.lists(), filters] as const,
   details: () => [...eventQueryKeys.all, 'detail'] as const,
   detail: (id: string) => [...eventQueryKeys.details(), id] as const,
-  bySlug: (slug: string) => [...eventQueryKeys.details(), 'slug', slug] as const,
-  byCreator: (creatorId: string) => [...eventQueryKeys.lists(), 'creator', creatorId] as const,
+  bySlug: (slug: string) =>
+    [...eventQueryKeys.details(), 'slug', slug] as const,
+  byCreator: (creatorId: string) =>
+    [...eventQueryKeys.lists(), 'creator', creatorId] as const,
 } as const;
 
 /**
@@ -30,28 +37,31 @@ export function useCreateEvent() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: CreateEventInput): Promise<EventCreationResult> => {
+    mutationFn: async (
+      input: CreateEventInput
+    ): Promise<EventCreationResult> => {
       return eventService.createEvent(input);
     },
-    onSuccess: (result) => {
+    onSuccess: result => {
       // Invalidate and refetch relevant queries
       queryClient.invalidateQueries({ queryKey: eventQueryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: eventQueryKeys.details() });
-      
+
       // Show success message
       toast.success(SUCCESS_MESSAGES.EVENT_CREATED);
-      
+
       // Log creation details
       console.log('Event created:', {
         eventId: result.eventId,
         createdOn: result.createdOn,
       });
     },
-    onError: (error) => {
+    onError: error => {
       // Show error message
-      const errorMessage = error instanceof Error ? error.message : ERROR_MESSAGES.SERVER_ERROR;
+      const errorMessage =
+        error instanceof Error ? error.message : ERROR_MESSAGES.SERVER_ERROR;
       toast.error(errorMessage);
-      
+
       console.error('Event creation failed:', error);
     },
   });
@@ -153,16 +163,16 @@ export function usePrefetchEvents() {
         limit: 12,
         ...filters,
       };
-              queryClient.prefetchQuery({
-          queryKey: eventQueryKeys.list(defaultFilters),
-          queryFn: () => {
-            const query = defaultFilters.query || '';
-            const searchFilters = {
-              category: defaultFilters.category,
-              location: defaultFilters.location,
-            };
-            return eventService.searchEvents(query, searchFilters);
-          },
+      queryClient.prefetchQuery({
+        queryKey: eventQueryKeys.list(defaultFilters),
+        queryFn: () => {
+          const query = defaultFilters.query || '';
+          const searchFilters = {
+            category: defaultFilters.category,
+            location: defaultFilters.location,
+          };
+          return eventService.searchEvents(query, searchFilters);
+        },
         staleTime: 5 * 60 * 1000,
       });
     },
@@ -188,7 +198,10 @@ export function useEventCache() {
     removeEvent: (eventId: string) => {
       queryClient.removeQueries({ queryKey: eventQueryKeys.detail(eventId) });
     },
-    updateEvent: (eventId: string, updater: (oldData: EventData | undefined) => EventData) => {
+    updateEvent: (
+      eventId: string,
+      updater: (oldData: EventData | undefined) => EventData
+    ) => {
       queryClient.setQueryData(eventQueryKeys.detail(eventId), updater);
     },
   };
@@ -203,9 +216,12 @@ export function useEventSearch(initialFilters: Partial<EventSearchInput> = {}) {
     limit: 12,
     ...initialFilters,
   };
-  
-  const [filters, setFilters] = React.useState<EventSearchInput>(defaultInitialFilters);
-  const [debouncedFilters, setDebouncedFilters] = React.useState<EventSearchInput>(defaultInitialFilters);
+
+  const [filters, setFilters] = React.useState<EventSearchInput>(
+    defaultInitialFilters
+  );
+  const [debouncedFilters, setDebouncedFilters] =
+    React.useState<EventSearchInput>(defaultInitialFilters);
 
   // Debounce filters to avoid excessive API calls
   React.useEffect(() => {
@@ -235,15 +251,18 @@ export function useEventCreation() {
   const createEventMutation = useCreateEvent();
   const [isCreating, setIsCreating] = React.useState(false);
 
-  const createEvent = React.useCallback(async (input: CreateEventInput) => {
-    setIsCreating(true);
-    try {
-      const result = await createEventMutation.mutateAsync(input);
-      return result;
-    } finally {
-      setIsCreating(false);
-    }
-  }, [createEventMutation]);
+  const createEvent = React.useCallback(
+    async (input: CreateEventInput) => {
+      setIsCreating(true);
+      try {
+        const result = await createEventMutation.mutateAsync(input);
+        return result;
+      } finally {
+        setIsCreating(false);
+      }
+    },
+    [createEventMutation]
+  );
 
   return {
     createEvent,

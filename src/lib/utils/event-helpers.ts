@@ -1,6 +1,6 @@
 /**
  * Event Helper Utilities
- * 
+ *
  * This file contains utility functions specifically for event operations
  * following clean code principles and best practices.
  */
@@ -21,11 +21,14 @@ export function generateUniqueEventId(): string {
  * Generate event slug from title and ID
  * @deprecated Use generateSlug from event service instead
  */
-export function generateEventSlug(event: { id: number; title: string }): string {
+export function generateEventSlug(event: {
+  id: number;
+  title: string;
+}): string {
   if (!event.title || !event.id) {
     throw new Error('Invalid event data for slug generation');
   }
-  
+
   const titleSlug = event.title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
@@ -41,15 +44,15 @@ export function extractEventIdFromSlug(slug: string): number {
   if (!slug || typeof slug !== 'string') {
     throw new Error('Invalid slug provided');
   }
-  
+
   const parts = slug.split('-');
   const lastPart = parts[parts.length - 1];
   const id = parseInt(lastPart);
-  
+
   if (isNaN(id) || id <= 0) {
     throw new Error('Invalid event ID in slug');
   }
-  
+
   return id;
 }
 
@@ -78,16 +81,19 @@ export function isEventCompleted(endDate: string): boolean {
 /**
  * Format event date range
  */
-export function formatEventDateRange(startDate: string, endDate: string): string {
+export function formatEventDateRange(
+  startDate: string,
+  endDate: string
+): string {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  
+
   const options: Intl.DateTimeFormatOptions = {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
   };
-  
+
   if (start.toDateString() === end.toDateString()) {
     // Same day event
     return start.toLocaleDateString('en-US', options);
@@ -100,57 +106,74 @@ export function formatEventDateRange(startDate: string, endDate: string): string
 /**
  * Format event time range
  */
-export function formatEventTimeRange(startDate: string, endDate: string): string {
+export function formatEventTimeRange(
+  startDate: string,
+  endDate: string
+): string {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  
+
   const timeOptions: Intl.DateTimeFormatOptions = {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
   };
-  
+
   return `${start.toLocaleTimeString('en-US', timeOptions)} - ${end.toLocaleTimeString('en-US', timeOptions)}`;
 }
 
 /**
  * Calculate event duration in hours
  */
-export function calculateEventDuration(startDate: string, endDate: string): number {
+export function calculateEventDuration(
+  startDate: string,
+  endDate: string
+): number {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  
+
   return Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60));
 }
 
 /**
  * Check if event registration is open
  */
-export function isRegistrationOpen(startDate: string, registrationDeadline?: string): boolean {
+export function isRegistrationOpen(
+  startDate: string,
+  registrationDeadline?: string
+): boolean {
   const now = new Date();
   const eventStart = new Date(startDate);
-  const deadline = registrationDeadline ? new Date(registrationDeadline) : eventStart;
-  
+  const deadline = registrationDeadline
+    ? new Date(registrationDeadline)
+    : eventStart;
+
   return now < deadline;
 }
 
 /**
  * Format ticket price with currency
  */
-export function formatTicketPrice(price: string, currency: string = 'AVAX'): string {
+export function formatTicketPrice(
+  price: string,
+  currency: string = 'AVAX'
+): string {
   const numPrice = parseFloat(price);
-  
+
   if (numPrice === 0) {
     return 'Free';
   }
-  
+
   return `${numPrice} ${currency}`;
 }
 
 /**
  * Generate QR code data for event check-in
  */
-export function generateCheckInQRData(eventId: string, attendeeId: string): string {
+export function generateCheckInQRData(
+  eventId: string,
+  attendeeId: string
+): string {
   return JSON.stringify({
     eventId,
     attendeeId,
@@ -161,7 +184,9 @@ export function generateCheckInQRData(eventId: string, attendeeId: string): stri
 /**
  * Parse QR code data for event check-in
  */
-export function parseCheckInQRData(qrData: string): { eventId: string; attendeeId: string; timestamp: number } | null {
+export function parseCheckInQRData(
+  qrData: string
+): { eventId: string; attendeeId: string; timestamp: number } | null {
   try {
     const data = JSON.parse(qrData);
     if (data.eventId && data.attendeeId && data.timestamp) {
@@ -182,10 +207,10 @@ export function extractEventIdFromUniqueId(uniqueId: string): number {
   let hash = 0;
   for (let i = 0; i < uniqueId.length; i++) {
     const char = uniqueId.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32-bit integer
   }
-  return Math.abs(hash) % 1000 + 1; // Return a number between 1-1000
+  return (Math.abs(hash) % 1000) + 1; // Return a number between 1-1000
 }
 
 /**
@@ -195,7 +220,7 @@ export function generateUsernameFromAddress(address: string): string {
   // Remove 0x prefix and take first 8 characters
   const cleanAddress = address.replace('0x', '');
   const shortAddress = cleanAddress.substring(0, 8);
-  
+
   // Convert to lowercase and ensure it's alphanumeric
   return shortAddress.toLowerCase();
 }
@@ -227,6 +252,6 @@ export function formatDate(date: string | Date): string {
   return dateObj.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
   });
 }

@@ -5,7 +5,7 @@ declare module 'react-qr-scanner' {
     facingMode?: string | string[];
     [key: string]: unknown;
   }
-  
+
   interface CustomMediaTrackConstraints {
     video?: VideoConstraints;
     audio?: boolean;
