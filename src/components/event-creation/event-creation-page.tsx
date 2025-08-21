@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
-import { Users, Ticket, Gift, Globe, Lock, Pencil } from "lucide-react"
+import { Users, Ticket, Gift, Globe, Lock, Wallet, Network } from "lucide-react"
 import { EventBanner } from "@/components/event-creation/event-banner"
 import { DateTimePicker } from "@/components/event-creation/date-time-picker"
 import { LocationPicker } from "@/components/event-creation/location-picker"
@@ -16,6 +16,7 @@ import { CapacityDialog } from "@/components/event-creation/capacity-dialog"
 import { POPDialog } from "@/components/event-creation/pop-dialog"
 import { TicketPriceDialog } from "@/components/event-creation/ticket-price-dialog"
 import { EventCreationSuccess } from "@/components/event-creation/event-creation-success"
+import { useAccount, useChainId } from "wagmi"
 
 export function EventCreationPage() {
   type PopConfig = {
@@ -42,12 +43,52 @@ export function EventCreationPage() {
   const [isPopDialogOpen, setIsPopDialogOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [useTestnet, setUseTestnet] = useState(true) // Default to testnet for safety
+  const [mounted, setMounted] = useState(false)
   const [createdEvent, setCreatedEvent] = useState<{
     title: string;
     date: string;
     location: string;
     uniqueId: string;
+    contractEventId?: number;
+    transactionHash?: string;
+    web3storageMetadataCid?: string;
+    web3storageImageCid?: string;
+    contractChainId?: number;
+    contractAddress?: string;
   } | null>(null)
+
+  // Wallet and network state
+  const { address: walletAddress, isConnected } = useAccount()
+  const chainId = useChainId()
+
+  // Prevent hydration errors
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Initialize default future-safe times on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!startDate) {
+      const now = new Date()
+      const minutes = now.getMinutes()
+      const nextQuarter = Math.ceil((minutes + 5) / 15) * 15 // small buffer then round up
+      const initStart = new Date(now)
+      initStart.setSeconds(0, 0)
+      if (nextQuarter >= 60) {
+        initStart.setHours(now.getHours() + 1, 0, 0, 0)
+      } else {
+        initStart.setMinutes(nextQuarter, 0, 0)
+      }
+      const initEnd = new Date(initStart.getTime() + 60 * 60 * 1000)
+      setStartDate(initStart)
+      setEndDate((prev) => prev ?? initEnd)
+    } else if (!endDate) {
+      const initEnd = new Date(startDate.getTime() + 60 * 60 * 1000)
+      setEndDate(initEnd)
+    }
+  }, [startDate, endDate])
   
   const popSummary = popConfig
     ? popConfig.recipientsMode === "all"
@@ -100,41 +141,98 @@ export function EventCreationPage() {
   }
 
   const handleCreateEvent = async () => {
-    // Add validation check with console logging for debugging
-    console.log('Validation check:', {
-      eventName: !!eventName,
-      startDate: !!startDate,
-      location: !!location,
-      eventNameValue: eventName,
-      startDateValue: startDate,
-      locationValue: location,
-      isFormValid: isFormValid()
-    });
-
     if (!isFormValid()) {
-      // You could add proper validation and error handling here
-      console.log('Validation failed:', { eventName, startDate, location });
       return
+    }
+
+    // Check if wallet is connected
+    if (!isConnected || !walletAddress) {
+      alert('Please connect your wallet to create an event');
+      return;
+    }
+
+    // Ensure start/end are in the future and end > start
+    const now = new Date()
+    let computedStart = startDate ? new Date(startDate) : new Date(now)
+    if (computedStart <= now) {
+      const minutes = now.getMinutes()
+      const nextQuarter = Math.ceil((minutes + 5) / 15) * 15
+      computedStart = new Date(now)
+      computedStart.setSeconds(0, 0)
+      if (nextQuarter >= 60) {
+        computedStart.setHours(now.getHours() + 1, 0, 0, 0)
+      } else {
+        computedStart.setMinutes(nextQuarter, 0, 0)
+      }
+      setStartDate(computedStart)
+    }
+
+    let computedEnd = endDate ? new Date(endDate) : new Date(computedStart.getTime() + 60 * 60 * 1000)
+    if (computedEnd <= computedStart) {
+      computedEnd = new Date(computedStart.getTime() + 60 * 60 * 1000)
+      setEndDate(computedEnd)
     }
 
     setIsSubmitting(true)
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    // Generate a unique ID for the event (in real app, this would come from the API)
-    const uniqueId = Math.random().toString(36).substring(2, 8)
-    
-    const eventData = {
-      title: eventName,
-      date: startDate?.toLocaleDateString() || '',
-      location: location,
-      uniqueId: uniqueId,
+    try {
+      // Prepare event data with blockchain integration
+      const eventData = {
+        title: eventName,
+        description: description,
+        location: location,
+        startDate: computedStart.toISOString(),
+        endDate: computedEnd.toISOString(),
+        maxCapacity: capacity === 'unlimited' ? 0 : parseInt(capacity),
+        ticketPrice: ticketType === 'free' ? '0' : ticketPrice,
+        requireApproval: requireApproval,
+        hasPOAP: popEnabled,
+        poapMetadata: popConfig?.popImage || '',
+        visibility: visibility,
+        timezone: timezone,
+        category: 'General',
+        tags: [],
+        // Blockchain integration fields
+        walletAddress: walletAddress,
+        useTestnet: useTestnet,
+      }
+
+      // Call API to create event
+      const response = await fetch('/api/events/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(eventData),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create event')
+      }
+
+      const result = await response.json()
+      
+      const createdEventData = {
+        title: eventName,
+        date: computedStart.toLocaleDateString() || '',
+        location: location,
+        uniqueId: result.event.slug,
+        contractEventId: result.event.contractEventId,
+        transactionHash: result.event.transactionHash,
+        web3storageMetadataCid: result.event.web3storageMetadataCid,
+        web3storageImageCid: result.event.web3storageImageCid,
+        contractChainId: result.event.contractChainId,
+        contractAddress: result.event.contractAddress,
+      }
+      
+      setCreatedEvent(createdEventData)
+      setIsSuccess(true)
+    } catch (error) {
+      alert((error as Error).message || 'Failed to create event. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
-    
-    setCreatedEvent(eventData)
-    setIsSuccess(true)
-    setIsSubmitting(false)
   }
 
   const handleReset = () => {
@@ -334,39 +432,106 @@ export function EventCreationPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Gift className="h-5 w-5 text-muted-foreground" />
-                      <Label className="text-base">Proof of Presence (POP)</Label>
+                      <Label className="text-base">Proof of Participation (POP)</Label>
                     </div>
-                    <div className="flex items-center gap-3">
-                      {popConfig && (
+                    <Switch checked={popEnabled} onCheckedChange={handlePopToggle} />
+                  </div>
+
+                  {popEnabled && (
+                    <div className="ml-8 flex items-center gap-2">
+                      {popSummary ? (
                         <span className="text-sm text-muted-foreground">{popSummary}</span>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">No configuration</span>
                       )}
-                      {popConfig && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label="Edit POP"
-                          className="rounded-lg text-muted-foreground hover:text-foreground"
-                          onClick={() => { setPopEnabled(true); setIsPopDialogOpen(true) }}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-lg"
+                        onClick={() => setIsPopDialogOpen(true)}
+                      >
+                        {popSummary ? "Edit" : "Configure"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Blockchain Configuration */}
+                <div className="space-y-4 border-t pt-6">
+                  <div className="flex items-center gap-3">
+                    <Network className="h-5 w-5 text-muted-foreground" />
+                    <Label className="text-base font-semibold">Blockchain Configuration</Label>
+                  </div>
+                  
+                  {/* Wallet Connection Status */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Wallet className="h-5 w-5 text-muted-foreground" />
+                      <Label className="text-base">Wallet Connection</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {!mounted ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                          <span className="text-sm text-gray-500 font-medium">Loading...</span>
+                        </div>
+                      ) : isConnected ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="text-sm text-green-600 font-medium">Connected</span>
+                          <span className="text-xs text-muted-foreground">
+                            {walletAddress?.slice(0, 6)}...{walletAddress?.slice(-4)}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                          <span className="text-sm text-red-600 font-medium">Not Connected</span>
+                        </div>
                       )}
-                      <Switch checked={popEnabled} onCheckedChange={handlePopToggle} />
                     </div>
                   </div>
-                  <POPDialog
-                    open={isPopDialogOpen}
-                    onOpenChange={handlePopDialogOpenChange}
-                    onSave={handlePopSave}
-                    trigger={null}
-                    initialImage={popConfig?.popImage}
-                    initialRecipientsMode={popConfig?.recipientsMode}
-                    initialRecipientsCount={popConfig?.recipientsCount}
-                    initialDeliveryTime={popConfig?.deliveryTime}
-                  />
+
+                  {/* Network Selection */}
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base">Network</Label>
+                    <Select value={useTestnet ? "testnet" : "mainnet"} onValueChange={(value) => setUseTestnet(value === "testnet")}>
+                      <SelectTrigger className="w-32 h-9 rounded-lg">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="testnet">Fuji Testnet</SelectItem>
+                        <SelectItem value="mainnet">Avalanche</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Current Chain Info */}
+                  {mounted && isConnected && (
+                    <div className="flex items-center justify-between">
+                      <Label className="text-base">Current Chain</Label>
+                      <span className="text-sm text-muted-foreground">
+                        {chainId === 43113 ? "Avalanche Fuji Testnet" : 
+                         chainId === 43114 ? "Avalanche Mainnet" : 
+                         `Chain ID: ${chainId}`}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
+
+            {/* POP Dialog */}
+            <POPDialog
+              open={isPopDialogOpen}
+              onOpenChange={handlePopDialogOpenChange}
+              onSave={handlePopSave}
+              trigger={null}
+              initialImage={popConfig?.popImage}
+              initialRecipientsMode={popConfig?.recipientsMode}
+              initialRecipientsCount={popConfig?.recipientsCount}
+              initialDeliveryTime={popConfig?.deliveryTime}
+            />
 
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4">

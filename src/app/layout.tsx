@@ -44,7 +44,6 @@ const getMetadataBase = () => {
     }
     return new URL("http://localhost:3000");
   } catch {
-    console.warn("Invalid NEXT_PUBLIC_SITE_URL, falling back to localhost");
     return new URL("http://localhost:3000");
   }
 };

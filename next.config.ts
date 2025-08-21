@@ -33,6 +33,17 @@ const nextConfig: NextConfig = {
   
   // Bundle optimization
   webpack: (config, { dev, isServer }) => {
+    // Handle Sharp package for server-side only
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        child_process: false,
+        crypto: false,
+        events: false,
+      };
+    }
+    
     // Optimize bundle size
     if (!dev && !isServer) {
       config.optimization.splitChunks = {
