@@ -17,27 +17,11 @@ async function deployContracts() {
   console.log(`Deploying contracts to network: ${networkName}`);
   console.log(`PRIVATE_KEY loaded: ${process.env.PRIVATE_KEY ? 'YES' : 'NO'}`);
 
-  // Get wallet clients to ensure we have a valid wallet
-  const walletClients = await viem.getWalletClients();
-  console.log(`Available wallet clients: ${walletClients.length}`);
-
   // Check private key format
   if (process.env.PRIVATE_KEY) {
     const privateKey = process.env.PRIVATE_KEY;
     console.log(`Private key format: ${privateKey.startsWith('0x') ? '0x prefix' : 'no 0x prefix'}`);
     console.log(`Private key length: ${privateKey.length}`);
-  }
-
-  // If no wallet clients available, provide helpful error message
-  if (walletClients.length === 0) {
-    console.log('❌ No wallet clients available for deployment.');
-    console.log('');
-    console.log('🔧 Solutions:');
-    console.log('1. For Hardhat network: Use "bun run hardhat run scripts/deploy-and-update-env.ts"');
-    console.log('2. For Avalanche Fuji: Use "bun run hardhat run scripts/deploy-avalanche.ts"');
-    console.log('3. For other networks: Ensure PRIVATE_KEY is set in .env.local and network is configured in hardhat.config.ts');
-    console.log('');
-    throw new Error('No wallet clients available for deployment. See solutions above.');
   }
 
   // Deploy EventFactory contract
@@ -55,7 +39,7 @@ async function deployContracts() {
 
 async function updateEnvironmentVariables(networkName: string | undefined, contractAddress: string) {
   const envPath = join(process.cwd(), '.env.local');
-  const envExamplePath = join(process.cwd(), 'env.example');
+  const envExamplePath = join(process.cwd(), '.env.example');
   
   let envContent = '';
   
