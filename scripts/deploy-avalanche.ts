@@ -38,7 +38,7 @@ async function deployToAvalanche() {
     
     // Get contract bytecode and ABI from artifacts
     const EventFactoryArtifact = await artifacts.readArtifact('EventFactory');
-    const bytecode = EventFactoryArtifact.bytecode;
+    const bytecode = EventFactoryArtifact.bytecode as `0x${string}`;
     const abi = EventFactoryArtifact.abi;
     
     console.log('Deploying EventFactory contract...');
@@ -71,7 +71,7 @@ async function deployToAvalanche() {
 
 async function updateEnvironmentVariables(networkName: string, contractAddress: string) {
   const envPath = join(process.cwd(), '.env.local');
-  const envExamplePath = join(process.cwd(), 'env.example');
+  const envExamplePath = join(process.cwd(), '.env.example');
   
   let envContent = '';
   
@@ -79,7 +79,7 @@ async function updateEnvironmentVariables(networkName: string, contractAddress: 
   if (existsSync(envPath)) {
     envContent = readFileSync(envPath, 'utf8');
   } else if (existsSync(envExamplePath)) {
-    // Use env.example as template
+    // Use .env.example as template
     envContent = readFileSync(envExamplePath, 'utf8');
   }
 
