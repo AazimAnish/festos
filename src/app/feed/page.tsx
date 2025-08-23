@@ -1,5 +1,5 @@
-import { FadeIn } from '@/components/ui/fade-in';
-import { SocialFeed } from '@/components/social/social-feed';
+import { FadeIn } from '@/shared/components/ui/fade-in';
+import { SocialFeed } from '@/features/dashboard/social/social-feed';
 
 export default function FeedPage() {
   return (

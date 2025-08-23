@@ -101,7 +101,7 @@ export class FilebaseClient {
           validateImage,
           getCompressionStats,
           formatFileSize,
-        } = await import('@/lib/utils/image-compression-server');
+        } = await import('@/shared/utils/image-compression-server');
 
         // Validate image first
         const validation = validateImage(imageBuffer);

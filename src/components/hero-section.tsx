@@ -1,12 +1,11 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { FadeIn } from '@/components/ui/fade-in';
-import { AvalancheBadge } from '@/components/ui/avalanche-badge';
-import GridBackground from '@/components/ui/grid-background';
+import { Button } from '@/shared/components/ui/button';
+import { FadeIn } from '@/shared/components/ui/fade-in';
+import { AvalancheBadge } from '@/shared/components/ui/avalanche-badge';
+import GridBackground from '@/shared/components/ui/grid-background';
 import Link from 'next/link';
-import CardSwipeDemo from '@/components/card-swipe-demo';
-import { SAMPLE_EVENTS } from '@/lib/data/sample-events';
+import { CardSwipe } from '@/shared/components/ui/card-swipe';
 
 export function HeroSection() {
   return (
@@ -63,7 +62,7 @@ export function HeroSection() {
               <div className='flex flex-wrap items-center justify-center sm:justify-start gap-4 sm:gap-6 lg:gap-8 pt-6 sm:pt-8'>
                 <div className='text-center min-w-[80px] sm:min-w-[100px]'>
                   <div className='font-primary font-bold text-xl sm:text-2xl lg:text-3xl text-foreground'>
-                    {SAMPLE_EVENTS.length}+
+                    1000+
                   </div>
                   <div className='font-secondary text-xs sm:text-sm text-muted-foreground'>
                     Events Created
@@ -72,11 +71,7 @@ export function HeroSection() {
 
                 <div className='text-center min-w-[80px] sm:min-w-[100px]'>
                   <div className='font-primary font-bold text-xl sm:text-2xl lg:text-3xl text-foreground'>
-                    {SAMPLE_EVENTS.reduce(
-                      (acc, event) => acc + event.joinedCount,
-                      0
-                    ).toLocaleString()}
-                    +
+                    50,000+
                   </div>
                   <div className='font-secondary text-xs sm:text-sm text-muted-foreground'>
                     Tickets Sold
@@ -85,7 +80,7 @@ export function HeroSection() {
 
                 <div className='text-center min-w-[80px] sm:min-w-[100px]'>
                   <div className='font-primary font-bold text-xl sm:text-2xl lg:text-3xl text-foreground'>
-                    {SAMPLE_EVENTS.filter(event => event.hasPOAP).length}+
+                    500+
                   </div>
                   <div className='font-secondary text-xs sm:text-sm text-muted-foreground'>
                     Memories Kept
@@ -105,7 +100,14 @@ export function HeroSection() {
 
               {/* Event Cards Container */}
               <div className='w-full max-w-[320px] sm:max-w-[360px] md:max-w-[400px] lg:max-w-[440px] xl:max-w-[480px] 2xl:max-w-[520px] relative z-10'>
-                <CardSwipeDemo />
+                <CardSwipe 
+                  images={[
+                    { src: '/card1.png', alt: 'Event 1' },
+                    { src: '/card2.png', alt: 'Event 2' },
+                    { src: '/card3.png', alt: 'Event 3' },
+                  ]}
+                  autoplayDelay={3000}
+                />
               </div>
             </FadeIn>
           </div>

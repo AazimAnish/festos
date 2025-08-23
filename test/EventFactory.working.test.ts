@@ -60,3 +60,4 @@ describe('EventFactory', async function () {
     assert.equal(totalEvents, BigInt(1));
   });
 });
+

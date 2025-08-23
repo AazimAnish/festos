@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import { Instrument_Serif, Inter, Roboto_Mono } from 'next/font/google';
 import './globals.css';
-import { Header } from '@/components/header';
-import { Footer } from '@/components/footer';
-import { ErrorBoundary } from '@/components/ui/error-boundary';
-import { RainbowKitProviderWrapper } from '@/components/providers/rainbowkit-provider';
-import { Toaster } from '@/components/ui/sonner';
-import { SplashScreenProvider } from '@/components/splash-screen-provider';
+import { Header } from '@/shared/components/header';
+import { Footer } from '@/shared/components/footer';
+import { ErrorBoundary } from '@/shared/components/ui/error-boundary';
+import { RainbowKitProviderWrapper } from '@/shared/components/providers/rainbowkit-provider';
+import { Toaster } from '@/shared/components/ui/sonner';
+import { SplashScreenProvider } from '@/shared/components/splash-screen-provider';
 
 const instrumentSerif = Instrument_Serif({
   variable: '--font-instrument-serif',

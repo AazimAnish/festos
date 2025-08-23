@@ -134,6 +134,7 @@ export const eventSearchSchema = z.object({
   tags: z.array(z.string()).optional(),
   page: z.number().int().min(1).default(1),
   limit: z.number().int().min(1).max(50).default(12),
+  includeBlockchain: z.boolean().optional(),
 });
 
 // Event review schema

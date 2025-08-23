@@ -335,6 +335,97 @@ contract EventFactory is ReentrancyGuard, Ownable {
     }
 
     /**
+     * @dev Get multiple events by IDs
+     * @param _eventIds Array of event IDs
+     * @return Array of Event structs
+     */
+    function getEvents(uint256[] calldata _eventIds) external view returns (Event[] memory) {
+        Event[] memory result = new Event[](_eventIds.length);
+        
+        for (uint256 i = 0; i < _eventIds.length; i++) {
+            uint256 eventId = _eventIds[i];
+            if (events[eventId].eventId != 0) {
+                result[i] = events[eventId];
+            }
+        }
+        
+        return result;
+    }
+
+    /**
+     * @dev Get events by creator with pagination
+     * @param _creator Creator address
+     * @param _offset Starting index
+     * @param _limit Maximum number of events to return
+     * @return Array of Event structs
+     */
+    function getEventsByCreator(address _creator, uint256 _offset, uint256 _limit) external view returns (Event[] memory) {
+        uint256[] memory userEventIds = userEvents[_creator];
+        uint256 totalEvents = userEventIds.length;
+        
+        if (_offset >= totalEvents) {
+            return new Event[](0);
+        }
+        
+        uint256 endIndex = _offset + _limit;
+        if (endIndex > totalEvents) {
+            endIndex = totalEvents;
+        }
+        
+        uint256 resultLength = endIndex - _offset;
+        Event[] memory result = new Event[](resultLength);
+        
+        for (uint256 i = 0; i < resultLength; i++) {
+            uint256 eventId = userEventIds[_offset + i];
+            result[i] = events[eventId];
+        }
+        
+        return result;
+    }
+
+    /**
+     * @dev Get active events with pagination
+     * @param _offset Starting index
+     * @param _limit Maximum number of events to return
+     * @return Array of Event structs
+     */
+    function getActiveEvents(uint256 _offset, uint256 _limit) external view returns (Event[] memory) {
+        uint256 totalEvents = nextEventId - 1;
+        
+        if (_offset >= totalEvents) {
+            return new Event[](0);
+        }
+        
+        uint256 endIndex = _offset + _limit;
+        if (endIndex > totalEvents) {
+            endIndex = totalEvents;
+        }
+        
+        // First pass: count active events
+        uint256 activeCount = 0;
+        for (uint256 i = _offset + 1; i <= endIndex; i++) {
+            Event storage eventData = events[i];
+            if (eventData.isActive && eventData.startTime > block.timestamp) {
+                activeCount++;
+            }
+        }
+        
+        // Second pass: populate result array
+        Event[] memory result = new Event[](activeCount);
+        uint256 resultIndex = 0;
+        
+        for (uint256 i = _offset + 1; i <= endIndex; i++) {
+            Event storage eventData = events[i];
+            if (eventData.isActive && eventData.startTime > block.timestamp) {
+                result[resultIndex] = eventData;
+                resultIndex++;
+            }
+        }
+        
+        return result;
+    }
+
+    /**
      * @dev Get ticket details
      * @param _ticketId Ticket ID
      * @return Ticket details

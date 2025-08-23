@@ -1,4 +1,4 @@
-import { CheckInPage } from '@/components/check-in/check-in-page';
+import { CheckInPage } from '@/features/events/check-in/check-in-page';
 
 interface CheckInPageProps {
   params: Promise<{

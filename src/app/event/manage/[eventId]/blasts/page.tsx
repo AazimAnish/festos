@@ -1,4 +1,4 @@
-import { EventManagementPage } from '@/components/event-management/event-management-page';
+import { EventManagementPage } from '@/features/events/event-management/event-management-page';
 
 interface EventBlastsPageProps {
   params: Promise<{

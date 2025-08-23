@@ -1,7 +1,7 @@
-import { FadeIn } from '@/components/ui/fade-in';
-import { ReviewSystem } from '@/components/reviews/review-system';
+import { FadeIn } from '@/shared/components/ui/fade-in';
+import { ReviewSystem } from '@/features/events/reviews/review-system';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/shared/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
 interface EventReviewsPageProps {

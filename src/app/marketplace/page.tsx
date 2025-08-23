@@ -1,5 +1,5 @@
-import { FadeIn } from '@/components/ui/fade-in';
-import { MarketplacePage } from '@/components/marketplace/marketplace-page';
+import { FadeIn } from '@/shared/components/ui/fade-in';
+import { MarketplacePage } from '@/features/marketplace/marketplace-page';
 
 export default function Marketplace() {
   return (

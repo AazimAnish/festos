@@ -1,5 +1,5 @@
-import { EventDetailPage } from '@/components/event-details/event-detail-page';
-import { extractEventIdFromUniqueId } from '@/lib/utils';
+import { EventDetailPage } from '@/features/events/event-details/event-detail-page';
+import { extractEventIdFromUniqueId } from '@/shared/utils/event-helpers';
 import { notFound } from 'next/navigation';
 
 interface EventPageProps {

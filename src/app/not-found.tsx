@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { FadeIn } from '@/components/ui/fade-in';
+import { Button } from '@/shared/components/ui/button';
+import { FadeIn } from '@/shared/components/ui/fade-in';
 import { Home, Search, ArrowLeft } from 'lucide-react';
 
 export default function NotFound() {

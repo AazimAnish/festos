@@ -3,20 +3,22 @@
  *
  * This service handles all event-related business logic following clean code principles.
  * It separates business logic from data access and presentation layers.
+ * Currently uses only Avalanche blockchain and Filebase for storage.
  */
 
-import { createClient } from '@/lib/supabase/server';
 import {
   getFilebaseClient,
   generateEventMetadataKey,
   generateEventImageKey,
 } from '@/lib/filebase/client';
-import { createEventOnAvalanche } from '@/lib/contracts/avalanche-client';
+import { 
+  createEventOnAvalanche, 
+  getActiveEventsFromAvalanche
+} from '@/lib/contracts/avalanche-client';
 import type { CreateEventParams } from '@/lib/contracts/types/EventFactory';
-import type { CreateEventInput } from '@/lib/schemas/event';
+import type { CreateEventInput, EventSearchInput } from '@/lib/schemas/event';
 import { parseEther } from 'viem';
-import { NotFoundError, ValidationError } from '@/lib/utils/error-handler';
-import { EVENT_CONFIG } from '@/lib/constants';
+import { ValidationError } from '@/shared/utils/error-handler';
 
 export interface EventCreationResult {
   eventId: string;
@@ -65,66 +67,38 @@ export interface EventData {
 
 /**
  * Event Service Class
+ * Handles event creation and retrieval using blockchain and Filebase only
  */
 export class EventService {
-  private supabase: Awaited<ReturnType<typeof createClient>> | null = null;
-
   constructor() {
-    // Don't initialize in constructor to avoid build-time issues
-  }
-
-  /**
-   * Initialize Supabase client lazily
-   */
-  private async initializeSupabase(): Promise<void> {
-    if (this.supabase !== null) {
-      return; // Already initialized
-    }
-
-    try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-      if (supabaseUrl && supabaseKey) {
-        this.supabase = await createClient();
-      } else {
-        this.supabase = null;
-      }
-    } catch (error) {
-      console.warn('Supabase initialization failed:', error);
-      this.supabase = null;
-    }
+    // Service initialization
   }
 
   /**
    * Create a new event
    */
   async createEvent(input: CreateEventInput): Promise<EventCreationResult> {
-    // Initialize Supabase if needed
-    await this.initializeSupabase();
-
     // Validate input
-    this.validateEventInput(input);
+    if (!input.title || !input.description || !input.location) {
+      throw new ValidationError('Title, description, and location are required');
+    }
 
-    // Get or create user
-    const userId = await this.getOrCreateUser(input.walletAddress);
+    // Parse dates
+    const startTime = BigInt(Math.floor(new Date(input.startDate).getTime() / 1000));
+    const endTime = BigInt(Math.floor(new Date(input.endDate).getTime() / 1000));
+    
+    if (startTime >= endTime) {
+      throw new ValidationError('End date must be after start date');
+    }
 
-    // Convert dates to Unix timestamps
-    const startTime = BigInt(
-      Math.floor(new Date(input.startDate).getTime() / 1000)
-    );
-    const endTime = BigInt(
-      Math.floor(new Date(input.endDate).getTime() / 1000)
-    );
-
-    // Validate dates
-    this.validateEventDates(startTime, endTime);
-
-    // Parse ticket price
-    const ticketPriceWei = this.parseTicketPrice(input.ticketPrice);
+    // Convert ticket price to Wei
+    const ticketPriceWei = parseEther(input.ticketPrice);
 
     // Generate unique event ID
     const eventId = this.generateEventId();
+
+    // Use wallet address as userId (no database)
+    const userId = input.walletAddress;
 
     // Upload to Filebase
     const filebaseResult = await this.uploadToFilebase(eventId, input, userId);
@@ -137,18 +111,9 @@ export class EventService {
       ticketPriceWei
     );
 
-    // Store in database
-    const databaseResult = await this.storeInDatabase(
-      input,
-      userId,
-      eventId,
-      blockchainResult,
-      filebaseResult
-    );
-
     return {
-      eventId: databaseResult?.id || eventId,
-      slug: databaseResult?.slug || this.generateSlug(input.title),
+      eventId: eventId,
+      slug: this.generateSlug(input.title),
       contractEventId: blockchainResult?.eventId,
       transactionHash: blockchainResult?.transactionHash,
       filebaseMetadataUrl: filebaseResult?.metadataUrl,
@@ -157,342 +122,79 @@ export class EventService {
       contractAddress: blockchainResult?.address,
       createdOn: {
         blockchain: blockchainResult !== null,
-        database: databaseResult !== null,
+        database: false,
         filebase: filebaseResult !== null,
       },
     };
   }
 
   /**
-   * Get event by ID
+   * List events with filters
+   */
+  async listEvents(filters: EventSearchInput): Promise<{
+    events: EventData[];
+    total: number;
+    availableFilters: {
+      categories: string[];
+      locations: string[];
+      priceRanges: { min: number; max: number };
+    };
+  }> {
+    try {
+      const blockchainResult = await this.getEventsFromBlockchain(filters, true);
+      return {
+        events: blockchainResult.events,
+        total: blockchainResult.total,
+        availableFilters: {
+          categories: [],
+          locations: [...new Set(blockchainResult.events.map(e => e.location))],
+          priceRanges: this.calculatePriceRanges(blockchainResult.events),
+        },
+      };
+    } catch {
+      return {
+        events: [],
+        total: 0,
+        availableFilters: { categories: [], locations: [], priceRanges: { min: 0, max: 0 } },
+      };
+    }
+  }
+
+  /**
+   * Get event by ID (from blockchain)
    */
   async getEventById(eventId: string): Promise<EventData | null> {
-    await this.initializeSupabase();
-
-    if (!this.supabase) {
-      throw new NotFoundError('Database not available');
+    try {
+      const events = await this.getEventsFromBlockchain({ page: 1, limit: 100 }, false);
+      return events.events.find(event => event.id === eventId) || null;
+    } catch {
+      return null;
     }
-
-    const { data: event, error } = await this.supabase
-      .from('events')
-      .select('*')
-      .eq('id', eventId)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return null;
-      }
-      throw new Error(`Failed to fetch event: ${error.message}`);
-    }
-
-    return event as EventData;
   }
 
   /**
-   * Get event by slug
+   * Get event by slug (from blockchain)
    */
   async getEventBySlug(slug: string): Promise<EventData | null> {
-    await this.initializeSupabase();
-
-    if (!this.supabase) {
-      throw new NotFoundError('Database not available');
+    try {
+      const events = await this.getEventsFromBlockchain({ page: 1, limit: 100 }, false);
+      return events.events.find(event => event.contractEventId?.toString() === slug) || null;
+    } catch {
+      return null;
     }
-
-    const { data: event, error } = await this.supabase
-      .from('events')
-      .select('*')
-      .eq('slug', slug)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return null;
-      }
-      throw new Error(`Failed to fetch event: ${error.message}`);
-    }
-
-    return event as EventData;
   }
 
   /**
-   * Get events by creator
+   * Get events by creator (from blockchain)
    */
   async getEventsByCreator(creatorId: string): Promise<EventData[]> {
-    await this.initializeSupabase();
-
-    if (!this.supabase) {
-      throw new NotFoundError('Database not available');
-    }
-
-    const { data: events, error } = await this.supabase
-      .from('events')
-      .select('*')
-      .eq('creator_id', creatorId)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      throw new Error(`Failed to fetch events: ${error.message}`);
-    }
-
-    return events as EventData[];
-  }
-
-  /**
-   * Search events
-   */
-  async searchEvents(
-    query: string,
-    filters?: Record<string, unknown>
-  ): Promise<EventData[]> {
-    await this.initializeSupabase();
-
-    if (!this.supabase) {
-      throw new NotFoundError('Database not available');
-    }
-
-    let queryBuilder = this.supabase
-      .from('events')
-      .select('*')
-      .eq('visibility', 'public')
-      .gte('start_date', new Date().toISOString());
-
-    if (query) {
-      queryBuilder = queryBuilder.or(
-        `title.ilike.%${query}%,description.ilike.%${query}%,location.ilike.%${query}%`
-      );
-    }
-
-    if (filters?.category) {
-      queryBuilder = queryBuilder.eq('category', filters.category as string);
-    }
-
-    if (filters?.location) {
-      queryBuilder = queryBuilder.ilike(
-        'location',
-        `%${filters.location as string}%`
-      );
-    }
-
-    const { data: events, error } = await queryBuilder.order('start_date', {
-      ascending: true,
-    });
-
-    if (error) {
-      throw new Error(`Failed to search events: ${error.message}`);
-    }
-
-    return events as EventData[];
-  }
-
-  /**
-   * Validate event input
-   */
-  private validateEventInput(input: CreateEventInput): void {
-    if (!input.title.trim()) {
-      throw new ValidationError('Title is required');
-    }
-
-    if (input.title.length > EVENT_CONFIG.MAX_TITLE_LENGTH) {
-      throw new ValidationError(
-        `Title must be ${EVENT_CONFIG.MAX_TITLE_LENGTH} characters or less`
-      );
-    }
-
-    if (!input.description.trim()) {
-      throw new ValidationError('Description is required');
-    }
-
-    if (input.description.length > EVENT_CONFIG.MAX_DESCRIPTION_LENGTH) {
-      throw new ValidationError(
-        `Description must be ${EVENT_CONFIG.MAX_DESCRIPTION_LENGTH} characters or less`
-      );
-    }
-
-    if (!input.location.trim()) {
-      throw new ValidationError('Location is required');
-    }
-
-    if (input.location.length > EVENT_CONFIG.MAX_LOCATION_LENGTH) {
-      throw new ValidationError(
-        `Location must be ${EVENT_CONFIG.MAX_LOCATION_LENGTH} characters or less`
-      );
-    }
-
-    if (
-      input.maxCapacity < 0 ||
-      input.maxCapacity > EVENT_CONFIG.MAX_CAPACITY
-    ) {
-      throw new ValidationError(
-        `Capacity must be between 0 and ${EVENT_CONFIG.MAX_CAPACITY}`
-      );
-    }
-  }
-
-  /**
-   * Validate event dates
-   */
-  private validateEventDates(startTime: bigint, endTime: bigint): void {
-    const now = BigInt(Math.floor(Date.now() / 1000));
-
-    if (startTime <= now) {
-      throw new ValidationError('Start time must be in the future');
-    }
-
-    if (endTime <= startTime) {
-      throw new ValidationError('End time must be after start time');
-    }
-  }
-
-  /**
-   * Parse ticket price to wei
-   */
-  private parseTicketPrice(price: string): bigint {
     try {
-      return parseEther(price);
+      const events = await this.getEventsFromBlockchain({ page: 1, limit: 100 }, false);
+      return events.events.filter(event => 
+        event.creatorId.toLowerCase() === creatorId.toLowerCase()
+      );
     } catch {
-      throw new ValidationError('Invalid ticket price format');
-    }
-  }
-
-  /**
-   * Generate unique event ID
-   */
-  private generateEventId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-  }
-
-  /**
-   * Generate URL slug
-   */
-  private generateSlug(title: string): string {
-    return `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`;
-  }
-
-  /**
-   * Get or create user by wallet address
-   */
-  private async getOrCreateUser(walletAddress: string): Promise<string> {
-    if (!this.supabase) {
-      return walletAddress.toLowerCase();
-    }
-
-    try {
-      // Try to get existing user
-      const { data: existingUser, error: userError } = await this.supabase
-        .from('users')
-        .select('id')
-        .eq('wallet_address', walletAddress.toLowerCase())
-        .single();
-
-      if (userError && userError.code === '42P01') {
-        // Table doesn't exist
-        throw new Error('Table not found');
-      }
-
-      if (existingUser) {
-        return existingUser.id;
-      }
-
-      // Create new user
-      const { data: newUser, error: createError } = await this.supabase
-        .from('users')
-        .insert([
-          {
-            wallet_address: walletAddress.toLowerCase(),
-            created_at: new Date().toISOString(),
-          },
-        ])
-        .select('id')
-        .single();
-
-      if (createError) {
-        throw new Error('User creation failed');
-      }
-
-      return newUser.id;
-    } catch {
-      // Fallback to wallet address as user ID
-      return walletAddress.toLowerCase();
-    }
-  }
-
-  /**
-   * Upload event data to Filebase
-   */
-  private async uploadToFilebase(
-    eventId: string,
-    input: CreateEventInput,
-    userId: string
-  ): Promise<{ metadataUrl?: string; imageUrl?: string } | null> {
-    try {
-      const filebaseClient = getFilebaseClient();
-
-      // Prepare event metadata
-      const eventMetadata = {
-        id: eventId,
-        title: input.title,
-        description: input.description,
-        location: input.location,
-        startDate: input.startDate,
-        endDate: input.endDate,
-        maxCapacity: input.maxCapacity,
-        ticketPrice: input.ticketPrice,
-        requireApproval: input.requireApproval,
-        hasPOAP: input.hasPOAP,
-        poapMetadata: input.poapMetadata,
-        visibility: input.visibility,
-        timezone: input.timezone,
-        category: input.category,
-        tags: input.tags,
-        creator: {
-          id: userId,
-          walletAddress: input.walletAddress,
-        },
-        createdAt: new Date().toISOString(),
-        storageProvider: 'filebase',
-      };
-
-      // Upload metadata
-      const metadataKey = generateEventMetadataKey(eventId);
-      const metadataResult = await filebaseClient.uploadMetadata(
-        metadataKey,
-        eventMetadata
-      );
-
-      let imageUrl: string | undefined;
-
-      // Upload banner image if provided
-      if (input.bannerImage) {
-        try {
-          const imageResponse = await fetch(input.bannerImage);
-          if (imageResponse.ok) {
-            const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
-            const imageKey = generateEventImageKey(
-              eventId,
-              'banner-image.webp'
-            );
-            const imageResult = await filebaseClient.uploadImage(
-              imageKey,
-              imageBuffer,
-              'image/jpeg',
-              true, // Enable compression
-              'banner' // Use banner compression preset
-            );
-            imageUrl = imageResult.url;
-          }
-        } catch (error) {
-          console.warn('Failed to upload banner image to Filebase:', error);
-        }
-      }
-
-      return {
-        metadataUrl: metadataResult.url,
-        imageUrl,
-      };
-    } catch (error) {
-      console.warn('Filebase upload failed:', error);
-      return null;
+      return [];
     }
   }
 
@@ -510,7 +212,13 @@ export class EventService {
     chainId: number;
     address: string;
   } | null> {
-    if (!input.privateKey || input.privateKey.trim() === '') {
+    // Use private key from input or fallback to environment variable
+    let privateKey = input.privateKey;
+    if (!privateKey || privateKey.trim() === '') {
+      privateKey = process.env.PRIVATE_KEY;
+    }
+    
+    if (!privateKey || privateKey.trim() === '') {
       return null;
     }
 
@@ -530,7 +238,7 @@ export class EventService {
 
       const result = await createEventOnAvalanche(
         contractParams,
-        input.privateKey,
+        privateKey,
         input.useTestnet
       );
 
@@ -540,93 +248,164 @@ export class EventService {
         chainId: input.useTestnet ? 43113 : 43114,
         address: input.walletAddress,
       };
-    } catch (error) {
-      console.warn('Blockchain creation failed:', error);
+    } catch {
       return null;
     }
   }
 
   /**
-   * Store event in database
+   * Upload event data to Filebase
    */
-  private async storeInDatabase(
-    input: CreateEventInput,
-    userId: string,
+  private async uploadToFilebase(
     eventId: string,
-    blockchainResult: {
-      eventId: number;
-      transactionHash: string;
-      chainId: number;
-      address: string;
-    } | null,
-    filebaseResult: { metadataUrl?: string; imageUrl?: string } | null
-  ): Promise<{ id: string; slug: string } | null> {
-    if (!this.supabase) {
-      return null;
-    }
-
+    input: CreateEventInput,
+    userId: string
+  ): Promise<{ metadataUrl?: string; imageUrl?: string } | null> {
     try {
-      const eventData = {
+      const filebaseClient = getFilebaseClient();
+
+      // Prepare metadata
+      const metadata = {
+        id: eventId,
         title: input.title,
         description: input.description,
         location: input.location,
-        start_date: input.startDate,
-        end_date: input.endDate,
-        max_capacity: input.maxCapacity,
-        ticket_price: input.ticketPrice,
-        require_approval: input.requireApproval,
-        has_poap: input.hasPOAP,
-        poap_metadata: input.poapMetadata || null,
+        startDate: input.startDate,
+        endDate: input.endDate,
+        maxCapacity: input.maxCapacity,
+        ticketPrice: input.ticketPrice,
+        requireApproval: input.requireApproval,
+        hasPOAP: input.hasPOAP,
+        poapMetadata: input.poapMetadata,
         visibility: input.visibility,
         timezone: input.timezone,
-        banner_image: input.bannerImage || null,
-        category: input.category || null,
-        tags: input.tags || [],
-        creator_id: userId,
-        status: 'active',
-        contract_event_id: blockchainResult?.eventId,
-        contract_address: blockchainResult?.address,
-        contract_chain_id: blockchainResult?.chainId,
-        filebase_metadata_url: filebaseResult?.metadataUrl,
-        filebase_image_url: filebaseResult?.imageUrl,
-        storage_provider: filebaseResult ? 'filebase' : null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        category: input.category,
+        tags: input.tags,
+        creatorId: userId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
-      const { data: insertedEvent, error: dbError } = await this.supabase
-        .from('events')
-        .insert([eventData])
-        .select('id')
-        .single();
+      // Upload metadata
+      const metadataKey = generateEventMetadataKey(eventId);
+      const metadataResult = await filebaseClient.uploadMetadata(metadataKey, metadata);
 
-      if (dbError) {
-        if (dbError.code === '42P01') {
-          throw new Error('Events table not found');
+      let imageUrl: string | undefined;
+      if (input.bannerImage) {
+        try {
+          // Convert base64 to buffer
+          const imageBuffer = Buffer.from(input.bannerImage.split(',')[1], 'base64');
+          const imageKey = generateEventImageKey(eventId, 'banner.jpg');
+          const imageResult = await filebaseClient.uploadImage(imageKey, imageBuffer, 'image/jpeg');
+          imageUrl = imageResult.url;
+        } catch {
+          // Continue without image if upload fails
         }
-        throw new Error(
-          `Failed to create event in database: ${dbError.message}`
-        );
       }
 
-      const slug = this.generateSlug(input.title);
-
-      // Update with slug
-      await this.supabase
-        .from('events')
-        .update({ slug })
-        .eq('id', insertedEvent.id);
-
       return {
-        id: insertedEvent.id,
-        slug,
+        metadataUrl: metadataResult.url,
+        imageUrl,
       };
-    } catch (error) {
-      console.warn('Database storage failed:', error);
+    } catch {
       return null;
     }
   }
-}
 
-// Export singleton instance
-export const eventService = new EventService();
+  /**
+   * Get events from blockchain
+   */
+  private async getEventsFromBlockchain(
+    filters: EventSearchInput,
+    includeBlockchain: boolean
+  ): Promise<{
+    events: EventData[];
+    total: number;
+  }> {
+    if (!includeBlockchain) {
+      return { events: [], total: 0 };
+    }
+
+    try {
+      const blockchainEvents = await getActiveEventsFromAvalanche(BigInt(0), BigInt(100), true);
+      
+      if (!blockchainEvents || blockchainEvents.length === 0) {
+        // If no events found, return empty array
+        return { events: [], total: 0 };
+      }
+      
+      const events: EventData[] = blockchainEvents.map((event, index) => ({
+        id: `blockchain-${event.eventId || index}`,
+        title: event.title,
+        description: event.description,
+        location: event.location,
+        startDate: new Date(Number(event.startTime) * 1000).toISOString(),
+        endDate: new Date(Number(event.endTime) * 1000).toISOString(),
+        maxCapacity: Number(event.maxCapacity),
+        ticketPrice: (Number(event.ticketPrice) / 1e18).toString(),
+        requireApproval: event.requireApproval,
+        hasPOAP: event.hasPOAP,
+        poapMetadata: event.poapMetadata,
+        visibility: 'public' as const,
+        timezone: 'UTC',
+        creatorId: event.creator || 'unknown',
+        status: 'active',
+        contractEventId: Number(event.eventId),
+        contractAddress: event.creator,
+        contractChainId: 43113,
+        storageProvider: 'blockchain',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }));
+
+      return {
+        events,
+        total: events.length,
+      };
+    } catch (error) {
+      // Log the error for debugging but return empty array
+      console.warn('Failed to fetch blockchain events:', error);
+      return { events: [], total: 0 };
+    }
+  }
+
+  /**
+   * Calculate price ranges from events
+   */
+  private calculatePriceRanges(events: EventData[]): { min: number; max: number } {
+    if (events.length === 0) {
+      return { min: 0, max: 0 };
+    }
+
+    const prices = events.map(event => parseFloat(event.ticketPrice)).filter(price => !isNaN(price));
+    
+    if (prices.length === 0) {
+      return { min: 0, max: 0 };
+    }
+
+    return {
+      min: Math.min(...prices),
+      max: Math.max(...prices),
+    };
+  }
+
+  /**
+   * Generate unique event ID
+   */
+  private generateEventId(): string {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 15);
+    return `${timestamp}-${random}`;
+  }
+
+  /**
+   * Generate URL-friendly slug from title
+   */
+  private generateSlug(title: string): string {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
+      + '-' + Date.now();
+  }
+}

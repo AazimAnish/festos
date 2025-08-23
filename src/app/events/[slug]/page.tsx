@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { extractEventIdFromSlug } from '@/lib/utils';
+import { extractEventIdFromSlug } from '@/shared/utils/event-helpers';
 
 export default async function EventDetail({
   params,

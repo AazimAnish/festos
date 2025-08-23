@@ -102,6 +102,9 @@ export interface EventFactoryEvents {
 
 export interface EventFactoryReadFunctions {
   getEvent: (eventId: bigint) => Promise<Event>;
+  getEvents: (eventIds: bigint[]) => Promise<Event[]>;
+  getEventsByCreator: (creator: `0x${string}`, offset: bigint, limit: bigint) => Promise<Event[]>;
+  getActiveEvents: (offset: bigint, limit: bigint) => Promise<Event[]>;
   getTicket: (ticketId: bigint) => Promise<Ticket>;
   getEventStats: (eventId: bigint) => Promise<EventStats>;
   getUserEvents: (user: `0x${string}`) => Promise<bigint[]>;

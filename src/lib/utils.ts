@@ -6,16 +6,16 @@
  */
 
 // Core utilities
-export { cn } from './utils/cn';
+export { cn } from '@/shared/utils/cn';
 
 // Event-specific utilities
-export * from './utils/event-helpers';
+export * from '@/shared/utils/event-helpers';
 
 // Form validation utilities
-export * from './utils/form-validation';
+export * from '@/shared/utils/form-validation';
 
 // Error handling utilities
-export * from './utils/error-handler';
+export * from '@/shared/utils/error-handler';
 
 // Image upload utilities
-export * from './utils/image-upload';
+export * from '@/shared/utils/image-upload';

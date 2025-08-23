@@ -1,5 +1,5 @@
-import { FadeIn } from '@/components/ui/fade-in';
-import { UserDashboard } from '@/components/dashboard/user-dashboard';
+import { FadeIn } from '@/shared/components/ui/fade-in';
+import { UserDashboard } from '@/features/dashboard/user-dashboard';
 
 export default function DashboardPage() {
   return (

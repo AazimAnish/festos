@@ -6,6 +6,7 @@ import {
   type Address,
   decodeEventLog,
 } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 import { avalanche, avalancheFuji } from '@/lib/chains';
 import { getContractAddress } from '@/lib/config/contracts';
 import { CONTRACT_ABIS } from '@/lib/config/contracts';
@@ -37,19 +38,21 @@ export function createAvalancheFujiPublicClient() {
 
 // Create wallet client for Avalanche mainnet
 export function createAvalancheWalletClient(privateKey: string) {
+  const account = privateKeyToAccount(privateKey as `0x${string}`);
   return createWalletClient({
     chain: avalanche,
     transport: http(AVALANCHE_RPC_URL),
-    account: privateKey as Address,
+    account,
   });
 }
 
 // Create wallet client for Avalanche Fuji testnet
 export function createAvalancheFujiWalletClient(privateKey: string) {
+  const account = privateKeyToAccount(privateKey as `0x${string}`);
   return createWalletClient({
     chain: avalancheFuji,
     transport: http(AVALANCHE_FUJI_RPC_URL),
-    account: privateKey as Address,
+    account,
   });
 }
 
@@ -217,4 +220,64 @@ export async function getEventFromAvalanche(
   });
 
   return event;
+}
+
+// Get multiple events from Avalanche blockchain
+export async function getEventsFromAvalanche(
+  eventIds: bigint[],
+  isTestnet: boolean = false
+) {
+  const contract = isTestnet
+    ? getAvalancheFujiEventFactoryContract()
+    : getAvalancheEventFactoryContract();
+
+  const events = await contract.publicClient.readContract({
+    address: contract.address,
+    abi: contract.abi,
+    functionName: 'getEvents',
+    args: [eventIds],
+  });
+
+  return events;
+}
+
+// Get events by creator from Avalanche blockchain
+export async function getEventsByCreatorFromAvalanche(
+  creator: `0x${string}`,
+  offset: bigint,
+  limit: bigint,
+  isTestnet: boolean = false
+) {
+  const contract = isTestnet
+    ? getAvalancheFujiEventFactoryContract()
+    : getAvalancheEventFactoryContract();
+
+  const events = await contract.publicClient.readContract({
+    address: contract.address,
+    abi: contract.abi,
+    functionName: 'getEventsByCreator',
+    args: [creator, offset, limit],
+  });
+
+  return events;
+}
+
+// Get active events from Avalanche blockchain
+export async function getActiveEventsFromAvalanche(
+  offset: bigint,
+  limit: bigint,
+  isTestnet: boolean = false
+) {
+  const contract = isTestnet
+    ? getAvalancheFujiEventFactoryContract()
+    : getAvalancheEventFactoryContract();
+
+  const events = await contract.publicClient.readContract({
+    address: contract.address,
+    abi: contract.abi,
+    functionName: 'getActiveEvents',
+    args: [offset, limit],
+  });
+
+  return events;
 }

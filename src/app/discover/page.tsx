@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, useMemo, Suspense } from 'react';
-import { DiscoverHero } from '@/components/discover-hero';
-import { SearchFilterBar } from '@/components/search-filter-bar';
-import { FilterPanel } from '@/components/filter-panel';
-import { EventsGrid } from '@/components/events-grid';
-import { FloatingMapToggle } from '@/components/floating-map-toggle';
-import { MapView } from '@/components/map-view';
-import { Loading } from '@/components/ui/loading';
-import { ErrorBoundary } from '@/components/ui/error-boundary';
-import { SAMPLE_EVENTS } from '@/lib/data/sample-events';
+import { useState, useMemo } from 'react';
+import { DiscoverHero } from '@/features/events/discover-hero';
+import { SearchFilterBar } from '@/features/events/search-filter-bar';
+import { FilterPanel } from '@/features/events/filter-panel';
+import { EventsGrid } from '@/features/events/events-grid';
+import { FloatingMapToggle } from '@/features/events/floating-map-toggle';
+import { MapView } from '@/features/events/map-view';
+import { Loading } from '@/shared/components/ui/loading';
+import { ErrorBoundary } from '@/shared/components/ui/error-boundary';
+import { useEvents } from '@/shared/hooks/use-events-optimized';
+import type { EventData } from '@/lib/services/event-service';
 
 interface Filters {
   search: string;
@@ -18,6 +19,25 @@ interface Filters {
   hasPOAP: boolean;
   savedOnly: boolean;
   date: Date | undefined;
+}
+
+// Convert EventData to the format expected by EventsGrid
+function convertEventDataToGridFormat(event: EventData) {
+  return {
+    id: event.id,
+    uniqueId: event.id, // Use id as uniqueId since slug is not in EventData
+    title: event.title,
+    date: event.startDate,
+    location: event.location,
+    price: event.ticketPrice === '0' ? 'Free' : `${event.ticketPrice} ETH`,
+    image: event.bannerImage || '/card1.png', // Fallback image
+    category: event.category || 'General',
+    joinedCount: 0, // This would come from ticket count in the future
+    isSaved: false, // This would come from user preferences
+    hasPOAP: event.hasPOAP,
+    description: event.description,
+    status: event.status as 'pending' | 'confirmed' | 'cancelled' | 'active',
+  };
 }
 
 // Loading component for the events section
@@ -57,31 +77,28 @@ export default function DiscoverPage() {
     date: undefined,
   });
 
-  // Filter events based on current filters
+  // Fetch real events from API
+  const { data: eventsResponse, isLoading, error } = useEvents({
+    query: filters.search,
+    category: filters.category,
+    page: 1,
+    limit: 50, // Show more events initially
+    includeBlockchain: true, // Include blockchain events
+  });
+
+  // Convert API response to grid format and apply client-side filters
   const filteredEvents = useMemo(() => {
-    // TODO: Replace with real API call
-    // For now, return empty array since mock data is removed
-    return SAMPLE_EVENTS.filter(event => {
-      // Search filter
-      if (
-        filters.search &&
-        !event.title.toLowerCase().includes(filters.search.toLowerCase()) &&
-        !event.location.toLowerCase().includes(filters.search.toLowerCase())
-      ) {
-        return false;
-      }
+    if (!eventsResponse?.events) return [];
 
-      // Category filter
-      if (filters.category && event.category !== filters.category) {
-        return false;
-      }
+    const events = eventsResponse.events.map(convertEventDataToGridFormat);
 
+    return events.filter(event => {
       // POAP filter
       if (filters.hasPOAP && !event.hasPOAP) {
         return false;
       }
 
-      // Saved only filter
+      // Saved only filter (client-side only for now)
       if (filters.savedOnly && !event.isSaved) {
         return false;
       }
@@ -114,7 +131,7 @@ export default function DiscoverPage() {
 
       return true;
     });
-  }, [filters]);
+  }, [eventsResponse, filters]);
 
   const handleFilterChange = (newFilters: Partial<Filters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
@@ -164,9 +181,13 @@ export default function DiscoverPage() {
       >
         {/* Events Grid with Error Boundary */}
         <ErrorBoundary fallback={<EventsError />}>
-          <Suspense fallback={<EventsLoading />}>
+          {isLoading ? (
+            <EventsLoading />
+          ) : error ? (
+            <EventsError />
+          ) : (
             <EventsGrid events={filteredEvents} onClearFilters={clearFilters} />
-          </Suspense>
+          )}
         </ErrorBoundary>
 
         {/* Map View with Error Boundary */}

@@ -1,5 +1,5 @@
-import { FadeIn } from '@/components/ui/fade-in';
-import { POAPCollection } from '@/components/poap/poap-collection';
+import { FadeIn } from '@/shared/components/ui/fade-in';
+import { POAPCollection } from '@/features/dashboard/poap/poap-collection';
 
 interface UserPOAPsPageProps {
   params: Promise<{
