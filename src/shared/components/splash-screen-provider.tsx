@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useSplashScreen } from '@/shared/hooks/use-splash-screen';
 import { SplashScreen } from '@/shared/components/splash-screen';
 
@@ -29,7 +29,16 @@ interface SplashScreenProviderProps {
 }
 
 export function SplashScreenProvider({ children }: SplashScreenProviderProps) {
+  const [mounted, setMounted] = useState(false);
   const splashScreen = useSplashScreen();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div style={{ visibility: 'hidden' }}>{children}</div>;
+  }
 
   return (
     <SplashScreenContext.Provider value={splashScreen}>

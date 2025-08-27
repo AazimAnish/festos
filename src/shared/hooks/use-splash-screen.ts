@@ -1,13 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export function useSplashScreen() {
   const [showSplash, setShowSplash] = useState(true);
   const [isFirstVisit, setIsFirstVisit] = useState(true);
   const [isClient, setIsClient] = useState(false);
+  const hasMounted = useRef(false);
 
   useEffect(() => {
+    // Prevent multiple executions
+    if (hasMounted.current) return;
+    hasMounted.current = true;
+
     setIsClient(true);
 
     // Check if this is the first visit

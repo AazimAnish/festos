@@ -1,52 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { eventSearchSchema, type EventSearchInput } from '@/lib/schemas/event';
-import { apiErrorHandler } from '@/shared/utils/error-handler';
 import { EventService } from '@/lib/services/event-service';
+import { eventSearchSchema, type EventSearchInput } from '@/lib/schemas/event';
 import { PAGINATION_CONFIG } from '@/lib/constants';
 
 export async function GET(request: NextRequest) {
   try {
-    // Parse query parameters
     const { searchParams } = new URL(request.url);
     
-    // Extract and validate query parameters
-    const queryParams: Record<string, string | string[]> = {};
-    for (const [key, value] of searchParams.entries()) {
-      if (key === 'tags') {
-        // Handle array parameters
-        if (!queryParams[key]) {
-          queryParams[key] = [];
-        }
-        (queryParams[key] as string[]).push(value);
-      } else {
-        queryParams[key] = value;
-      }
-    }
-
     // Convert to proper types for validation
     const validatedParams: EventSearchInput = {
-      query: queryParams.query as string || undefined,
-      category: queryParams.category as string || undefined,
-      location: queryParams.location as string || undefined,
-      startDate: queryParams.startDate as string || undefined,
-      endDate: queryParams.endDate as string || undefined,
-      priceRange: queryParams.priceRange ? JSON.parse(queryParams.priceRange as string) : undefined,
-      tags: queryParams.tags as string[] || undefined,
-      page: parseInt(queryParams.page as string) || PAGINATION_CONFIG.DEFAULT_PAGE_SIZE,
+      query: searchParams.get('query') || undefined,
+      category: searchParams.get('category') || undefined,
+      location: searchParams.get('location') || undefined,
+      startDate: searchParams.get('startDate') || undefined,
+      endDate: searchParams.get('endDate') || undefined,
+      priceRange: searchParams.get('priceRange') ? JSON.parse(searchParams.get('priceRange')!) : undefined,
+      tags: searchParams.getAll('tags') || undefined,
+      page: parseInt(searchParams.get('page') || '1'),
       limit: Math.min(
-        parseInt(queryParams.limit as string) || PAGINATION_CONFIG.DEFAULT_PAGE_SIZE,
+        parseInt(searchParams.get('limit') || PAGINATION_CONFIG.DEFAULT_PAGE_SIZE.toString()),
         PAGINATION_CONFIG.MAX_PAGE_SIZE
       ),
+      includeBlockchain: searchParams.get('includeBlockchain') === 'true',
     };
-
-    // Blockchain data is always included in the current implementation
 
     // Validate parameters
     const validatedData = eventSearchSchema.parse(validatedParams);
 
     // Get events using service
     const eventService = new EventService();
-    const result = await eventService.listEvents(validatedData);
+    const result = await eventService.listEvents(validatedData, validatedData.includeBlockchain);
 
     return NextResponse.json({
       success: true,
@@ -61,31 +44,29 @@ export async function GET(request: NextRequest) {
       },
       filters: {
         applied: validatedData,
-        available: result.availableFilters,
+        available: {
+          categories: ['General', 'Technology', 'Music', 'Art', 'Sports', 'Business', 'Education', 'Other'],
+          locations: ['Downtown', 'Suburbs', 'Online', 'Venue', 'Park', 'Beach', 'Mountain', 'Other'],
+          priceRanges: {
+            min: 0,
+            max: 1000,
+          },
+        },
       },
     });
   } catch (error) {
-    const errorResponse = apiErrorHandler(error);
-    const responseBody: Record<string, unknown> = {
-      error: errorResponse.error,
-    };
-    if (errorResponse.details) {
-      responseBody.details = errorResponse.details;
+    console.error('Error in events API:', error);
+    
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 400 }
+      );
     }
-    return NextResponse.json(responseBody, {
-      status: errorResponse.statusCode,
-    });
+    
+    return NextResponse.json(
+      { success: false, error: 'Internal server error' },
+      { status: 500 }
+    );
   }
-}
-
-export async function POST() {
-  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
-}
-
-export async function PUT() {
-  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
-}
-
-export async function DELETE() {
-  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
 }

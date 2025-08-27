@@ -39,6 +39,7 @@ export const env = {
   AVALANCHE_TESTNET_RPC_URL: process.env.AVALANCHE_TESTNET_RPC_URL,
   EVENT_FACTORY_ADDRESS: process.env.EVENT_FACTORY_ADDRESS,
   EVENT_FACTORY_TESTNET_ADDRESS: process.env.EVENT_FACTORY_TESTNET_ADDRESS,
+  PRIVATE_KEY: process.env.PRIVATE_KEY,
 
   // Analytics
   GOOGLE_ANALYTICS_ID: process.env.NEXT_PUBLIC_GA_ID,
@@ -90,6 +91,7 @@ export const appConfig = {
   // Blockchain
   blockchain: {
     enabled: !!(env.AVALANCHE_RPC_URL || env.AVALANCHE_TESTNET_RPC_URL),
+    privateKey: env.PRIVATE_KEY,
     avalanche: {
       mainnet: {
         rpcUrl: env.AVALANCHE_RPC_URL,

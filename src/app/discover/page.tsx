@@ -10,7 +10,7 @@ import { MapView } from '@/features/events/map-view';
 import { Loading } from '@/shared/components/ui/loading';
 import { ErrorBoundary } from '@/shared/components/ui/error-boundary';
 import { useEvents } from '@/shared/hooks/use-events-optimized';
-import type { EventData } from '@/lib/services/event-service';
+import type { EventData } from '@/lib/services/core/interfaces';
 
 interface Filters {
   search: string;
@@ -25,7 +25,7 @@ interface Filters {
 function convertEventDataToGridFormat(event: EventData) {
   return {
     id: event.id,
-    uniqueId: event.id, // Use id as uniqueId since slug is not in EventData
+    uniqueId: event.id, // Use id as uniqueId since slug might be null
     title: event.title,
     date: event.startDate,
     location: event.location,
@@ -86,9 +86,13 @@ export default function DiscoverPage() {
     includeBlockchain: true, // Include blockchain events
   });
 
+
+
   // Convert API response to grid format and apply client-side filters
   const filteredEvents = useMemo(() => {
-    if (!eventsResponse?.events) return [];
+    if (!eventsResponse?.events) {
+      return [];
+    }
 
     const events = eventsResponse.events.map(convertEventDataToGridFormat);
 

@@ -12,7 +12,13 @@
     "type-check:test": "tsc --noEmit --project tsconfig.test.json || true",
     "build:check": "bun run lint && bun run type-check && bun run build",
     "test": "bun run type-check:test",
-    "setup-filebase": "bun run scripts/setup-filebase.ts",
+    "test:all": "bun run test:three-layer",
+    "test:three-layer": "bun run scripts/test-three-layer-architecture.ts",
+    "test:smart-contract": "bun run scripts/test-smart-contract.ts",
+    "setup:database": "bun run scripts/setup-database.ts",
+    "fix:rls": "echo 'Please run the contents of database/fix-rls-policies.sql in your Supabase SQL Editor'",
+    "cleanup:orphaned-events": "bun run scripts/cleanup-orphaned-events.ts",
+
     "clean": "rm -rf .next out dist",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

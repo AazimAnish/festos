@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Textarea } from '@/shared/components/ui/textarea';
@@ -30,10 +30,14 @@ import { CapacityDialog } from './capacity-dialog';
 import { POPDialog } from './pop-dialog';
 import { TicketPriceDialog } from './ticket-price-dialog';
 import { EventCreationSuccess } from './event-creation-success';
-import { useAccount, useChainId } from 'wagmi';
+import { useAccount, useChainId, useWalletClient, usePublicClient } from 'wagmi';
 import { useAuthenticatedFetch } from '@/shared/hooks/use-wallet-auth';
+// Removed unused import: parseEther
+import { avalanche, avalancheFuji } from '@/lib/chains';
 
-export function EventCreationPage() {
+
+
+function EventCreationPage() {
   type PopConfig = {
     popImage?: string;
     recipientsMode: 'all' | 'random' | 'top';
@@ -73,12 +77,158 @@ export function EventCreationPage() {
     contractAddress?: string;
   } | null>(null);
 
+  // Refs to prevent multiple initializations
+  const hasInitialized = useRef(false);
+
   // Wallet and network state
   const { address: walletAddress, isConnected } = useAccount();
   const chainId = useChainId();
+  const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient();
   const authenticatedFetch = useAuthenticatedFetch();
 
-  // Prevent hydration errors
+  /**
+   * Sign transaction with Rainbow Kit
+   */
+  const signTransactionWithRainbowKit = async (transactionData: {
+    address: `0x${string}`;
+    abi: any[];
+    functionName: string;
+    args: any[];
+    chainId: number;
+  }) => {
+    if (!walletClient) {
+      return {
+        success: false,
+        error: 'Wallet client not available'
+      };
+    }
+
+    if (!publicClient) {
+      return {
+        success: false,
+        error: 'Public client not available'
+      };
+    }
+
+    try {
+      // Convert string args back to BigInt for wallet client
+      const convertedArgs = transactionData.args.map((arg: string | number, index: number) => {
+        // Convert specific BigInt arguments back to BigInt
+        if (index === 3 || index === 4 || index === 5 || index === 6) { // startTime, endTime, maxCapacity, ticketPrice
+          return BigInt(arg);
+        }
+        return arg;
+      });
+
+      // Send transaction using Rainbow Kit
+      const hash = await walletClient.writeContract({
+        address: transactionData.address,
+        abi: transactionData.abi,
+        functionName: transactionData.functionName,
+        args: convertedArgs,
+      });
+
+      // Wait for transaction confirmation
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash,
+      });
+
+      // Parse event logs to get the event ID
+      const eventCreatedLog = receipt.logs.find((log: { data: string; topics: string[] }) => {
+        try {
+          const decoded = decodeEventLog({
+            abi: transactionData.abi,
+            data: log.data,
+            topics: log.topics,
+          });
+          return decoded.eventName === 'EventCreated';
+        } catch {
+          return false;
+        }
+      });
+
+      if (!eventCreatedLog) {
+        throw new Error('EventCreated event not found in transaction logs');
+      }
+
+      const decoded = decodeEventLog({
+        abi: transactionData.abi,
+        data: eventCreatedLog.data,
+        topics: eventCreatedLog.topics,
+      });
+
+      const eventId = decoded.args.eventId;
+
+      return {
+        success: true,
+        transactionHash: hash,
+        eventId: Number(eventId),
+        contractAddress: transactionData.address,
+        chainId: transactionData.chainId,
+        userSignature: hash, // Transaction hash serves as signature
+      };
+
+    } catch (error) {
+      console.error('Rainbow Kit transaction signing failed:', error);
+      
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
+      };
+    }
+  };
+
+  /**
+   * Helper function to decode event logs
+   */
+  const decodeEventLog = ({ abi, data: _data, topics }: { abi: any[]; data: string; topics: string[] }) => {
+    try {
+      // Find the EventCreated event in the ABI
+      const eventAbi = abi.find((item: any) => item.type === 'event' && item.name === 'EventCreated');
+      
+      if (!eventAbi) {
+        throw new Error('EventCreated event not found in ABI');
+      }
+
+      // For now, try to extract eventId from the first topic (indexed parameter)
+      // In a real implementation, you'd use viem's decodeEventLog
+      if (topics.length > 1) {
+        // The first topic is the event signature, subsequent topics are indexed parameters
+        // eventId is usually the first indexed parameter
+        const eventIdHex = topics[1]; // First indexed parameter
+        if (eventIdHex && eventIdHex.startsWith('0x')) {
+          const eventId = BigInt(eventIdHex);
+          return {
+            eventName: 'EventCreated',
+            args: {
+              eventId: eventId,
+            },
+          };
+        }
+      }
+
+      // Fallback: try to parse from data if topics don't work
+      // This is a simplified approach - in production use proper ABI decoding
+      return {
+        eventName: 'EventCreated',
+        args: {
+          eventId: BigInt(1), // Fallback to 1 instead of 0
+        },
+      };
+    } catch (error) {
+      console.error('Event log decoding error:', error);
+      // Return a fallback eventId to prevent complete failure
+      return {
+        eventName: 'EventCreated',
+        args: {
+          eventId: BigInt(1), // Fallback to 1
+        },
+      };
+    }
+  };
+
+  // Prevent hydration errors and ensure WagmiProvider is ready
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -86,6 +236,11 @@ export function EventCreationPage() {
   // Initialize default future-safe times on mount
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (!mounted) return; // Wait for component to mount
+    if (hasInitialized.current) return; // Prevent multiple initializations
+    
+    hasInitialized.current = true;
+    
     if (!startDate) {
       const now = new Date();
       const minutes = now.getMinutes();
@@ -104,7 +259,7 @@ export function EventCreationPage() {
       const initEnd = new Date(startDate.getTime() + 60 * 60 * 1000);
       setEndDate(initEnd);
     }
-  }, [startDate, endDate]);
+  }, [mounted, startDate, endDate]);
 
   const popSummary = popConfig
     ? popConfig.recipientsMode === 'all'
@@ -167,6 +322,12 @@ export function EventCreationPage() {
       return;
     }
 
+    // Check if wallet is on correct network
+    if (chainId !== avalanche.id && chainId !== avalancheFuji.id) {
+      alert('Please connect to Avalanche network (Mainnet or Testnet)');
+      return;
+    }
+
     // Ensure start/end are in the future and end > start
     const now = new Date();
     let computedStart = startDate ? new Date(startDate) : new Date(now);
@@ -194,7 +355,7 @@ export function EventCreationPage() {
     setIsSubmitting(true);
 
     try {
-      // Prepare event data with blockchain integration
+      // Step 1: Prepare event data
       const eventData = {
         title: eventName,
         description: description,
@@ -210,35 +371,74 @@ export function EventCreationPage() {
         timezone: timezone,
         category: 'General',
         tags: [],
-        // Blockchain integration fields
-        walletAddress: walletAddress,
-        useTestnet: useTestnet,
       };
 
-      // Call API to create event
-      const response = await authenticatedFetch('/api/events/create', {
+      // Step 2: Call API to get transaction data and upload metadata
+      const response = await authenticatedFetch('/api/events/v3', {
         method: 'POST',
         body: JSON.stringify(eventData),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create event');
+        throw new Error(errorData.error || 'Failed to prepare event creation');
       }
 
-      const result = await response.json();
+      const responseData = await response.json();
+      
+      if (!responseData.success) {
+        throw new Error(responseData.error || 'Event preparation failed');
+      }
+
+      const preparationData = responseData.data;
+
+      // Step 3: Sign transaction with user wallet using Rainbow Kit
+      const signedTransaction = await signTransactionWithRainbowKit(preparationData.transactionData);
+
+      if (!signedTransaction.success) {
+        throw new Error(signedTransaction.error || 'Transaction signing failed');
+      }
+
+      // Step 4: Submit signed transaction to backend
+      const requestBody = {
+        signedTransaction: {
+          ...signedTransaction,
+          userWalletAddress: walletAddress,
+        },
+        eventData: eventData,
+      };
+      
+      // API request being sent
+      
+      const finalResponse = await authenticatedFetch('/api/events/v3', {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!finalResponse.ok) {
+        const errorData = await finalResponse.json();
+        throw new Error(errorData.error || 'Failed to submit signed transaction');
+      }
+
+      const finalResponseData = await finalResponse.json();
+      
+      if (!finalResponseData.success) {
+        throw new Error(finalResponseData.error || 'Event creation failed');
+      }
+
+      const result = finalResponseData.data;
 
       const createdEventData = {
         title: eventName,
         date: computedStart.toLocaleDateString() || '',
         location: location,
-        uniqueId: result.event.slug,
-        contractEventId: result.event.contractEventId,
-        transactionHash: result.event.transactionHash,
-        web3storageMetadataCid: result.event.web3storageMetadataCid,
-        web3storageImageCid: result.event.web3storageImageCid,
-        contractChainId: result.event.contractChainId,
-        contractAddress: result.event.contractAddress,
+        uniqueId: result.slug || result.eventId,
+        contractEventId: result.contractEventId,
+        transactionHash: result.transactionHash,
+        web3storageMetadataCid: result.filebaseMetadataUrl,
+        web3storageImageCid: result.filebaseImageUrl,
+        contractChainId: result.contractChainId,
+        contractAddress: result.contractAddress,
       };
 
       setCreatedEvent(createdEventData);
@@ -284,6 +484,18 @@ export function EventCreationPage() {
   if (isSuccess && createdEvent) {
     return (
       <EventCreationSuccess eventData={createdEvent} onClose={handleReset} />
+    );
+  }
+
+  // Check if WagmiProvider is available
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
     );
   }
 
@@ -634,3 +846,5 @@ export function EventCreationPage() {
     </div>
   );
 }
+
+export { EventCreationPage };

@@ -9,8 +9,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   type EventData,
   type EventCreationResult,
-} from '@/lib/services/event-service';
-import { getEventsByCreator } from '@/lib/services/event-client';
+} from '@/lib/services/core/interfaces';
+import { getEventsByCreatorFromAvalanche } from '@/lib/contracts/avalanche-client';
 import type { CreateEventInput, EventSearchInput } from '@/lib/schemas/event';
 import { toast } from 'sonner';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '@/lib/constants';
@@ -42,7 +42,7 @@ export function useCreateEvent() {
     mutationFn: async (
       input: CreateEventInput
     ): Promise<EventCreationResult> => {
-      const response = await authenticatedFetch('/api/events/create', {
+      const response = await authenticatedFetch('/api/events/v2', {
         method: 'POST',
         body: JSON.stringify(input),
       });
@@ -52,16 +52,18 @@ export function useCreateEvent() {
         throw new Error(errorData.error || 'Failed to create event');
       }
 
-      const data = await response.json();
+      const responseData = await response.json();
+      const data = responseData.data; // API returns { success: true, data: result, metadata: {...} }
       return {
-        eventId: data.event.id,
-        slug: data.event.slug || data.event.id,
-        contractEventId: data.event.contractEventId,
-        transactionHash: data.event.transactionHash,
-        filebaseMetadataUrl: data.event.filebaseMetadataUrl,
-        filebaseImageUrl: data.event.filebaseImageUrl,
-        contractChainId: data.event.contractChainId,
-        contractAddress: data.event.contractAddress,
+        success: true,
+        eventId: data.eventId,
+        slug: data.slug || data.eventId,
+        contractEventId: data.contractEventId,
+        transactionHash: data.transactionHash,
+        filebaseMetadataUrl: data.filebaseMetadataUrl,
+        filebaseImageUrl: data.filebaseImageUrl,
+        contractChainId: data.contractChainId,
+        contractAddress: data.contractAddress,
         createdOn: data.createdOn,
       };
     },
@@ -143,13 +145,14 @@ export function useEvents(filters: Partial<EventSearchInput> = {}) {
         params.append('includeBlockchain', 'true');
       }
 
-      const response = await fetch(`/api/events?${params.toString()}`);
+      const response = await fetch(`/api/events/v2?${params.toString()}`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch events: ${response.statusText}`);
       }
 
-      return response.json();
+      const responseData = await response.json();
+      return responseData.data; // API returns { success: true, data: result, metadata: {...} }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
@@ -163,7 +166,7 @@ export function useEvent(eventId: string) {
   return useQuery({
     queryKey: eventQueryKeys.detail(eventId),
     queryFn: async (): Promise<EventData | null> => {
-      const response = await fetch(`/api/events/${eventId}`);
+      const response = await fetch(`/api/events/v2/${eventId}`);
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -172,8 +175,8 @@ export function useEvent(eventId: string) {
         throw new Error(`Failed to fetch event: ${response.statusText}`);
       }
 
-      const data = await response.json();
-      return data.event;
+      const responseData = await response.json();
+      return responseData.data; // API returns { success: true, data: result, metadata: {...} }
     },
     enabled: !!eventId,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -188,7 +191,7 @@ export function useEventBySlug(slug: string) {
   return useQuery({
     queryKey: eventQueryKeys.bySlug(slug),
     queryFn: async (): Promise<EventData | null> => {
-      const response = await fetch(`/api/events/slug/${slug}`);
+      const response = await fetch(`/api/events/v2/slug/${slug}`);
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -197,8 +200,8 @@ export function useEventBySlug(slug: string) {
         throw new Error(`Failed to fetch event: ${response.statusText}`);
       }
 
-      const data = await response.json();
-      return data.event;
+      const responseData = await response.json();
+      return responseData.data; // API returns { success: true, data: result, metadata: {...} }
     },
     enabled: !!slug,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -213,7 +216,36 @@ export function useEventsByCreator(creatorId: string) {
   return useQuery({
     queryKey: eventQueryKeys.byCreator(creatorId),
     queryFn: async (): Promise<EventData[]> => {
-      return getEventsByCreator(creatorId);
+      const events = await getEventsByCreatorFromAvalanche(creatorId as `0x${string}`, 0n, 100n, true);
+      // Convert blockchain events to EventData format
+      return events.map(event => ({
+        id: event.eventId.toString(),
+        title: event.title,
+        description: event.description,
+        location: event.location,
+        startDate: new Date(Number(event.startTime) * 1000).toISOString(),
+        endDate: new Date(Number(event.endTime) * 1000).toISOString(),
+        maxCapacity: Number(event.maxCapacity),
+        ticketPrice: event.ticketPrice.toString(),
+        requireApproval: event.requireApproval,
+        hasPOAP: event.hasPOAP,
+        poapMetadata: event.poapMetadata,
+        visibility: 'public', // Default to public since blockchain doesn't store this
+        timezone: 'UTC', // Default to UTC since blockchain doesn't store this
+        bannerImage: undefined,
+        category: undefined,
+        tags: undefined,
+        creatorId: event.creator,
+        status: event.isActive ? 'active' : 'inactive',
+        contractEventId: Number(event.eventId),
+        contractAddress: undefined,
+        contractChainId: undefined,
+        filebaseMetadataUrl: undefined,
+        filebaseImageUrl: undefined,
+        storageProvider: 'blockchain',
+        createdAt: new Date(Number(event.createdAt) * 1000).toISOString(),
+        updatedAt: new Date(Number(event.updatedAt) * 1000).toISOString(),
+      }));
     },
     enabled: !!creatorId,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -232,10 +264,10 @@ export function usePrefetchEvents() {
       queryClient.prefetchQuery({
         queryKey: eventQueryKeys.detail(eventId),
         queryFn: async () => {
-          const response = await fetch(`/api/events/${eventId}`);
+          const response = await fetch(`/api/events/v2/${eventId}`);
           if (!response.ok) return null;
-          const data = await response.json();
-          return data.event;
+          const responseData = await response.json();
+          return responseData.data; // API returns { success: true, data: result, metadata: {...} }
         },
         staleTime: 5 * 60 * 1000,
       });
@@ -244,10 +276,10 @@ export function usePrefetchEvents() {
       queryClient.prefetchQuery({
         queryKey: eventQueryKeys.bySlug(slug),
         queryFn: async () => {
-          const response = await fetch(`/api/events/slug/${slug}`);
+          const response = await fetch(`/api/events/v2/slug/${slug}`);
           if (!response.ok) return null;
-          const data = await response.json();
-          return data.event;
+          const responseData = await response.json();
+          return responseData.data; // API returns { success: true, data: result, metadata: {...} }
         },
         staleTime: 5 * 60 * 1000,
       });
@@ -281,13 +313,14 @@ export function usePrefetchEvents() {
             params.append('includeBlockchain', 'true');
           }
 
-          const response = await fetch(`/api/events?${params.toString()}`);
+          const response = await fetch(`/api/events/v2?${params.toString()}`);
           
           if (!response.ok) {
             throw new Error(`Failed to fetch events: ${response.statusText}`);
           }
 
-          return response.json();
+          const responseData = await response.json();
+          return responseData.data; // API returns { success: true, data: result, metadata: {...} }
         },
         staleTime: 5 * 60 * 1000,
       });

@@ -1,255 +1,163 @@
-/**
- * Event Service
- *
- * This service handles all event-related business logic following clean code principles.
- * It separates business logic from data access and presentation layers.
- * Currently uses only Avalanche blockchain and Filebase for storage.
- */
-
-import {
-  getFilebaseClient,
-  generateEventMetadataKey,
-  generateEventImageKey,
-} from '@/lib/filebase/client';
+import { createClient } from '@supabase/supabase-js';
+import { appConfig } from '@/lib/config/app-config';
+import { getFilebaseClient } from '@/lib/filebase/client';
 import { 
-  createEventOnAvalanche, 
-  getActiveEventsFromAvalanche
+  getActiveEventsFromAvalanche,
+  getEventsByCreatorFromAvalanche
 } from '@/lib/contracts/avalanche-client';
-import type { CreateEventParams } from '@/lib/contracts/types/EventFactory';
-import type { CreateEventInput, EventSearchInput } from '@/lib/schemas/event';
-import { parseEther } from 'viem';
-import { ValidationError } from '@/shared/utils/error-handler';
+import type { EventData, CreateEventInput } from '@/lib/services/core/interfaces';
 
-export interface EventCreationResult {
-  eventId: string;
-  slug: string;
-  contractEventId?: number;
-  transactionHash?: string;
-  filebaseMetadataUrl?: string;
-  filebaseImageUrl?: string;
-  contractChainId?: number;
-  contractAddress?: string;
-  createdOn: {
-    blockchain: boolean;
-    database: boolean;
-    filebase: boolean;
-  };
-}
-
-export interface EventData {
-  id: string;
-  title: string;
-  description: string;
-  location: string;
-  startDate: string;
-  endDate: string;
-  maxCapacity: number;
-  ticketPrice: string;
-  requireApproval: boolean;
-  hasPOAP: boolean;
-  poapMetadata?: string;
-  visibility: 'public' | 'private';
-  timezone: string;
-  bannerImage?: string;
-  category?: string;
-  tags?: string[];
-  creatorId: string;
-  status: string;
-  contractEventId?: number;
-  contractAddress?: string;
-  contractChainId?: number;
-  filebaseMetadataUrl?: string;
-  filebaseImageUrl?: string;
-  storageProvider?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/**
- * Event Service Class
- * Handles event creation and retrieval using blockchain and Filebase only
- */
 export class EventService {
-  constructor() {
-    // Service initialization
-  }
+  private supabase = createClient(
+    appConfig.database.url!,
+    appConfig.database.anonKey!
+  );
 
   /**
    * Create a new event
    */
-  async createEvent(input: CreateEventInput): Promise<EventCreationResult> {
-    // Validate input
-    if (!input.title || !input.description || !input.location) {
-      throw new ValidationError('Title, description, and location are required');
-    }
-
-    // Parse dates
-    const startTime = BigInt(Math.floor(new Date(input.startDate).getTime() / 1000));
-    const endTime = BigInt(Math.floor(new Date(input.endDate).getTime() / 1000));
-    
-    if (startTime >= endTime) {
-      throw new ValidationError('End date must be after start date');
-    }
-
-    // Convert ticket price to Wei
-    const ticketPriceWei = parseEther(input.ticketPrice);
-
-    // Generate unique event ID
-    const eventId = this.generateEventId();
-
-    // Use wallet address as userId (no database)
-    const userId = input.walletAddress;
-
-    // Upload to Filebase
-    const filebaseResult = await this.uploadToFilebase(eventId, input, userId);
-
-    // Create on blockchain
-    const blockchainResult = await this.createOnBlockchain(
-      input,
-      startTime,
-      endTime,
-      ticketPriceWei
-    );
-
-    return {
-      eventId: eventId,
-      slug: this.generateSlug(input.title),
-      contractEventId: blockchainResult?.eventId,
-      transactionHash: blockchainResult?.transactionHash,
-      filebaseMetadataUrl: filebaseResult?.metadataUrl,
-      filebaseImageUrl: filebaseResult?.imageUrl,
-      contractChainId: blockchainResult?.chainId,
-      contractAddress: blockchainResult?.address,
-      createdOn: {
-        blockchain: blockchainResult !== null,
-        database: false,
-        filebase: filebaseResult !== null,
-      },
-    };
-  }
-
-  /**
-   * List events with filters
-   */
-  async listEvents(filters: EventSearchInput): Promise<{
-    events: EventData[];
-    total: number;
-    availableFilters: {
-      categories: string[];
-      locations: string[];
-      priceRanges: { min: number; max: number };
-    };
-  }> {
+  async createEvent(input: CreateEventInput): Promise<EventData> {
     try {
-      const blockchainResult = await this.getEventsFromBlockchain(filters, true);
-      return {
-        events: blockchainResult.events,
-        total: blockchainResult.total,
-        availableFilters: {
-          categories: [],
-          locations: [...new Set(blockchainResult.events.map(e => e.location))],
-          priceRanges: this.calculatePriceRanges(blockchainResult.events),
-        },
-      };
-    } catch {
-      return {
-        events: [],
-        total: 0,
-        availableFilters: { categories: [], locations: [], priceRanges: { min: 0, max: 0 } },
-      };
-    }
-  }
+      // Generate unique event ID
+      const eventId = crypto.randomUUID();
 
-  /**
-   * Get event by ID (from blockchain)
-   */
-  async getEventById(eventId: string): Promise<EventData | null> {
-    try {
-      const events = await this.getEventsFromBlockchain({ page: 1, limit: 100 }, false);
-      return events.events.find(event => event.id === eventId) || null;
-    } catch {
-      return null;
-    }
-  }
+      // Generate unique slug
+      const slug = this.generateSlug(input.title);
 
-  /**
-   * Get event by slug (from blockchain)
-   */
-  async getEventBySlug(slug: string): Promise<EventData | null> {
-    try {
-      const events = await this.getEventsFromBlockchain({ page: 1, limit: 100 }, false);
-      return events.events.find(event => event.contractEventId?.toString() === slug) || null;
-    } catch {
-      return null;
-    }
-  }
+      // Upload metadata and image to Filebase
+      const { metadataUrl, imageUrl } = await this.uploadToFilebase(eventId, input);
 
-  /**
-   * Get events by creator (from blockchain)
-   */
-  async getEventsByCreator(creatorId: string): Promise<EventData[]> {
-    try {
-      const events = await this.getEventsFromBlockchain({ page: 1, limit: 100 }, false);
-      return events.events.filter(event => 
-        event.creatorId.toLowerCase() === creatorId.toLowerCase()
-      );
-    } catch {
-      return [];
-    }
-  }
+      // Store event in database
+      await this.storeInDatabase(eventId, slug, input, metadataUrl, imageUrl);
 
-  /**
-   * Create event on blockchain
-   */
-  private async createOnBlockchain(
-    input: CreateEventInput,
-    startTime: bigint,
-    endTime: bigint,
-    ticketPriceWei: bigint
-  ): Promise<{
-    eventId: number;
-    transactionHash: string;
-    chainId: number;
-    address: string;
-  } | null> {
-    // Use private key from input or fallback to environment variable
-    let privateKey = input.privateKey;
-    if (!privateKey || privateKey.trim() === '') {
-      privateKey = process.env.PRIVATE_KEY;
-    }
-    
-    if (!privateKey || privateKey.trim() === '') {
-      return null;
-    }
-
-    try {
-      const contractParams: CreateEventParams = {
+      // Create event data object
+      const eventData: EventData = {
+        id: eventId,
         title: input.title,
         description: input.description,
         location: input.location,
-        startTime,
-        endTime,
-        maxCapacity: BigInt(input.maxCapacity),
-        ticketPrice: ticketPriceWei,
+        startDate: input.startDate,
+        endDate: input.endDate,
+        maxCapacity: input.maxCapacity,
+        ticketPrice: input.ticketPrice,
         requireApproval: input.requireApproval,
         hasPOAP: input.hasPOAP,
         poapMetadata: input.poapMetadata || '',
+        visibility: input.visibility,
+        timezone: input.timezone,
+        bannerImage: imageUrl,
+        category: input.category,
+        tags: input.tags || [],
+        creatorId: input.walletAddress,
+        status: 'active',
+        contractEventId: undefined,
+        contractAddress: undefined,
+        contractChainId: undefined,
+        filebaseMetadataUrl: metadataUrl,
+        filebaseImageUrl: imageUrl,
+        storageProvider: 'database',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
-      const result = await createEventOnAvalanche(
-        contractParams,
-        privateKey,
-        input.useTestnet
+      return eventData;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * List events with optional blockchain integration
+   */
+  async listEvents(
+    filters: any,
+    includeBlockchain: boolean = false
+  ): Promise<{ events: EventData[]; total: number }> {
+    try {
+      // Get events from database
+      const databaseResult = await this.getEventsFromDatabase(filters);
+      
+      let blockchainEvents: EventData[] = [];
+      
+      // Optionally get events from blockchain
+      if (includeBlockchain) {
+        try {
+          blockchainEvents = await this.getEventsFromBlockchain(filters);
+        } catch (error) {
+          // Continue with database events only
+        }
+      }
+
+      // Combine and deduplicate events
+      const allEvents = this.combineAndDeduplicateEvents(
+        databaseResult.events,
+        blockchainEvents
       );
 
+      // Apply additional filters
+      const filteredEvents = this.applyAdditionalFilters(allEvents, filters);
+
       return {
-        eventId: Number(result.eventId),
-        transactionHash: result.transactionHash,
-        chainId: input.useTestnet ? 43113 : 43114,
-        address: input.walletAddress,
+        events: filteredEvents,
+        total: filteredEvents.length,
       };
-    } catch {
-      return null;
+    } catch (error) {
+      console.error('Failed to list events:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get events by creator
+   */
+  async getEventsByCreator(creatorId: string): Promise<EventData[]> {
+    try {
+      // Get events from database
+      const databaseEvents = await this.getEventsFromDatabaseByCreator(creatorId);
+      
+      // Get events from blockchain
+      let blockchainEvents: EventData[] = [];
+      try {
+        const blockchainResult = await getEventsByCreatorFromAvalanche(creatorId as `0x${string}`, 0n, 100n, true); // Use testnet
+        blockchainEvents = Array.from(blockchainResult).map(event => ({
+          id: `blockchain-${event.eventId.toString()}`,
+          title: event.title,
+          description: event.description,
+          location: event.location,
+          startDate: new Date(Number(event.startTime) * 1000).toISOString(),
+          endDate: new Date(Number(event.endTime) * 1000).toISOString(),
+          maxCapacity: Number(event.maxCapacity),
+          ticketPrice: event.ticketPrice.toString(),
+          requireApproval: event.requireApproval,
+          hasPOAP: event.hasPOAP,
+          poapMetadata: event.poapMetadata,
+          visibility: 'public' as const,
+          timezone: 'UTC',
+          bannerImage: undefined,
+          category: undefined,
+          tags: [],
+          creatorId: event.creator.toLowerCase(),
+          status: event.isActive ? 'active' : 'cancelled',
+          contractEventId: Number(event.eventId),
+          contractAddress: event.creator,
+          contractChainId: 43113, // Fuji testnet
+          filebaseMetadataUrl: undefined,
+          filebaseImageUrl: undefined,
+          storageProvider: 'blockchain',
+          createdAt: new Date(Number(event.createdAt) * 1000).toISOString(),
+          updatedAt: new Date(Number(event.updatedAt) * 1000).toISOString(),
+        }));
+      } catch (error) {
+        console.error('Failed to fetch blockchain events by creator:', error);
+      }
+
+      // Combine and deduplicate
+      const allEvents = this.combineAndDeduplicateEvents(databaseEvents, blockchainEvents);
+      
+      return allEvents;
+    } catch (error) {
+      console.error('Failed to get events by creator:', error);
+      throw error;
     }
   }
 
@@ -258,15 +166,14 @@ export class EventService {
    */
   private async uploadToFilebase(
     eventId: string,
-    input: CreateEventInput,
-    userId: string
-  ): Promise<{ metadataUrl?: string; imageUrl?: string } | null> {
+    input: CreateEventInput
+  ): Promise<{ metadataUrl: string; imageUrl?: string }> {
     try {
       const filebaseClient = getFilebaseClient();
 
       // Prepare metadata
       const metadata = {
-        id: eventId,
+        eventId,
         title: input.title,
         description: input.description,
         location: input.location,
@@ -281,131 +188,384 @@ export class EventService {
         timezone: input.timezone,
         category: input.category,
         tags: input.tags,
-        creatorId: userId,
+        creatorId: input.walletAddress,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
       };
 
       // Upload metadata
-      const metadataKey = generateEventMetadataKey(eventId);
-      const metadataResult = await filebaseClient.uploadMetadata(metadataKey, metadata);
+      const metadataKey = this.generateEventMetadataKey(eventId);
+      const metadataBuffer = Buffer.from(JSON.stringify(metadata, null, 2));
+      const metadataResult = await filebaseClient.uploadFile(
+        metadataKey,
+        metadataBuffer,
+        'application/json'
+      );
+      const metadataUrl = metadataResult.url;
 
+      // Upload image if provided
       let imageUrl: string | undefined;
-      if (input.bannerImage) {
+      if (input.bannerImage && typeof input.bannerImage === 'string') {
         try {
-          // Convert base64 to buffer
-          const imageBuffer = Buffer.from(input.bannerImage.split(',')[1], 'base64');
-          const imageKey = generateEventImageKey(eventId, 'banner.jpg');
-          const imageResult = await filebaseClient.uploadImage(imageKey, imageBuffer, 'image/jpeg');
+          const imageKey = this.generateEventImageKey(eventId, 'banner.jpg');
+          const imageBuffer = Buffer.from(input.bannerImage as string, 'base64');
+          const imageResult = await filebaseClient.uploadImage(
+            imageKey,
+            imageBuffer,
+            'image/jpeg'
+          );
           imageUrl = imageResult.url;
-        } catch {
-          // Continue without image if upload fails
+        } catch (error) {
+          console.error('Failed to upload image to Filebase:', error);
         }
       }
 
+      return { metadataUrl, imageUrl };
+    } catch (error) {
+      console.error('Failed to upload to Filebase:', error);
+      throw new Error(`Failed to upload to Filebase: ${error}`);
+    }
+  }
+
+  /**
+   * Store event in database
+   */
+  private async storeInDatabase(
+    eventId: string,
+    slug: string,
+    input: CreateEventInput,
+    metadataUrl: string,
+    imageUrl?: string
+  ): Promise<boolean> {
+    try {
+      // Get or create user
+      const userId = await this.getOrCreateUser(input.walletAddress);
+
+      const { error } = await this.supabase
+        .from('events')
+        .insert({
+          id: eventId,
+          slug,
+          title: input.title,
+          description: input.description,
+          location: input.location,
+          start_date: input.startDate,
+          end_date: input.endDate,
+          max_capacity: input.maxCapacity,
+          ticket_price: input.ticketPrice,
+          require_approval: input.requireApproval,
+          has_poap: input.hasPOAP,
+          poap_metadata: input.poapMetadata || '',
+          visibility: input.visibility,
+          timezone: input.timezone,
+          banner_image: imageUrl,
+          category: input.category,
+          tags: input.tags || [],
+          creator_id: userId,
+          status: 'active',
+          filebase_metadata_url: metadataUrl,
+          filebase_image_url: imageUrl,
+        });
+
+      if (error) {
+        throw new Error(`Failed to store event in database: ${error.message}`);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Failed to store event in database:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get or create user in database
+   */
+  private async getOrCreateUser(walletAddress: string): Promise<string> {
+    try {
+      // Check if user exists
+      const { data: existingUser } = await this.supabase
+        .from('users')
+        .select('id')
+        .eq('wallet_address', walletAddress)
+        .single();
+
+      if (existingUser) {
+        return existingUser.id;
+      }
+
+      // Create new user
+      const { data: newUser, error: insertError } = await this.supabase
+        .from('users')
+        .insert({
+          wallet_address: walletAddress,
+          display_name: `User ${walletAddress.slice(0, 8)}`,
+        })
+        .select('id')
+        .single();
+
+      if (insertError) {
+        throw new Error(`Failed to create user: ${insertError.message}`);
+      }
+
+      return newUser.id;
+    } catch (error) {
+      console.error('Failed to get or create user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get events from database
+   */
+  private async getEventsFromDatabase(filters: any): Promise<{ events: EventData[]; total: number }> {
+    try {
+      let query = this.supabase
+        .from('events')
+        .select(`
+          *,
+          users!events_creator_id_fkey (
+            wallet_address,
+            display_name,
+            avatar_url
+          )
+        `)
+        .eq('status', 'active');
+
+      // Apply filters
+      if (filters.query) {
+        query = query.or(`title.ilike.%${filters.query}%,description.ilike.%${filters.query}%`);
+      }
+      if (filters.category) {
+        query = query.eq('category', filters.category);
+      }
+      if (filters.location) {
+        query = query.ilike('location', `%${filters.location}%`);
+      }
+      if (filters.startDate) {
+        query = query.gte('start_date', filters.startDate);
+      }
+      if (filters.endDate) {
+        query = query.lte('end_date', filters.endDate);
+      }
+
+      // Apply pagination
+      const offset = (filters.page - 1) * filters.limit;
+      query = query.range(offset, offset + filters.limit - 1);
+
+      const { data: events, error, count } = await query;
+
+      if (error) {
+        throw new Error(`Database query failed: ${error.message}`);
+      }
+
+      const mappedEvents = events?.map(event => this.mapDatabaseEventToEventData(event)) || [];
+
       return {
-        metadataUrl: metadataResult.url,
-        imageUrl,
+        events: mappedEvents,
+        total: count || 0,
       };
-    } catch {
-      return null;
+    } catch (error) {
+      console.error('Failed to get events from database:', error);
+      return { events: [], total: 0 };
+    }
+  }
+
+  /**
+   * Get events from database by creator
+   */
+  private async getEventsFromDatabaseByCreator(creatorId: string): Promise<EventData[]> {
+    try {
+      const { data: events, error } = await this.supabase
+        .from('events')
+        .select(`
+          *,
+          users!events_creator_id_fkey (
+            wallet_address,
+            display_name,
+            avatar_url
+          )
+        `)
+        .eq('creator_id', creatorId)
+        .eq('status', 'active');
+
+      if (error) {
+        throw new Error(`Database query failed: ${error.message}`);
+      }
+
+      return events?.map(event => this.mapDatabaseEventToEventData(event)) || [];
+    } catch (error) {
+      console.error('Failed to get events by creator from database:', error);
+      return [];
     }
   }
 
   /**
    * Get events from blockchain
    */
-  private async getEventsFromBlockchain(
-    filters: EventSearchInput,
-    includeBlockchain: boolean
-  ): Promise<{
-    events: EventData[];
-    total: number;
-  }> {
-    if (!includeBlockchain) {
-      return { events: [], total: 0 };
-    }
-
+  private async getEventsFromBlockchain(filters: any): Promise<EventData[]> {
     try {
-      const blockchainEvents = await getActiveEventsFromAvalanche(BigInt(0), BigInt(100), true);
-      
-      if (!blockchainEvents || blockchainEvents.length === 0) {
-        // If no events found, return empty array
-        return { events: [], total: 0 };
-      }
-      
-      const events: EventData[] = blockchainEvents.map((event, index) => ({
-        id: `blockchain-${event.eventId || index}`,
-        title: event.title,
-        description: event.description,
-        location: event.location,
-        startDate: new Date(Number(event.startTime) * 1000).toISOString(),
-        endDate: new Date(Number(event.endTime) * 1000).toISOString(),
-        maxCapacity: Number(event.maxCapacity),
-        ticketPrice: (Number(event.ticketPrice) / 1e18).toString(),
-        requireApproval: event.requireApproval,
-        hasPOAP: event.hasPOAP,
-        poapMetadata: event.poapMetadata,
-        visibility: 'public' as const,
-        timezone: 'UTC',
-        creatorId: event.creator || 'unknown',
-        status: 'active',
-        contractEventId: Number(event.eventId),
-        contractAddress: event.creator,
-        contractChainId: 43113,
-        storageProvider: 'blockchain',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }));
+      const blockchainEvents = await getActiveEventsFromAvalanche(
+        BigInt((filters.page - 1) * filters.limit),
+        BigInt(filters.limit),
+        true // Use testnet by default
+      );
 
-      return {
-        events,
-        total: events.length,
-      };
+      const events: EventData[] = Array.from(blockchainEvents)
+        .filter((event) => event.eventId !== 0n)
+        .map((event) => ({
+          id: `blockchain-${event.eventId.toString()}`,
+          title: event.title,
+          description: event.description,
+          location: event.location,
+          startDate: new Date(Number(event.startTime) * 1000).toISOString(),
+          endDate: new Date(Number(event.endTime) * 1000).toISOString(),
+          maxCapacity: Number(event.maxCapacity),
+          ticketPrice: event.ticketPrice.toString(),
+          requireApproval: event.requireApproval,
+          hasPOAP: event.hasPOAP,
+          poapMetadata: event.poapMetadata,
+          visibility: 'public',
+          timezone: 'UTC',
+          bannerImage: undefined,
+          category: undefined,
+          tags: [],
+          creatorId: event.creator.toLowerCase(),
+          status: event.isActive ? 'active' : 'cancelled',
+          contractEventId: Number(event.eventId),
+          contractAddress: event.creator,
+          contractChainId: 43113, // Fuji testnet
+          filebaseMetadataUrl: undefined,
+          filebaseImageUrl: undefined,
+          storageProvider: 'blockchain',
+          createdAt: new Date(Number(event.createdAt) * 1000).toISOString(),
+          updatedAt: new Date(Number(event.updatedAt) * 1000).toISOString(),
+        }));
+
+      return events;
     } catch (error) {
-      // Log the error for debugging but return empty array
-      console.warn('Failed to fetch blockchain events:', error);
-      return { events: [], total: 0 };
+      console.error('Failed to get events from blockchain:', error);
+      return [];
     }
   }
 
   /**
-   * Calculate price ranges from events
+   * Map database event to EventData
    */
-  private calculatePriceRanges(events: EventData[]): { min: number; max: number } {
-    if (events.length === 0) {
-      return { min: 0, max: 0 };
-    }
-
-    const prices = events.map(event => parseFloat(event.ticketPrice)).filter(price => !isNaN(price));
-    
-    if (prices.length === 0) {
-      return { min: 0, max: 0 };
-    }
-
+  private mapDatabaseEventToEventData(event: any): EventData {
     return {
-      min: Math.min(...prices),
-      max: Math.max(...prices),
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      location: event.location,
+      startDate: event.start_date,
+      endDate: event.end_date,
+      maxCapacity: event.max_capacity,
+      ticketPrice: event.ticket_price,
+      requireApproval: event.require_approval,
+      hasPOAP: event.has_poap,
+      poapMetadata: event.poap_metadata,
+      visibility: event.visibility,
+      timezone: event.timezone,
+      bannerImage: event.banner_image,
+      category: event.category,
+      tags: event.tags || [],
+      creatorId: event.users?.wallet_address || event.creator_id,
+      status: event.status,
+      contractEventId: event.contract_event_id,
+      contractAddress: event.contract_address,
+      contractChainId: event.contract_chain_id,
+      filebaseMetadataUrl: event.filebase_metadata_url,
+      filebaseImageUrl: event.filebase_image_url,
+      storageProvider: 'database',
+      createdAt: event.created_at,
+      updatedAt: event.updated_at,
     };
+  }
+
+  /**
+   * Combine and deduplicate events from different sources
+   */
+  private combineAndDeduplicateEvents(
+    databaseEvents: EventData[],
+    blockchainEvents: EventData[]
+  ): EventData[] {
+    const allEvents = [...databaseEvents];
+    
+    // Add blockchain events that don't exist in database
+    for (const blockchainEvent of blockchainEvents) {
+      const exists = allEvents.some(dbEvent => 
+        dbEvent.contractEventId === blockchainEvent.contractEventId ||
+        dbEvent.title === blockchainEvent.title
+      );
+      
+      if (!exists) {
+        allEvents.push(blockchainEvent);
+      }
+    }
+
+    return allEvents;
+  }
+
+  /**
+   * Apply additional filters to events
+   */
+  private applyAdditionalFilters(events: EventData[], filters: any): EventData[] {
+    let filteredEvents = events;
+
+    // Filter by price range
+    if (filters.priceRange?.min !== undefined || filters.priceRange?.max !== undefined) {
+      filteredEvents = filteredEvents.filter(event => {
+        const price = parseFloat(event.ticketPrice);
+        if (filters.priceRange.min !== undefined && price < filters.priceRange.min) return false;
+        if (filters.priceRange.max !== undefined && price > filters.priceRange.max) return false;
+        return true;
+      });
+    }
+
+    // Filter by tags
+    if (filters.tags && filters.tags.length > 0) {
+      filteredEvents = filteredEvents.filter(event =>
+        filters.tags.some((tag: string) => (event.tags || []).includes(tag))
+      );
+    }
+
+    return filteredEvents;
   }
 
   /**
    * Generate unique event ID
    */
   private generateEventId(): string {
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2, 15);
-    return `${timestamp}-${random}`;
+    return crypto.randomUUID();
   }
 
   /**
-   * Generate URL-friendly slug from title
+   * Generate unique slug
    */
   private generateSlug(title: string): string {
-    return title
+    const baseSlug = title
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '')
-      + '-' + Date.now();
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+    
+    // Add timestamp to ensure uniqueness
+    const timestamp = Date.now();
+    return `${baseSlug}-${timestamp}`;
+  }
+
+  /**
+   * Generate Filebase metadata key
+   */
+  private generateEventMetadataKey(eventId: string): string {
+    return `events/${eventId}/metadata.json`;
+  }
+
+  /**
+   * Generate Filebase image key
+   */
+  private generateEventImageKey(eventId: string, filename: string): string {
+    return `events/${eventId}/${filename}`;
   }
 }
