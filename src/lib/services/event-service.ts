@@ -5,7 +5,53 @@ import {
   getActiveEventsFromAvalanche,
   getEventsByCreatorFromAvalanche
 } from '@/lib/contracts/avalanche-client';
-import type { EventData, CreateEventInput } from '@/lib/services/core/interfaces';
+import type { EventData, CreateEventInput, EventSearchInput } from '@/lib/services/core/interfaces';
+
+// Extended filter interface for internal use
+interface ExtendedEventFilters extends EventSearchInput {
+  query?: string;
+  priceRange?: {
+    min?: number;
+    max?: number;
+  };
+  tags?: string[];
+}
+
+// Database event interface
+interface DatabaseEventRow {
+  id: string;
+  title: string;
+  description: string;
+  location: string;
+  start_date: string;
+  end_date: string;
+  max_capacity: number;
+  ticket_price: string;
+  require_approval: boolean;
+  has_poap: boolean;
+  poap_metadata?: string;
+  visibility: 'public' | 'private' | 'unlisted';
+  timezone: string;
+  banner_image?: string;
+  category?: string;
+  tags?: (string | null)[];
+  creator_id: string;
+  status: string;
+  contract_event_id?: number;
+  contract_address?: string;
+  contract_chain_id?: number;
+  transaction_hash?: string;
+  filebase_metadata_url?: string;
+  filebase_image_url?: string;
+  storage_provider?: string;
+  created_at: string;
+  updated_at: string;
+  users?: {
+    wallet_address: string;
+    display_name: string;
+    avatar_url: string;
+  };
+}
 
 export class EventService {
   private supabase = createClient(
@@ -70,7 +116,7 @@ export class EventService {
    * List events with optional blockchain integration
    */
   async listEvents(
-    filters: any,
+    filters: ExtendedEventFilters,
     includeBlockchain: boolean = false
   ): Promise<{ events: EventData[]; total: number }> {
     try {
@@ -83,7 +129,7 @@ export class EventService {
       if (includeBlockchain) {
         try {
           blockchainEvents = await this.getEventsFromBlockchain(filters);
-        } catch (error) {
+        } catch {
           // Continue with database events only
         }
       }
@@ -317,7 +363,7 @@ export class EventService {
   /**
    * Get events from database
    */
-  private async getEventsFromDatabase(filters: any): Promise<{ events: EventData[]; total: number }> {
+  private async getEventsFromDatabase(filters: ExtendedEventFilters): Promise<{ events: EventData[]; total: number }> {
     try {
       let query = this.supabase
         .from('events')
@@ -349,8 +395,8 @@ export class EventService {
       }
 
       // Apply pagination
-      const offset = (filters.page - 1) * filters.limit;
-      query = query.range(offset, offset + filters.limit - 1);
+      const offset = ((filters.page || 1) - 1) * (filters.limit || 10);
+      query = query.range(offset, offset + (filters.limit || 10) - 1);
 
       const { data: events, error, count } = await query;
 
@@ -402,11 +448,11 @@ export class EventService {
   /**
    * Get events from blockchain
    */
-  private async getEventsFromBlockchain(filters: any): Promise<EventData[]> {
+  private async getEventsFromBlockchain(filters: ExtendedEventFilters): Promise<EventData[]> {
     try {
       const blockchainEvents = await getActiveEventsFromAvalanche(
-        BigInt((filters.page - 1) * filters.limit),
-        BigInt(filters.limit),
+        BigInt(((filters.page || 1) - 1) * (filters.limit || 10)),
+        BigInt(filters.limit || 10),
         true // Use testnet by default
       );
 
@@ -451,7 +497,7 @@ export class EventService {
   /**
    * Map database event to EventData
    */
-  private mapDatabaseEventToEventData(event: any): EventData {
+  private mapDatabaseEventToEventData(event: DatabaseEventRow): EventData {
     return {
       id: event.id,
       title: event.title,
@@ -468,12 +514,13 @@ export class EventService {
       timezone: event.timezone,
       bannerImage: event.banner_image,
       category: event.category,
-      tags: event.tags || [],
+      tags: (event.tags || []).filter((tag): tag is string => tag !== null),
       creatorId: event.users?.wallet_address || event.creator_id,
       status: event.status,
       contractEventId: event.contract_event_id,
       contractAddress: event.contract_address,
       contractChainId: event.contract_chain_id,
+      transactionHash: event.transaction_hash,
       filebaseMetadataUrl: event.filebase_metadata_url,
       filebaseImageUrl: event.filebase_image_url,
       storageProvider: 'database',
@@ -509,15 +556,15 @@ export class EventService {
   /**
    * Apply additional filters to events
    */
-  private applyAdditionalFilters(events: EventData[], filters: any): EventData[] {
+  private applyAdditionalFilters(events: EventData[], filters: ExtendedEventFilters): EventData[] {
     let filteredEvents = events;
 
     // Filter by price range
     if (filters.priceRange?.min !== undefined || filters.priceRange?.max !== undefined) {
       filteredEvents = filteredEvents.filter(event => {
         const price = parseFloat(event.ticketPrice);
-        if (filters.priceRange.min !== undefined && price < filters.priceRange.min) return false;
-        if (filters.priceRange.max !== undefined && price > filters.priceRange.max) return false;
+        if (filters.priceRange!.min !== undefined && price < filters.priceRange!.min) return false;
+        if (filters.priceRange!.max !== undefined && price > filters.priceRange!.max) return false;
         return true;
       });
     }
@@ -525,7 +572,7 @@ export class EventService {
     // Filter by tags
     if (filters.tags && filters.tags.length > 0) {
       filteredEvents = filteredEvents.filter(event =>
-        filters.tags.some((tag: string) => (event.tags || []).includes(tag))
+        filters.tags!.some((tag: string) => (event.tags || []).includes(tag))
       );
     }
 

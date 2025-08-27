@@ -21,6 +21,7 @@ import { DatabaseService } from '../storage/database-service';
 import { BlockchainService } from '../storage/blockchain-service';
 import { IPFSService } from '../storage/ipfs-service';
 import { appConfig } from '@/lib/config/app-config';
+import type { TransactionSigningData } from '@/lib/services/frontend/user-wallet-service';
 
 interface TransactionState {
   eventId: string;
@@ -67,7 +68,7 @@ export class EventOrchestrator {
   async prepareEventCreation(input: CreateEventInput): Promise<{
     eventId: string;
     slug: string;
-    transactionData: any;
+    transactionData: Record<string, unknown>;
     ipfsMetadataUrl: string;
     ipfsImageUrl?: string;
   }> {
@@ -94,7 +95,7 @@ export class EventOrchestrator {
       const transactionData = await this.prepareTransactionForSigning(input, state);
 
       // Convert any remaining BigInt values to strings for JSON serialization
-      const serializableTransactionData = this.convertBigIntToStrings(transactionData);
+      const serializableTransactionData = this.convertBigIntToStrings(transactionData) as Record<string, unknown>;
 
       return {
         eventId: state.eventId,
@@ -158,7 +159,7 @@ export class EventOrchestrator {
   /**
    * Convert BigInt values to strings for JSON serialization
    */
-  private convertBigIntToStrings(obj: any): any {
+  private convertBigIntToStrings(obj: unknown): unknown {
     if (obj === null || obj === undefined) {
       return obj;
     }
@@ -172,7 +173,7 @@ export class EventOrchestrator {
     }
     
     if (typeof obj === 'object') {
-      const result: any = {};
+      const result: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(obj)) {
         result[key] = this.convertBigIntToStrings(value);
       }
@@ -237,7 +238,7 @@ export class EventOrchestrator {
     // Verify wallet is on correct network
     const networkId = await this.blockchainService.getNetworkId();
     const validChainIds = [appConfig.blockchain.avalanche.mainnet.chainId, appConfig.blockchain.avalanche.testnet.chainId];
-    if (!validChainIds.includes(networkId as any)) {
+    if (!validChainIds.includes(networkId as 43114 | 43113)) {
       throw new ValidationError(`Wallet must be connected to Avalanche network (Mainnet or Testnet)`);
     }
   }
@@ -343,7 +344,7 @@ export class EventOrchestrator {
   /**
    * Phase 3: Prepare transaction for user signing
    */
-  private async prepareTransactionForSigning(input: CreateEventInput, state: TransactionState): Promise<any> {
+  private async prepareTransactionForSigning(input: CreateEventInput, state: TransactionState): Promise<TransactionSigningData> {
     if (!state.ipfsMetadataUrl) {
       throw new StorageError('IPFS metadata URL required for blockchain creation', 'blockchain', 'missing_metadata');
     }
@@ -371,7 +372,7 @@ export class EventOrchestrator {
    * Phase 4: Wait for user to sign transaction
    * This method will be called by the frontend after user signs
    */
-  async waitForUserTransactionSigning(_transactionData: any, _state: TransactionState): Promise<UserSignedTransaction> {
+  async waitForUserTransactionSigning(_transactionData: Record<string, unknown>, _state: TransactionState): Promise<UserSignedTransaction> {
     // This is a placeholder - the actual implementation will be in the frontend
     // The frontend will call signTransactionWithUserWallet and pass the result here
     throw new Error('User transaction signing must be handled by frontend');
@@ -380,7 +381,7 @@ export class EventOrchestrator {
   /**
    * Sign transaction with user wallet (called by frontend)
    */
-  async signTransactionWithUserWallet(transactionData: any, userWalletAddress: string): Promise<UserSignedTransaction> {
+  async signTransactionWithUserWallet(transactionData: TransactionSigningData, userWalletAddress: string): Promise<UserSignedTransaction> {
     try {
       const signedTransaction = await this.blockchainService.signTransactionWithUserWallet(
         transactionData,

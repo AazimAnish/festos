@@ -31,6 +31,7 @@ import { POPDialog } from './pop-dialog';
 import { TicketPriceDialog } from './ticket-price-dialog';
 import { EventCreationSuccess } from './event-creation-success';
 import { useAccount, useChainId, useWalletClient, usePublicClient } from 'wagmi';
+import type { Abi } from 'viem';
 import { useAuthenticatedFetch } from '@/shared/hooks/use-wallet-auth';
 // Removed unused import: parseEther
 import { avalanche, avalancheFuji } from '@/lib/chains';
@@ -92,9 +93,9 @@ function EventCreationPage() {
    */
   const signTransactionWithRainbowKit = async (transactionData: {
     address: `0x${string}`;
-    abi: any[];
+    abi: Abi;
     functionName: string;
-    args: any[];
+    args: (string | number)[];
     chainId: number;
   }) => {
     if (!walletClient) {
@@ -138,7 +139,7 @@ function EventCreationPage() {
       const eventCreatedLog = receipt.logs.find((log: { data: string; topics: string[] }) => {
         try {
           const decoded = decodeEventLog({
-            abi: transactionData.abi,
+            abi: transactionData.abi as readonly unknown[],
             data: log.data,
             topics: log.topics,
           });
@@ -153,7 +154,7 @@ function EventCreationPage() {
       }
 
       const decoded = decodeEventLog({
-        abi: transactionData.abi,
+        abi: transactionData.abi as readonly unknown[],
         data: eventCreatedLog.data,
         topics: eventCreatedLog.topics,
       });
@@ -182,10 +183,14 @@ function EventCreationPage() {
   /**
    * Helper function to decode event logs
    */
-  const decodeEventLog = ({ abi, data: _data, topics }: { abi: any[]; data: string; topics: string[] }) => {
+  const decodeEventLog = ({ abi, data: _data, topics }: { abi: readonly unknown[]; data: string; topics: string[] }) => {
     try {
       // Find the EventCreated event in the ABI
-      const eventAbi = abi.find((item: any) => item.type === 'event' && item.name === 'EventCreated');
+      const eventAbi = abi.find((item): item is { type: string; name: string } => 
+        typeof item === 'object' && item !== null && 'type' in item && 'name' in item &&
+        (item as { type: string; name: string }).type === 'event' && 
+        (item as { type: string; name: string }).name === 'EventCreated'
+      );
       
       if (!eventAbi) {
         throw new Error('EventCreated event not found in ABI');
@@ -374,7 +379,7 @@ function EventCreationPage() {
       };
 
       // Step 2: Call API to get transaction data and upload metadata
-      const response = await authenticatedFetch('/api/events/v3', {
+      const response = await authenticatedFetch('/api/events/create', {
         method: 'POST',
         body: JSON.stringify(eventData),
       });
@@ -410,7 +415,7 @@ function EventCreationPage() {
       
       // API request being sent
       
-      const finalResponse = await authenticatedFetch('/api/events/v3', {
+      const finalResponse = await authenticatedFetch('/api/events/create', {
         method: 'POST',
         body: JSON.stringify(requestBody),
       });

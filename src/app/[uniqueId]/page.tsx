@@ -1,5 +1,4 @@
 import { EventDetailPage } from '@/features/events/event-details/event-detail-page';
-import { extractEventIdFromUniqueId } from '@/shared/utils/event-helpers';
 import { notFound } from 'next/navigation';
 
 interface EventPageProps {
@@ -17,8 +16,6 @@ export default async function EventPage({ params }: EventPageProps) {
     return notFound();
   }
 
-  // Extract event ID from unique ID for proper data fetching
-  const eventId = extractEventIdFromUniqueId(uniqueId);
-
-  return <EventDetailPage uniqueId={uniqueId} eventId={eventId} />;
+  // Pass the uniqueId directly since events use UUIDs
+  return <EventDetailPage uniqueId={uniqueId} />;
 }

@@ -6,7 +6,7 @@
  */
 
 import { useWalletClient, usePublicClient, useChainId } from 'wagmi';
-import { parseEther, type Address } from 'viem';
+import { parseEther, type Address, type WalletClient, type PublicClient } from 'viem';
 import { avalanche, avalancheFuji } from '@/lib/chains';
 import { getAvalancheFujiEventFactoryContract } from '@/lib/contracts/avalanche-client';
 import type { CreateEventParams } from '@/lib/contracts/types/EventFactory';
@@ -23,7 +23,7 @@ export interface UserWalletSigningResult {
 
 export interface TransactionSigningData {
   address: Address;
-  abi: readonly any[];
+  abi: readonly unknown[];
   functionName: string;
   args: readonly unknown[];
   account: Address;
@@ -31,11 +31,11 @@ export interface TransactionSigningData {
 }
 
 export class UserWalletService {
-  private walletClient: any;
-  private publicClient: any;
+  private walletClient: WalletClient;
+  private publicClient: PublicClient;
   private chainId: number;
 
-  constructor(walletClient: any, publicClient: any, chainId: number) {
+  constructor(walletClient: WalletClient, publicClient: PublicClient, chainId: number) {
     this.walletClient = walletClient;
     this.publicClient = publicClient;
     this.chainId = chainId;
@@ -129,6 +129,8 @@ export class UserWalletService {
         abi: transactionData.abi,
         functionName: transactionData.functionName,
         args: transactionData.args,
+        chain: null,
+        account: transactionData.account,
       });
 
       // Wait for transaction confirmation
@@ -137,7 +139,7 @@ export class UserWalletService {
       });
 
       // Parse event logs to get the event ID
-      const eventCreatedLog = receipt.logs.find((log: any) => {
+      const eventCreatedLog = receipt.logs.find((log: { data: string; topics: string[] }) => {
         try {
           const decoded = decodeEventLog({
             abi: transactionData.abi,
@@ -296,11 +298,15 @@ function getNetworkName(chainId: number): string {
 /**
  * Helper function to decode event logs
  */
-function decodeEventLog({ abi, data: _data, topics: _topics }: { abi: readonly any[]; data: string; topics: string[] }) {
+function decodeEventLog({ abi, data: _data, topics: _topics }: { abi: readonly unknown[]; data: string; topics: string[] }) {
   // This is a simplified version - in production, use viem's decodeEventLog
   try {
     // Find the event in the ABI
-    const eventAbi = abi.find((item: any) => item.type === 'event' && item.name === 'EventCreated');
+    const eventAbi = abi.find((item): item is { type: string; name: string } => 
+      typeof item === 'object' && item !== null && 'type' in item && 'name' in item &&
+      (item as { type: string; name: string }).type === 'event' && 
+      (item as { type: string; name: string }).name === 'EventCreated'
+    );
     
     if (!eventAbi) {
       throw new Error('EventCreated event not found in ABI');

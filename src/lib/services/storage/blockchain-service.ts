@@ -25,6 +25,7 @@ import {
 } from '@/lib/contracts/avalanche-client';
 import { parseEther } from 'viem';
 import type { CreateEventParams } from '@/lib/contracts/types/EventFactory';
+import type { TransactionSigningData } from '@/lib/services/frontend/user-wallet-service';
 
 export class BlockchainService implements StorageProvider {
   readonly name = 'Avalanche Blockchain';
@@ -131,7 +132,7 @@ export class BlockchainService implements StorageProvider {
     input: CreateEventInput,
     metadataUri: string,
     userWalletAddress: string
-  ): Promise<any> {
+  ): Promise<TransactionSigningData> {
     try {
       // Parse dates
       const startTimeUnix = BigInt(Math.floor(new Date(input.startDate).getTime() / 1000));
@@ -195,7 +196,7 @@ export class BlockchainService implements StorageProvider {
    * Sign transaction with user wallet
    */
   async signTransactionWithUserWallet(
-    _transactionData: any,
+    _transactionData: TransactionSigningData,
     _userWalletAddress: string
   ): Promise<{
     transactionHash: string;

@@ -439,7 +439,7 @@ export class DatabaseService implements StorageProvider {
         .from('events')
         .select(`
           *,
-          users!inner (
+          users (
             wallet_address,
             display_name,
             avatar_url

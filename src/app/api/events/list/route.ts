@@ -1,9 +1,22 @@
+/**
+ * Events API - List Events
+ * 
+ * Get paginated list of events with filtering and sorting capabilities
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { EventService } from '@/lib/services/event-service';
+import { HealthMonitor } from '@/lib/services/monitoring/health-monitor';
 import { eventSearchSchema, type EventSearchInput } from '@/lib/schemas/event';
 import { PAGINATION_CONFIG } from '@/lib/constants';
 
+// Initialize services
+const eventService = new EventService();
+const healthMonitor = new HealthMonitor();
+
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
+  
   try {
     const { searchParams } = new URL(request.url);
     
@@ -28,8 +41,12 @@ export async function GET(request: NextRequest) {
     const validatedData = eventSearchSchema.parse(validatedParams);
 
     // Get events using service
-    const eventService = new EventService();
     const result = await eventService.listEvents(validatedData, validatedData.includeBlockchain);
+
+    const responseTime = Date.now() - startTime;
+    
+    // Update health metrics
+    healthMonitor.updateMetrics('database', responseTime, true);
 
     return NextResponse.json({
       success: true,
@@ -53,19 +70,43 @@ export async function GET(request: NextRequest) {
           },
         },
       },
+      metadata: {
+        responseTime,
+        timestamp: new Date().toISOString(),
+        source: 'database'
+      }
     });
   } catch (error) {
-    console.error('Error in events API:', error);
+    const responseTime = Date.now() - startTime;
+    
+    // Update health metrics
+    healthMonitor.updateMetrics('database', responseTime, false);
+    
+    console.error('Error in events list API:', error);
     
     if (error instanceof Error) {
       return NextResponse.json(
-        { success: false, error: error.message },
+        { 
+          success: false, 
+          error: error.message,
+          metadata: {
+            responseTime,
+            timestamp: new Date().toISOString()
+          }
+        },
         { status: 400 }
       );
     }
     
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { 
+        success: false, 
+        error: 'Internal server error',
+        metadata: {
+          responseTime,
+          timestamp: new Date().toISOString()
+        }
+      },
       { status: 500 }
     );
   }

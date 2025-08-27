@@ -1,6 +1,7 @@
 /**
- * GET /api/events/v2/[eventId]
- * Get single event with cross-layer verification
+ * Events API - Get Event Details
+ * 
+ * Get detailed information for a single event by ID
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -22,7 +23,10 @@ export async function GET(
     
     if (!eventId) {
       return NextResponse.json(
-        { error: 'Event ID is required' },
+        { 
+          success: false,
+          error: 'Event ID is required' 
+        },
         { status: 400 }
       );
     }
@@ -32,7 +36,10 @@ export async function GET(
     
     if (!event) {
       return NextResponse.json(
-        { error: 'Event not found' },
+        { 
+          success: false,
+          error: 'Event not found' 
+        },
         { status: 404 }
       );
     }
@@ -46,7 +53,6 @@ export async function GET(
       metadata: {
         responseTime,
         timestamp: new Date().toISOString(),
-        version: '2.0',
         source: event.storageProvider || 'database'
       }
     });
@@ -55,14 +61,19 @@ export async function GET(
     const responseTime = Date.now() - startTime;
     healthMonitor.updateMetrics('database', responseTime, false);
 
-    console.error('GET /api/events/v2/[eventId] error:', error);
+    console.error('GET /api/events/[eventId] error:', error);
 
     return NextResponse.json(
       { 
+        success: false,
         error: 'Internal server error',
         details: process.env.NODE_ENV === 'development' 
           ? (error instanceof Error ? error.message : String(error))
-          : undefined
+          : undefined,
+        metadata: {
+          responseTime,
+          timestamp: new Date().toISOString()
+        }
       },
       { status: 500 }
     );

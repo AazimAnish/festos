@@ -15,7 +15,7 @@ import type { CreateEventInput, EventSearchInput } from '@/lib/schemas/event';
 import { toast } from 'sonner';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '@/lib/constants';
 import { useAuthenticatedFetch } from './use-wallet-auth';
-import React from 'react'; // Added missing import for React
+import React from 'react';
 
 // Query keys for React Query
 export const eventQueryKeys = {
@@ -42,7 +42,7 @@ export function useCreateEvent() {
     mutationFn: async (
       input: CreateEventInput
     ): Promise<EventCreationResult> => {
-      const response = await authenticatedFetch('/api/events/v2', {
+      const response = await authenticatedFetch('/api/events/create', {
         method: 'POST',
         body: JSON.stringify(input),
       });
@@ -145,14 +145,14 @@ export function useEvents(filters: Partial<EventSearchInput> = {}) {
         params.append('includeBlockchain', 'true');
       }
 
-      const response = await fetch(`/api/events/v2?${params.toString()}`);
+      const response = await fetch(`/api/events/list?${params.toString()}`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch events: ${response.statusText}`);
       }
 
       const responseData = await response.json();
-      return responseData.data; // API returns { success: true, data: result, metadata: {...} }
+      return responseData; // API returns object with events, pagination, and filters
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
@@ -166,7 +166,7 @@ export function useEvent(eventId: string) {
   return useQuery({
     queryKey: eventQueryKeys.detail(eventId),
     queryFn: async (): Promise<EventData | null> => {
-      const response = await fetch(`/api/events/v2/${eventId}`);
+      const response = await fetch(`/api/events/${eventId}`);
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -191,7 +191,7 @@ export function useEventBySlug(slug: string) {
   return useQuery({
     queryKey: eventQueryKeys.bySlug(slug),
     queryFn: async (): Promise<EventData | null> => {
-      const response = await fetch(`/api/events/v2/slug/${slug}`);
+      const response = await fetch(`/api/events/slug/${slug}`);
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -264,7 +264,7 @@ export function usePrefetchEvents() {
       queryClient.prefetchQuery({
         queryKey: eventQueryKeys.detail(eventId),
         queryFn: async () => {
-          const response = await fetch(`/api/events/v2/${eventId}`);
+          const response = await fetch(`/api/events/${eventId}`);
           if (!response.ok) return null;
           const responseData = await response.json();
           return responseData.data; // API returns { success: true, data: result, metadata: {...} }
@@ -276,7 +276,7 @@ export function usePrefetchEvents() {
       queryClient.prefetchQuery({
         queryKey: eventQueryKeys.bySlug(slug),
         queryFn: async () => {
-          const response = await fetch(`/api/events/v2/slug/${slug}`);
+          const response = await fetch(`/api/events/slug/${slug}`);
           if (!response.ok) return null;
           const responseData = await response.json();
           return responseData.data; // API returns { success: true, data: result, metadata: {...} }
@@ -313,14 +313,14 @@ export function usePrefetchEvents() {
             params.append('includeBlockchain', 'true');
           }
 
-          const response = await fetch(`/api/events/v2?${params.toString()}`);
+          const response = await fetch(`/api/events/list?${params.toString()}`);
           
           if (!response.ok) {
             throw new Error(`Failed to fetch events: ${response.statusText}`);
           }
 
           const responseData = await response.json();
-          return responseData.data; // API returns { success: true, data: result, metadata: {...} }
+          return responseData; // API returns events, pagination and filters
         },
         staleTime: 5 * 60 * 1000,
       });

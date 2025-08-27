@@ -24,108 +24,37 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/shared/components/ui/accordion';
-import { MapPin, Users, Info, Ticket, QrCode } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { MapPin, Users, Info, Ticket, QrCode, Calendar, Clock } from 'lucide-react';
+import { useState } from 'react';
 import { Loading } from '@/shared/components/ui/loading';
-import { extractEventIdFromSlug } from '@/shared/utils/event-helpers';
+import { useEvent } from '@/shared/hooks/use-events-optimized';
+import { useWallet } from '@/shared/hooks/use-wallet';
+import { useSimilarEvents } from '@/shared/hooks/use-similar-events';
+import { useRegistrationForm } from '@/shared/hooks/use-registration-form';
 import Image from 'next/image';
+import { format } from 'date-fns';
 
 interface EventDetailPageProps {
   slug?: string;
   uniqueId?: string;
-  eventId?: number;
 }
 
 export function EventDetailPage({
   slug,
   uniqueId,
-  eventId: propEventId,
 }: EventDetailPageProps) {
-  const [isRegistered] = useState(false); // Mock state - would come from API
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isRegistered] = useState(false); // TODO: Implement registration check
+  const { address: userWalletAddress } = useWallet();
 
-  // Determine event ID based on available props
-  const eventId = propEventId || (slug ? extractEventIdFromSlug(slug) : 1);
+  // Use uniqueId directly for fetching event data
+  const eventId = uniqueId || slug;
 
-  // Mock data - in real app this would come from API based on eventId
-  const eventData = {
-    id: eventId,
-    uniqueId: uniqueId || `event-${eventId}`,
-    title: 'ETHIndia 2025 🇮🇳',
-    tagline: 'The biggest Ethereum hackathon in Asia',
-    location: 'Bangalore, India',
-    address: 'Bangalore International Centre, Domlur, Bangalore',
-    price: '0.01 ETH',
-    image: '/card1.png',
-    joinedCount: 421,
-    hasPOAP: true,
-    isSaved: false,
-    category: 'Tech',
-    date: '2025-01-15',
-    time: '10:00 AM - 6:00 PM',
-    creator: {
-      name: 'Web3India',
-      avatar: '/card2.png',
-      verified: true,
-      bio: 'Building the future of Web3 in India',
-      eventsCount: 12,
-    },
-    registrationForm: [
-      { type: 'text' as const, label: 'Full Name', required: true },
-      { type: 'email' as const, label: 'Email', required: true },
-      { type: 'text' as const, label: 'Twitter Handle', required: false },
-      {
-        type: 'select' as const,
-        label: 'Experience Level',
-        options: ['Beginner', 'Intermediate', 'Advanced'],
-        required: true,
-      },
-    ],
-    ticketId: 'ETH2025-001',
-    poapTokenId: '0x1234...5678',
-    coordinates: [77.5946, 12.9716] as [number, number],
-    similarEvents: [
-      {
-        id: 2,
-        title: 'Web3 Delhi Summit',
-        location: 'New Delhi',
-        price: '0.05 ETH',
-        image: '/card2.png',
-        date: '2025-02-20',
-      },
-      {
-        id: 3,
-        title: 'Mumbai Blockchain Fest',
-        location: 'Mumbai',
-        price: 'Free',
-        image: '/card3.png',
-        date: '2025-03-10',
-      },
-      {
-        id: 4,
-        title: 'Chennai NFT Expo',
-        location: 'Chennai',
-        price: '0.1 ETH',
-        image: '/card1.png',
-        date: '2025-04-05',
-      },
-    ],
-  };
+  // Always call hooks in the same order, regardless of conditions
+  const { data: eventData, isLoading, error } = useEvent(eventId || '');
+  const { data: similarEvents = [] } = useSimilarEvents(eventId || '');
+  const { data: registrationForm = [] } = useRegistrationForm(eventId || '');
 
-  // Simulate loading and error handling
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-      // Simulate potential error
-      if (eventId > 1000) {
-        setError('Event not found');
-      }
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [eventId]);
-
+  // Loading state
   if (isLoading) {
     return (
       <div className='min-h-screen bg-background flex items-center justify-center'>
@@ -134,12 +63,13 @@ export function EventDetailPage({
     );
   }
 
-  if (error) {
+  // Error state
+  if (error || !eventData) {
     return (
       <div className='min-h-screen bg-background flex items-center justify-center'>
         <div className='text-center space-y-4'>
           <h2 className='font-primary text-xl font-bold text-foreground'>
-            {error}
+            Event not found
           </h2>
           <p className='font-secondary text-sm text-gray'>
             The event you&apos;re looking for doesn&apos;t exist or has been
@@ -150,11 +80,32 @@ export function EventDetailPage({
     );
   }
 
+  // Format dates for display
+  const startDate = new Date(eventData.startDate);
+  const endDate = new Date(eventData.endDate);
+  const formattedStartDate = format(startDate, 'MMMM d, yyyy');
+  const formattedStartTime = format(startDate, 'h:mm a');
+  const formattedEndTime = format(endDate, 'h:mm a');
+
+  // Check if user is the creator
+  const isCreator = userWalletAddress?.toLowerCase() === eventData.creatorId?.toLowerCase();
+
   return (
     <div className='min-h-screen bg-background'>
       {/* Hero Banner */}
       <FadeIn variant='up' timing='normal'>
-        <EventHeroBanner event={eventData} />
+        <EventHeroBanner 
+          event={{
+            title: eventData.title,
+            tagline: eventData.description,
+            price: eventData.ticketPrice,
+            image: eventData.bannerImage || '/card1.png',
+            hasPOAP: eventData.hasPOAP,
+            isSaved: false, // TODO: Implement save functionality
+            date: formattedStartDate,
+            time: `${formattedStartTime} - ${formattedEndTime}`,
+          }} 
+        />
       </FadeIn>
 
       {/* Main Content Section */}
@@ -179,9 +130,21 @@ export function EventDetailPage({
                             </span>
                           </div>
                           <div className='flex items-center gap-4'>
+                            <Calendar className='w-5 h-5 sm:w-6 sm:h-6 text-primary flex-shrink-0' />
+                            <span className='font-secondary text-base sm:text-lg text-foreground'>
+                              {formattedStartDate}
+                            </span>
+                          </div>
+                          <div className='flex items-center gap-4'>
+                            <Clock className='w-5 h-5 sm:w-6 sm:h-6 text-primary flex-shrink-0' />
+                            <span className='font-secondary text-base sm:text-lg text-foreground'>
+                              {formattedStartTime} - {formattedEndTime}
+                            </span>
+                          </div>
+                          <div className='flex items-center gap-4'>
                             <Users className='w-5 h-5 sm:w-6 sm:h-6 text-primary flex-shrink-0' />
                             <span className='font-secondary text-base sm:text-lg text-foreground'>
-                              {eventData.joinedCount} attending
+                              Max Capacity: {eventData.maxCapacity}
                             </span>
                           </div>
                         </div>
@@ -189,18 +152,18 @@ export function EventDetailPage({
                         {/* Creator Info - Enhanced */}
                         <div className='flex items-center gap-4 p-4 sm:p-6 bg-muted/10 rounded-xl border border-border'>
                           <Image
-                            src={eventData.creator.avatar}
-                            alt={eventData.creator.name}
+                            src='/card2.png' // TODO: Add creator avatar to EventData
+                            alt={eventData.creatorId?.slice(0, 8) || 'Unknown Creator'}
                             width={56}
                             height={56}
                             className='w-12 h-12 sm:w-14 sm:h-14 rounded-full flex-shrink-0 border-2 border-border object-cover'
                           />
                           <div className='flex-1 min-w-0'>
                             <div className='font-secondary text-base sm:text-lg font-medium text-foreground truncate'>
-                              {eventData.creator.name}
+                              {eventData.creatorId?.slice(0, 8) || 'Unknown Creator'}
                             </div>
                             <div className='font-tertiary text-sm sm:text-base text-gray'>
-                              {eventData.creator.eventsCount} events created
+                              Event Creator
                             </div>
                           </div>
                           <Badge
@@ -215,18 +178,18 @@ export function EventDetailPage({
                         {!isRegistered ? (
                           <WalletConnectionDialog
                             eventData={{
-                              id: eventData.id.toString(),
+                              id: eventData.id,
                               title: eventData.title,
-                              price: eventData.price,
+                              price: eventData.ticketPrice,
                               hasPOAP: eventData.hasPOAP,
-                              poapTokenId: eventData.poapTokenId,
-                              joinedCount: eventData.joinedCount,
+                              poapTokenId: eventData.poapMetadata || '',
+                              joinedCount: 0, // TODO: Implement attendee count
                               location: eventData.location,
-                              date: eventData.date,
-                              time: eventData.time,
-                              image: eventData.image,
+                              date: formattedStartDate,
+                              time: `${formattedStartTime} - ${formattedEndTime}`,
+                              image: eventData.bannerImage || '/card1.png',
                             }}
-                            registrationForm={eventData.registrationForm}
+                            registrationForm={registrationForm}
                           />
                         ) : (
                           <Dialog>
@@ -242,8 +205,8 @@ export function EventDetailPage({
                                 </DialogTitle>
                               </DialogHeader>
                               <TicketPreview
-                                ticketId={eventData.ticketId}
-                                poapTokenId={eventData.poapTokenId}
+                                ticketId={`TICKET-${eventData.id.slice(0, 8)}`}
+                                poapTokenId={eventData.poapMetadata || '0x1234...5678'}
                                 hasPOAP={eventData.hasPOAP}
                               />
                             </DialogContent>
@@ -254,40 +217,42 @@ export function EventDetailPage({
                   </Card>
                 </FadeIn>
 
-                {/* Organizer Check-in Section */}
-                <FadeIn variant='up' timing='normal'>
-                  <Card className='border-2 border-border rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300'>
-                    <CardContent className='p-6 sm:p-8'>
-                      <div className='space-y-6'>
-                        <h3 className='font-primary text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3'>
-                          <QrCode className='w-6 h-6 text-primary' />
-                          Organizer Tools
-                        </h3>
-                        <p className='font-secondary text-base text-gray'>
-                          Manage event check-ins and attendee verification
-                        </p>
-                        <div className='flex flex-col sm:flex-row gap-4'>
-                          <Button
-                            asChild
-                            className='font-secondary text-sm px-6 py-3 h-auto border-2 border-primary bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all duration-200 rounded-xl'
-                          >
-                            <a href={`/check-in/${eventData.id}`}>
-                              <QrCode className='w-4 h-4 mr-2' />
-                              Open Check-in Terminal
-                            </a>
-                          </Button>
-                          <Button
-                            variant='outline'
-                            className='font-secondary text-sm px-6 py-3 h-auto border-2 border-border text-foreground hover:border-primary hover:text-primary transition-all duration-200 rounded-xl'
-                          >
-                            <Users className='w-4 h-4 mr-2' />
-                            View Attendee List
-                          </Button>
+                {/* Organizer Check-in Section - Only show for creators */}
+                {isCreator && (
+                  <FadeIn variant='up' timing='normal'>
+                    <Card className='border-2 border-border rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300'>
+                      <CardContent className='p-6 sm:p-8'>
+                        <div className='space-y-6'>
+                          <h3 className='font-primary text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3'>
+                            <QrCode className='w-6 h-6 text-primary' />
+                            Organizer Tools
+                          </h3>
+                          <p className='font-secondary text-base text-gray'>
+                            Manage event check-ins and attendee verification
+                          </p>
+                          <div className='flex flex-col sm:flex-row gap-4'>
+                            <Button
+                              asChild
+                              className='font-secondary text-sm px-6 py-3 h-auto border-2 border-primary bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all duration-200 rounded-xl'
+                            >
+                              <a href={`/check-in/${eventData.id}`}>
+                                <QrCode className='w-4 h-4 mr-2' />
+                                Open Check-in Terminal
+                              </a>
+                            </Button>
+                            <Button
+                              variant='outline'
+                              className='font-secondary text-sm px-6 py-3 h-auto border-2 border-border text-foreground hover:border-primary hover:text-primary transition-all duration-200 rounded-xl'
+                            >
+                              <Users className='w-4 h-4 mr-2' />
+                              View Attendee List
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </FadeIn>
+                      </CardContent>
+                    </Card>
+                  </FadeIn>
+                )}
 
                 {/* Optional Information - Collapsible */}
                 <FadeIn variant='up' timing='normal'>
@@ -296,6 +261,28 @@ export function EventDetailPage({
                     collapsible
                     className='w-full space-y-6'
                   >
+                    {/* Event Description */}
+                    <AccordionItem
+                      value='description'
+                      className='border-2 border-border rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300'
+                    >
+                      <AccordionTrigger className='px-6 sm:px-8 py-6 sm:py-8 hover:no-underline'>
+                        <div className='flex items-center gap-4'>
+                          <Info className='w-5 h-5 sm:w-6 sm:h-6 text-primary flex-shrink-0' />
+                          <span className='font-secondary text-base sm:text-lg text-foreground'>
+                            Event Description
+                          </span>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className='px-6 sm:px-8 pb-6 sm:pb-8'>
+                        <div className='prose prose-sm max-w-none'>
+                          <p className='font-secondary text-base text-foreground leading-relaxed'>
+                            {eventData.description}
+                          </p>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+
                     {/* Location Details */}
                     <AccordionItem
                       value='location'
@@ -312,8 +299,8 @@ export function EventDetailPage({
                       <AccordionContent className='px-6 sm:px-8 pb-6 sm:pb-8'>
                         <LocationMap
                           location={eventData.location}
-                          address={eventData.address}
-                          coordinates={eventData.coordinates}
+                          address={eventData.location} // TODO: Add address field to EventData
+                          coordinates={[0, 0] as [number, number]} // TODO: Add coordinates to EventData
                         />
                       </AccordionContent>
                     </AccordionItem>
@@ -332,7 +319,15 @@ export function EventDetailPage({
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className='px-6 sm:px-8 pb-6 sm:pb-8'>
-                        <CreatorProfile creator={eventData.creator} />
+                        <CreatorProfile 
+                          creator={{
+                            name: eventData.creatorId?.slice(0, 8) || 'Unknown Creator',
+                            avatar: '/card2.png', // TODO: Add creator avatar to EventData
+                            verified: true,
+                            bio: 'Event creator on the blockchain',
+                            eventsCount: 1,
+                          }} 
+                        />
                       </AccordionContent>
                     </AccordionItem>
 
@@ -350,7 +345,7 @@ export function EventDetailPage({
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className='px-6 sm:px-8 pb-6 sm:pb-8'>
-                        <SimilarEvents events={eventData.similarEvents} />
+                        <SimilarEvents events={similarEvents} />
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>
@@ -361,7 +356,7 @@ export function EventDetailPage({
               <div className='space-y-8 sm:space-y-10'>
                 {/* Attendees - Always Visible in Sidebar */}
                 <FadeIn variant='up' timing='normal'>
-                  <AttendeeList count={eventData.joinedCount} />
+                  <AttendeeList count={0} /> {/* TODO: Implement attendee count */}
                 </FadeIn>
 
                 {/* Event Category Info */}
@@ -378,9 +373,39 @@ export function EventDetailPage({
                               Category
                             </span>
                             <Badge className='bg-primary/10 text-primary border-0 text-sm sm:text-base'>
-                              {eventData.category}
+                              {eventData.category || 'General'}
                             </Badge>
                           </div>
+                          <div className='flex items-center justify-between'>
+                            <span className='font-secondary text-base text-gray'>
+                              Price
+                            </span>
+                            <Badge className='bg-green-100 text-green-800 border-0 text-sm sm:text-base'>
+                              {eventData.ticketPrice}
+                            </Badge>
+                          </div>
+                          <div className='flex items-center justify-between'>
+                            <span className='font-secondary text-base text-gray'>
+                              Approval Required
+                            </span>
+                            <Badge className={`border-0 text-sm sm:text-base ${
+                              eventData.requireApproval 
+                                ? 'bg-yellow-100 text-yellow-800' 
+                                : 'bg-green-100 text-green-800'
+                            }`}>
+                              {eventData.requireApproval ? 'Yes' : 'No'}
+                            </Badge>
+                          </div>
+                          {eventData.hasPOAP && (
+                            <div className='flex items-center justify-between'>
+                              <span className='font-secondary text-base text-gray'>
+                                POAP
+                              </span>
+                              <Badge className='bg-purple-100 text-purple-800 border-0 text-sm sm:text-base'>
+                                Available
+                              </Badge>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </CardContent>
