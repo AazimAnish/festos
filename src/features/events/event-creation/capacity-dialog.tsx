@@ -11,7 +11,6 @@ import {
 } from '@/shared/components/ui/dialog';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
-import { Switch } from '@/shared/components/ui/switch';
 
 interface CapacityDialogProps {
   value: string;
@@ -19,28 +18,28 @@ interface CapacityDialogProps {
 }
 
 export function CapacityDialog({ value, onChange }: CapacityDialogProps) {
+  const [open, setOpen] = useState(false);
   const [maxCapacity, setMaxCapacity] = useState(50);
-  const [autoClose, setAutoClose] = useState(false);
-  const [onlyApproved, setOnlyApproved] = useState(false);
-  const [waitlist, setWaitlist] = useState(false);
 
   const handleSetLimit = () => {
-    onChange(`${maxCapacity} people`);
+    onChange(`${maxCapacity}`);
+    setOpen(false);
   };
 
   const handleRemoveLimit = () => {
     onChange('unlimited');
+    setOpen(false);
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
           variant='outline'
           size='sm'
           className='rounded-lg bg-transparent'
         >
-          {value === 'unlimited' ? 'Unlimited' : value}
+          {value === 'unlimited' ? 'Unlimited' : `${value} people`}
         </Button>
       </DialogTrigger>
       <DialogContent className='sm:max-w-md rounded-2xl'>
@@ -55,30 +54,15 @@ export function CapacityDialog({ value, onChange }: CapacityDialogProps) {
             <Input
               id='capacity'
               type='number'
+              min='1'
               value={maxCapacity}
               onChange={e => setMaxCapacity(Number(e.target.value))}
               className='rounded-xl'
+              placeholder='Enter maximum number of attendees'
             />
-          </div>
-
-          <div className='space-y-4'>
-            <div className='flex items-center justify-between'>
-              <Label>Auto-close registration when full</Label>
-              <Switch checked={autoClose} onCheckedChange={setAutoClose} />
-            </div>
-
-            <div className='flex items-center justify-between'>
-              <Label>Only approved guests count</Label>
-              <Switch
-                checked={onlyApproved}
-                onCheckedChange={setOnlyApproved}
-              />
-            </div>
-
-            <div className='flex items-center justify-between'>
-              <Label>Overcapacity waitlist</Label>
-              <Switch checked={waitlist} onCheckedChange={setWaitlist} />
-            </div>
+            <p className='text-sm text-muted-foreground'>
+              Set the maximum number of people who can register for your event.
+            </p>
           </div>
 
           <div className='flex gap-3 pt-4'>

@@ -99,7 +99,7 @@ export function EventDetailPage({
             title: eventData.title,
             tagline: eventData.description,
             price: eventData.ticketPrice,
-            image: eventData.bannerImage || '/card1.png',
+            image: eventData.ipfsImageUrl || eventData.bannerImage || '/card1.png',
             hasPOAP: eventData.hasPOAP,
             isSaved: false, // TODO: Implement save functionality
             date: formattedStartDate,

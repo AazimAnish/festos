@@ -96,6 +96,7 @@ export function Header() {
                   src='/ticket.png'
                   alt='Festos Logo'
                   fill
+                  sizes='(max-width: 768px) 32px, 40px'
                   className='object-cover rounded-xl transition-all duration-200'
                   priority
                 />

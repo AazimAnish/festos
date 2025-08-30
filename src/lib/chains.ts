@@ -1,4 +1,4 @@
-import { Chain } from '@rainbow-me/rainbowkit';
+// import { defineChain } from 'viem'; // Currently unused
 import { mainnet, sepolia } from 'wagmi/chains';
 
 // Custom Avalanche chain configuration
@@ -20,7 +20,7 @@ export const avalanche = {
       blockCreated: 11_907_934,
     },
   },
-} as const satisfies Chain;
+} as const;
 
 // Custom Avalanche Fuji testnet configuration
 export const avalancheFuji = {
@@ -42,7 +42,7 @@ export const avalancheFuji = {
     },
   },
   testnet: true,
-} as const satisfies Chain;
+} as const;
 
 // Export all chains
 export const chains = [mainnet, sepolia, avalanche, avalancheFuji] as const;

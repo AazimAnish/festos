@@ -211,8 +211,8 @@ export class EventOrchestrator {
       throw new ValidationError('Invalid ticket price');
     }
 
-    if (input.maxCapacity < 1 || input.maxCapacity > 1000000) {
-      throw new ValidationError('Max capacity must be between 1 and 1,000,000');
+    if (input.maxCapacity < 0 || input.maxCapacity > 1000000) {
+      throw new ValidationError('Max capacity must be 0 (unlimited) or between 1 and 1,000,000');
     }
 
     if (!input.walletAddress || !input.walletAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
@@ -571,12 +571,12 @@ export class EventOrchestrator {
         await this.databaseService.deleteEvent(event.id);
         
         // Delete from IPFS if metadata URL exists
-        if (event.filebase_metadata_url) {
-          await this.ipfsService.deleteFile(event.filebase_metadata_url);
+        if (event.ipfs_metadata_url) {
+          await this.ipfsService.deleteFile(event.ipfs_metadata_url);
         }
         
-        if (event.filebase_image_url) {
-          await this.ipfsService.deleteFile(event.filebase_image_url);
+        if (event.ipfs_image_url) {
+          await this.ipfsService.deleteFile(event.ipfs_image_url);
         }
       }
       
@@ -652,12 +652,12 @@ export class EventOrchestrator {
       contractEventId: state.blockchainEventId,
       contractAddress: state.contractAddress,
       contractChainId: state.contractChainId,
-      filebaseMetadataUrl: state.ipfsMetadataUrl,
-      filebaseImageUrl: state.ipfsImageUrl,
+      ipfsMetadataUrl: state.ipfsMetadataUrl,
+      ipfsImageUrl: state.ipfsImageUrl,
       createdOn: {
         database: true,
         blockchain: true,
-        filebase: true
+        ipfs: true
       },
       errors: []
     };
@@ -677,12 +677,12 @@ export class EventOrchestrator {
       contractEventId: state.blockchainEventId,
       contractAddress: state.contractAddress,
       contractChainId: state.contractChainId,
-      filebaseMetadataUrl: state.ipfsMetadataUrl,
-      filebaseImageUrl: state.ipfsImageUrl,
+      ipfsMetadataUrl: state.ipfsMetadataUrl,
+      ipfsImageUrl: state.ipfsImageUrl,
       createdOn: {
         database: !!state.databaseRecordId,
         blockchain: !!state.blockchainTxHash,
-        filebase: !!state.ipfsMetadataUrl
+        ipfs: !!state.ipfsMetadataUrl
       },
       errors: [errorMessage]
     };
@@ -724,9 +724,9 @@ export class EventOrchestrator {
 
     // Check IPFS
     let ipfs = false;
-    if (dbResult.success && dbResult.data?.filebaseMetadataUrl) {
+    if (dbResult.success && dbResult.data?.ipfsMetadataUrl) {
       try {
-        const response = await fetch(dbResult.data.filebaseMetadataUrl);
+        const response = await fetch(dbResult.data.ipfsMetadataUrl);
         ipfs = response.ok;
         
         if (!ipfs) {
@@ -735,7 +735,7 @@ export class EventOrchestrator {
       } catch {
         discrepancies.push('IPFS metadata access failed');
       }
-    } else if (dbResult.success && dbResult.data && !dbResult.data.filebaseMetadataUrl) {
+    } else if (dbResult.success && dbResult.data && !dbResult.data.ipfsMetadataUrl) {
       discrepancies.push('No IPFS metadata URL in database');
     }
 
@@ -862,7 +862,7 @@ export class EventOrchestrator {
 
               const blockchainResult = await this.blockchainService.createEvent(
                 recreateInput,
-                dbEvent.filebaseMetadataUrl || ''
+                dbEvent.ipfsMetadataUrl || ''
               );
 
               if (blockchainResult.success && blockchainResult.data) {
@@ -900,9 +900,9 @@ export class EventOrchestrator {
       }
 
       // Step 3: Verify IPFS metadata
-      if (dbEvent.filebaseMetadataUrl) {
+      if (dbEvent.ipfsMetadataUrl) {
         try {
-          const response = await fetch(dbEvent.filebaseMetadataUrl);
+          const response = await fetch(dbEvent.ipfsMetadataUrl);
           if (response.ok) {
             actions.push('IPFS metadata accessible');
           } else {

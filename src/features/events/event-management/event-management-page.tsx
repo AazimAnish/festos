@@ -54,7 +54,7 @@ export function EventManagementPage({
     attendees: 421,
     capacity: 500,
     registrations: 450,
-    revenue: '4.5 ETH',
+            revenue: '4.5 AVAX',
   };
 
   useEffect(() => {

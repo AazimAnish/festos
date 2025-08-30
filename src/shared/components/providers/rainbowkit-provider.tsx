@@ -1,13 +1,13 @@
 'use client';
 
-import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { PrivyProvider } from '@privy-io/react-auth';
+import { WagmiProvider } from '@privy-io/wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { WagmiProvider } from 'wagmi';
-import { config } from '@/lib/wagmi';
+import { privyConfig } from '@/lib/privy';
 import { useState, useEffect } from 'react';
-import '@rainbow-me/rainbowkit/styles.css';
+import { avalancheFuji } from 'wagmi/chains';
 
-export function RainbowKitProviderWrapper({
+export function PrivyProviderWrapper({
   children,
 }: {
   children: React.ReactNode;
@@ -19,15 +19,34 @@ export function RainbowKitProviderWrapper({
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return null;
-  }
-
   return (
-    <WagmiProvider config={config}>
+    <PrivyProvider
+      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ''}
+      config={{
+        loginMethods: ['email', 'wallet'],
+        embeddedWallets: {
+          createOnLogin: 'users-without-wallets',
+          requireUserPasswordOnCreate: false,
+        },
+        defaultChain: avalancheFuji,
+        supportedChains: [avalancheFuji],
+        appearance: {
+          theme: 'light',
+          accentColor: '#4f46e5',
+          logo: '/festos-logo.png',
+        },
+        mfa: {
+          noPromptOnMfaRequired: false,
+        },
+      }}
+    >
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider locale='en-US'>{children}</RainbowKitProvider>
+        <WagmiProvider config={privyConfig}>
+          <div style={{ visibility: mounted ? 'visible' : 'hidden' }}>
+            {children}
+          </div>
+        </WagmiProvider>
       </QueryClientProvider>
-    </WagmiProvider>
+    </PrivyProvider>
   );
 }

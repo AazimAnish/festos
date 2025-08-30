@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react';
-// import { useAccount } from 'wagmi'; // Will be used for write operations
 import { usePublicClient, useWalletClient } from 'wagmi';
 import {
   getContract,

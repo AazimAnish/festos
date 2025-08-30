@@ -5,7 +5,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { CheckCircle, Wallet, AlertCircle } from 'lucide-react';
 import { useWallet } from '@/shared/hooks/use-wallet';
-import { avalanche, avalancheFuji } from '@/lib/chains';
+// import { avalanche, avalancheFuji } from '@/lib/chains'; // Temporarily unused
 
 interface WalletConnectionProps {
   onWalletConnected?: (address: string) => void;
@@ -17,11 +17,8 @@ export const WalletConnection = memo(function WalletConnection({
   const {
     address,
     isConnected,
-    chainId,
     isAvalanche,
     formatAddress,
-    formatBalance,
-    balance,
     switchToAvalanche,
     switchToAvalancheTestnet,
   } = useWallet();
@@ -32,16 +29,11 @@ export const WalletConnection = memo(function WalletConnection({
   }
 
   const getChainName = () => {
-    if (chainId === avalanche.id) return 'Avalanche Mainnet';
-    if (chainId === avalancheFuji.id) return 'Avalanche Testnet';
-    return 'Unknown Network';
+    return 'Avalanche Testnet'; // We're always on Fuji testnet for now
   };
 
   const getChainIcon = () => {
-    if (chainId === avalanche.id || chainId === avalancheFuji.id) {
-      return '❄️'; // Snowflake for Avalanche
-    }
-    return '🔗';
+    return '❄️'; // Snowflake for Avalanche
   };
 
   return (
@@ -76,11 +68,7 @@ export const WalletConnection = memo(function WalletConnection({
                 {address ? formatAddress(address) : 'Loading...'}
               </div>
 
-              {balance && (
-                <div className='text-xs text-gray bg-muted/30 p-2 rounded-3xl border border-border'>
-                  Balance: {formatBalance(balance.value)} {balance.symbol}
-                </div>
-              )}
+              {/* Balance display temporarily disabled until proper implementation */}
 
               <div className='flex items-center space-x-2 text-xs'>
                 <span className='text-gray'>Network:</span>

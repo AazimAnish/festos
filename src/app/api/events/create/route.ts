@@ -14,7 +14,10 @@ import { HealthMonitor } from '@/lib/services/monitoring/health-monitor';
 import { ValidationError, StorageError, CreateEventInput } from '@/lib/services/core/interfaces';
 import { getAuthenticatedUser } from '@/shared/utils/wallet-auth';
 import { EventService } from '@/lib/services/event-service';
-import { getAvalancheFujiEventFactoryContract } from '@/lib/contracts/avalanche-client';
+// import { getAvalancheFujiEventFactoryContract } from '@/lib/contracts/avalanche-client';
+import { getAvalancheFujiEventEscrowContract } from '@/lib/contracts/avalanche-escrow-client';
+import { getAvalancheFujiEventTicketContract } from '@/lib/contracts/avalanche-ticket-client';
+import { parseEther } from 'viem';
 
 // Initialize services
 const healthMonitor = new HealthMonitor();
@@ -201,12 +204,12 @@ async function handleEventPreparation(
 
     // Validate max capacity
     const maxCapacity = parseInt(String(body.maxCapacity));
-    if (isNaN(maxCapacity) || maxCapacity < 1 || maxCapacity > 1000000) {
+    if (isNaN(maxCapacity) || maxCapacity < 0 || maxCapacity > 1000000) {
       return NextResponse.json(
         { 
           success: false,
           error: 'Invalid max capacity', 
-          details: 'Max capacity must be between 1 and 1,000,000',
+          details: 'Max capacity must be 0 (unlimited) or between 1 and 1,000,000',
           received: body.maxCapacity
         },
         { status: 400 }
@@ -240,14 +243,54 @@ async function handleEventPreparation(
       poapMetadata: body.poapMetadata || '',
       visibility: body.visibility || 'public',
       timezone: body.timezone || 'UTC',
-      bannerImage: body.bannerImage,
+      bannerImage: body.bannerImage, // This will be handled as base64 string or File object
       category: body.category ? String(body.category).trim() : 'General',
       tags: Array.isArray(body.tags) ? body.tags.map((tag: unknown) => String(tag).trim()).filter(Boolean) : [],
       walletAddress: user.wallet_address,
     };
 
-    // Use the existing contract client and ABI for consistency
-    const contract = getAvalancheFujiEventFactoryContract();
+    // Upload event metadata and image to IPFS for NFT metadata
+    const { ipfsService } = await import('@/lib/services/ipfs-service');
+    const eventId = crypto.randomUUID();
+    
+    try {
+      // Upload event metadata
+      const metadataResult = await ipfsService.uploadEventMetadata(eventId, {
+        title: eventInput.title,
+        description: eventInput.description,
+        location: eventInput.location,
+        startDate: eventInput.startDate,
+        endDate: eventInput.endDate,
+        ticketPrice: eventInput.ticketPrice,
+        maxCapacity: eventInput.maxCapacity,
+        category: eventInput.category,
+        tags: eventInput.tags,
+        creatorId: user.wallet_address,
+        createdAt: new Date().toISOString(),
+      });
+      
+      console.log('Metadata upload result:', metadataResult);
+      
+      // Upload banner image if provided
+      if (eventInput.bannerImage && typeof eventInput.bannerImage === 'string') {
+        try {
+          const imageBuffer = Buffer.from(eventInput.bannerImage, 'base64');
+          const imageResult = await ipfsService.uploadEventBanner(eventId, imageBuffer, 'image/webp');
+          
+          console.log('Image upload result:', imageResult);
+        } catch (imageError) {
+          console.warn('Failed to upload banner image:', imageError);
+        }
+      }
+    } catch (ipfsError) {
+      console.warn('IPFS upload failed, using fallback:', ipfsError);
+    }
+
+    // Use the EventTicket contract for event creation
+    const contract = getAvalancheFujiEventTicketContract();
+    
+    // Use our API endpoint for NFT metadata
+    const baseURI = `${process.env.NEXT_PUBLIC_APP_URL || 'https://festos.app'}/api/nft/metadata/`;
     
     const transactionData = {
       address: contract.address,
@@ -255,15 +298,27 @@ async function handleEventPreparation(
       functionName: 'createEvent',
       args: [
         eventInput.title,
-        eventInput.description,
         eventInput.location,
         Math.floor(new Date(eventInput.startDate).getTime() / 1000).toString(),
         Math.floor(new Date(eventInput.endDate).getTime() / 1000).toString(),
         eventInput.maxCapacity.toString(),
         (parseFloat(eventInput.ticketPrice) * 10**18).toString(), // Convert to Wei as string
-        eventInput.requireApproval,
-        eventInput.hasPOAP,
-        eventInput.poapMetadata,
+        (parseFloat(eventInput.ticketPrice) > 0).toString(), // requiresEscrow as string for transport
+        baseURI, // Use our API endpoint for NFT metadata
+      ],
+      chainId: 43113, // Avalanche Fuji testnet
+    };
+
+    // Also prepare escrow creation transaction data
+    const escrowContract = getAvalancheFujiEventEscrowContract();
+    const escrowTransactionData = {
+      address: escrowContract.address,
+      abi: escrowContract.abi,
+      functionName: 'createEventEscrow',
+      args: [
+        '0', // eventId will be set after event creation
+        (parseFloat(eventInput.ticketPrice) * 10**18).toString(), // ticketPrice in wei
+        Math.floor(new Date(eventInput.endDate).getTime() / 1000).toString(), // eventEndTime
       ],
       chainId: 43113, // Avalanche Fuji testnet
     };
@@ -276,6 +331,7 @@ async function handleEventPreparation(
         eventId: `event_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         slug: `event-${eventInput.title.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`,
         transactionData,
+        escrowTransactionData,
         ipfsMetadataUrl: null, // Would be set after IPFS upload
         ipfsImageUrl: null, // Would be set after IPFS upload
       },
@@ -358,9 +414,38 @@ async function handleSignedTransaction(
     // This ensures reliable event creation while we fix the blockchain integration
     const eventService = new EventService();
     
-    // Create event using EventService (stores in database and Filebase)
+    // Create event using EventService (stores in database and IPFS)
     const createdEvent = await eventService.createEvent(eventInput);
     
+    // Update the event with blockchain data
+    if (signedTransaction.eventId && signedTransaction.transactionHash) {
+      await eventService.updateEventWithBlockchainData(
+        createdEvent.id,
+        Number(signedTransaction.eventId),
+        signedTransaction.transactionHash as string,
+        signedTransaction.contractAddress as string || '',
+        Number(signedTransaction.chainId) || 43113
+      );
+      
+      // Also create the escrow for this event
+      try {
+        const escrowContract = getAvalancheFujiEventEscrowContract();
+        const ticketPriceWei = parseEther(eventInput.ticketPrice);
+        const endTimeUnix = Math.floor(new Date(eventInput.endDate).getTime() / 1000);
+        
+        // Note: The escrow creation would need to be done by the event creator
+        // For now, we'll just log that it needs to be done
+        console.log('Event created on blockchain. Escrow needs to be created with:', {
+          eventId: signedTransaction.eventId,
+          ticketPrice: ticketPriceWei.toString(),
+          endTime: endTimeUnix,
+          escrowContractAddress: escrowContract.address
+        });
+      } catch (error) {
+        console.error('Failed to prepare escrow creation:', error);
+      }
+    }
+
     // Add blockchain transaction info to the result
     const result = {
       success: true,
@@ -368,14 +453,14 @@ async function handleSignedTransaction(
       slug: createdEvent.id, // Use event ID as slug for now
       contractEventId: signedTransaction.eventId,
       transactionHash: signedTransaction.transactionHash,
-      filebaseMetadataUrl: createdEvent.filebaseMetadataUrl,
-      filebaseImageUrl: createdEvent.filebaseImageUrl,
+      ipfsMetadataUrl: createdEvent.ipfsMetadataUrl,
+      ipfsImageUrl: createdEvent.ipfsImageUrl,
       contractChainId: signedTransaction.chainId,
       contractAddress: signedTransaction.contractAddress,
       createdOn: {
         blockchain: true,
         database: true,
-        filebase: true,
+        ipfs: true,
       },
       errors: [],
     };
@@ -385,7 +470,7 @@ async function handleSignedTransaction(
     // Update health metrics
     healthMonitor.updateMetrics('database', responseTime, result.createdOn.database);
     healthMonitor.updateMetrics('blockchain', responseTime, result.createdOn.blockchain);
-    healthMonitor.updateMetrics('ipfs', responseTime, result.createdOn.filebase);
+    healthMonitor.updateMetrics('ipfs', responseTime, result.createdOn.ipfs);
 
     if (result.success) {
       return NextResponse.json({

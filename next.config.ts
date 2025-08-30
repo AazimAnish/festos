@@ -25,6 +25,18 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/static/img/coins/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'gateway.pinata.cloud',
+        port: '',
+        pathname: '/ipfs/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ipfs.io',
+        port: '',
+        pathname: '/ipfs/**',
+      },
     ],
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -33,14 +45,32 @@ const nextConfig: NextConfig = {
 
   // Bundle optimization
   webpack: (config, { dev, isServer }) => {
-    // Handle Sharp package for server-side only
+    // Enable WebAssembly support
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
+      syncWebAssembly: true,
+    };
+
+    // Handle wagmi and viem for client-side compatibility
+    if (!isServer) {
+      config.externals = {
+        ...config.externals,
+      };
+    }
+
+    // Handle Node.js modules for client-side
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
         child_process: false,
-        crypto: false,
-        events: false,
+        ws: false,
+        crypto: require.resolve('crypto-browserify'),
+        stream: require.resolve('stream-browserify'),
+        buffer: require.resolve('buffer'),
+        events: require.resolve('events'),
+        util: require.resolve('util'),
       };
     }
 

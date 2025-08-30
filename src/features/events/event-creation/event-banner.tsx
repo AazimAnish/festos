@@ -4,20 +4,56 @@ import type React from 'react';
 
 import { useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
-import { Upload, Camera } from 'lucide-react';
+import { Upload, Camera, Loader2 } from 'lucide-react';
 import Image from 'next/image';
+import { smartCompress, validateImage, formatFileSize } from '@/shared/utils/image-compression-client';
 
-export function EventBanner() {
-  const [bannerImage, setBannerImage] = useState<string>();
+interface EventBannerProps {
+  onImageChange?: (file: File | null) => void;
+  initialImage?: string;
+}
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+export function EventBanner({ onImageChange, initialImage }: EventBannerProps) {
+  const [bannerImage, setBannerImage] = useState<string>(initialImage || '');
+  const [isCompressing, setIsCompressing] = useState(false);
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = e => {
-        setBannerImage(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        setIsCompressing(true);
+
+        // Validate file
+        const validation = validateImage(file);
+        if (!validation.isValid) {
+          alert(validation.error);
+          return;
+        }
+
+        // Compress image
+        const compressionResult = await smartCompress(file, 'banner');
+        
+        // Show compression info
+        console.log(
+          `Image compressed: ${formatFileSize(compressionResult.originalSize)} → ${formatFileSize(compressionResult.compressedSize)} (${compressionResult.compressionRatio.toFixed(1)}% reduction)`
+        );
+
+        // Store compressed file for future use
+        
+        // Create preview
+        const reader = new FileReader();
+        reader.onload = e => {
+          const result = e.target?.result as string;
+          setBannerImage(result);
+          onImageChange?.(compressionResult.file);
+        };
+        reader.readAsDataURL(compressionResult.file);
+      } catch (error) {
+        console.error('Image compression failed:', error);
+        alert('Failed to process image. Please try again.');
+      } finally {
+        setIsCompressing(false);
+      }
     }
   };
 
@@ -45,11 +81,16 @@ export function EventBanner() {
             variant='secondary'
             size='sm'
             className='rounded-full bg-white/90 hover:bg-white text-black'
+            disabled={isCompressing}
             asChild
           >
             <span className='flex items-center gap-2 cursor-pointer'>
-              <Upload className='h-4 w-4' />
-              {bannerImage ? 'Change' : 'Upload'}
+              {isCompressing ? (
+                <Loader2 className='h-4 w-4 animate-spin' />
+              ) : (
+                <Upload className='h-4 w-4' />
+              )}
+              {isCompressing ? 'Processing...' : (bannerImage ? 'Change' : 'Upload')}
             </span>
           </Button>
         </label>
@@ -59,6 +100,7 @@ export function EventBanner() {
           accept='image/*'
           onChange={handleImageUpload}
           className='hidden'
+          disabled={isCompressing}
         />
       </div>
     </div>

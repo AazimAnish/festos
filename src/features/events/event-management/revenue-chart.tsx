@@ -61,8 +61,8 @@ export function RevenueChart({ data, isLoading = false }: RevenueChartProps) {
       labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Last Week'],
       values: [10, 15, 25, 35, 15],
     },
-    totalRevenue: '4.5 ETH',
-    currency: 'ETH',
+    totalRevenue: '4.5 AVAX',
+    currency: 'AVAX',
   };
 
   // Pie chart data
@@ -93,7 +93,7 @@ export function RevenueChart({ data, isLoading = false }: RevenueChartProps) {
     labels: chartData.timeDistribution.labels,
     datasets: [
       {
-        label: `Revenue (${chartData.currency || 'ETH'})`,
+        label: `Revenue (${chartData.currency || 'AVAX'})`,
         data: chartData.timeDistribution.values,
         backgroundColor: 'rgba(99, 102, 241, 0.8)',
         borderColor: 'rgba(99, 102, 241, 1)',
@@ -144,7 +144,7 @@ export function RevenueChart({ data, isLoading = false }: RevenueChartProps) {
       tooltip: {
         callbacks: {
           label: function (context: TooltipItem<'bar'>) {
-            return `Revenue: ${context.raw as number} ${chartData.currency || 'ETH'}`;
+            return `Revenue: ${context.raw as number} ${chartData.currency || 'AVAX'}`;
           },
         },
       },

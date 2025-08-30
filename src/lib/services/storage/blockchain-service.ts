@@ -332,8 +332,8 @@ export class BlockchainService implements StorageProvider {
           contractEventId: Number(event.eventId),
           contractAddress: undefined,
           contractChainId: undefined,
-          filebaseMetadataUrl: undefined,
-          filebaseImageUrl: undefined,
+          ipfsMetadataUrl: undefined,
+          ipfsImageUrl: undefined,
           storageProvider: 'blockchain',
           createdAt: new Date(Number(event.createdAt) * 1000).toISOString(),
           updatedAt: new Date(Number(event.updatedAt) * 1000).toISOString(),
@@ -367,8 +367,8 @@ export class BlockchainService implements StorageProvider {
           contractEventId: Number(event.eventId),
           contractAddress: undefined,
           contractChainId: undefined,
-          filebaseMetadataUrl: undefined,
-          filebaseImageUrl: undefined,
+          ipfsMetadataUrl: undefined,
+          ipfsImageUrl: undefined,
           storageProvider: 'blockchain',
           createdAt: new Date(Number(event.createdAt) * 1000).toISOString(),
           updatedAt: new Date(Number(event.updatedAt) * 1000).toISOString(),
@@ -653,8 +653,8 @@ export class BlockchainService implements StorageProvider {
       contractEventId,
       contractAddress: undefined, // Not available in this context
       contractChainId: 43114,
-      filebaseMetadataUrl: undefined, // Not stored on blockchain
-      filebaseImageUrl: undefined, // Not stored on blockchain
+      ipfsMetadataUrl: undefined, // Not stored on blockchain
+      ipfsImageUrl: undefined, // Not stored on blockchain
       storageProvider: 'blockchain',
       createdAt: new Date(Number(createdAt) * 1000).toISOString(),
       updatedAt: new Date(Number(updatedAt) * 1000).toISOString()

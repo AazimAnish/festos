@@ -1,33 +1,38 @@
 'use client';
 
-import { useAccount, useBalance, useChainId, useSwitchChain } from 'wagmi';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { useMemo } from 'react';
-import { avalanche, avalancheFuji } from '@/lib/chains';
+import { avalancheFuji } from '@/lib/chains';
 
 export function useWallet() {
-  const { address, isConnected, isConnecting, isDisconnected } = useAccount();
-  const chainId = useChainId();
-  const { switchChain } = useSwitchChain();
-
-  const { data: balance } = useBalance({
-    address,
-    chainId,
-  });
+  const { ready, authenticated } = usePrivy();
+  const { wallets } = useWallets();
+  
+  const address = wallets.length > 0 ? wallets[0].address : null;
+  const isConnected = authenticated && !!address;
+  const isConnecting = !ready;
+  const isDisconnected = !authenticated;
+  
+  // For now, default to Avalanche Fuji testnet
+  const chainId = avalancheFuji.id;
+  const balance = undefined; // We'll implement balance checking later if needed
 
   const isAvalanche = useMemo(() => {
-    return chainId === avalanche.id || chainId === avalancheFuji.id;
+    return chainId === avalancheFuji.id; // We're using Fuji testnet
   }, [chainId]);
 
   const isTestnet = useMemo(() => {
     return chainId === avalancheFuji.id;
   }, [chainId]);
 
-  const switchToAvalanche = () => {
-    switchChain({ chainId: avalanche.id });
+  const switchToAvalanche = async () => {
+    // For Privy embedded wallets, chain switching is handled automatically
+    console.log('Chain switching will be handled by embedded wallet');
   };
 
-  const switchToAvalancheTestnet = () => {
-    switchChain({ chainId: avalancheFuji.id });
+  const switchToAvalancheTestnet = async () => {
+    // For Privy embedded wallets, chain switching is handled automatically
+    console.log('Chain switching will be handled by embedded wallet');
   };
 
   const formatAddress = (address: string) => {

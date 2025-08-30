@@ -7,50 +7,10 @@ import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
 import { EventCard } from '@/features/events/event-card';
 import { EmptyState } from '@/shared/components/empty-state';
+import { TicketPreview } from '@/shared/components/ticket-preview';
 import { useWallet } from '@/shared/hooks/use-wallet';
 import { useTickets } from '@/shared/hooks/use-tickets';
-// Mock events data - replace with real API data
-const MOCK_EVENTS = [
-  {
-    id: 1,
-    uniqueId: 'fpvxrdl3',
-    title: 'ETHIndia 2025 🇮🇳',
-    location: 'Bangalore, India',
-    price: '0.01 ETH',
-    image: '/card1.png',
-    joinedCount: 421,
-    hasPOAP: true,
-    isSaved: false,
-    category: 'Tech',
-    date: '2025-01-15',
-  },
-  {
-    id: 2,
-    uniqueId: 'web3delhi',
-    title: 'Web3 Delhi Summit',
-    location: 'New Delhi, India',
-    price: '0.05 ETH',
-    image: '/card2.png',
-    joinedCount: 1200,
-    hasPOAP: true,
-    isSaved: true,
-    category: 'Tech',
-    date: '2025-02-20',
-  },
-  {
-    id: 3,
-    uniqueId: 'mumbaiblock',
-    title: 'Mumbai Blockchain Fest',
-    location: 'Mumbai, India',
-    price: 'Free',
-    image: '/card3.png',
-    joinedCount: 89,
-    hasPOAP: false,
-    isSaved: false,
-    category: 'Music',
-    date: '2025-03-10',
-  },
-];
+import { useUserEvents } from '@/shared/hooks/use-user-events';
 import {
   Calendar,
   Users,
@@ -73,27 +33,6 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 
-// Mock user data - in real app, this would come from wallet/user context or API
-const userData = {
-  username: 'alexchen',
-  name: 'Alex Chen',
-  bio: 'Community builder & event organizer passionate about bringing people together through meaningful experiences.',
-  avatar: '/card1.png',
-  isVerified: true,
-  location: 'San Francisco, CA',
-  joinedDate: 'March 2023',
-  address: '0x1234...5678',
-  stats: {
-    upcomingEvents: 3,
-    pastEvents: 12,
-    eventsCreated: 24,
-    eventsAttended: 87,
-    poapsCollected: 156,
-    averageRating: 4.8,
-    totalReviews: 42,
-    ticketsOwned: 5,
-  },
-};
 
 // Dashboard stats configuration
 const dashboardStatsConfig = [
@@ -131,14 +70,33 @@ const dashboardStatsConfig = [
   },
 ];
 
-// Filter mock events for demonstration purposes
-const upcomingEvents = MOCK_EVENTS.slice(0, 3);
-const createdEvents = MOCK_EVENTS.slice(0, 4);
-
 export function UserDashboard() {
-  const { isConnected } = useWallet();
+  const { isConnected, address } = useWallet();
   const { ownedTickets, getUserListings } = useTickets();
+  const { events: createdEvents, upcomingEvents, pastEvents } = useUserEvents();
   const [activeTab, setActiveTab] = useState('overview');
+
+  // Calculate real-time stats
+  const userData = {
+    username: 'festos-user',
+    name: 'Festos User',
+    bio: 'Community builder & event organizer passionate about bringing people together through meaningful experiences.',
+    avatar: '/card1.png',
+    isVerified: true,
+    location: 'Global',
+    joinedDate: 'Recently',
+    address: address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '0x0000...0000',
+    stats: {
+      upcomingEvents: upcomingEvents.length,
+      pastEvents: pastEvents.length,
+      eventsCreated: createdEvents.length,
+      eventsAttended: ownedTickets.filter(t => t.status === 'used').length,
+      poapsCollected: ownedTickets.filter(t => t.hasPOAP).length,
+      averageRating: 4.8, // TODO: Implement real rating system
+      totalReviews: 42, // TODO: Implement real reviews
+      ticketsOwned: ownedTickets.length,
+    },
+  };
 
   // In a real app, we would check if the user is connected
   if (!isConnected) {
@@ -275,7 +233,7 @@ export function UserDashboard() {
 
             {upcomingEvents.length > 0 ? (
               <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
-                {upcomingEvents.map((event, i) => (
+                {upcomingEvents.slice(0, 3).map((event, i) => (
                   <div
                     key={event.id}
                     className='group transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1'
@@ -318,49 +276,7 @@ export function UserDashboard() {
             {ownedTickets.length > 0 ? (
               <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
                 {ownedTickets.map(ticket => (
-                  <Card
-                    key={ticket.id}
-                    className='overflow-hidden group rounded-xl border border-border/50 bg-background shadow-sm hover:shadow-lg hover:border-border transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1'
-                  >
-                    <div className='relative'>
-                      <Image
-                        src={ticket.eventImage}
-                        alt={ticket.eventName}
-                        width={400}
-                        height={200}
-                        className='w-full h-40 object-cover transition-transform duration-300 ease-out group-hover:scale-105'
-                      />
-                      <Badge
-                        className={`absolute top-3 right-3 ${ticket.status === 'used' ? 'bg-muted text-muted-foreground' : 'bg-success text-success-foreground'}`}
-                      >
-                        {ticket.status === 'used' ? 'Used' : 'Valid'}
-                      </Badge>
-                    </div>
-                    <CardContent className='p-5'>
-                      <h3 className='font-primary text-lg font-bold text-foreground mb-2'>
-                        {ticket.eventName}
-                      </h3>
-                      <div className='flex items-center justify-between mb-3'>
-                        <div className='font-secondary text-sm text-muted-foreground flex items-center gap-1'>
-                          <Calendar className='w-4 h-4' />
-                          {new Date(ticket.eventDate).toLocaleDateString()}
-                        </div>
-                        <Badge variant='outline'>{ticket.ticketType}</Badge>
-                      </div>
-                      <div className='flex items-center justify-between mt-4'>
-                        <Button variant='outline' size='sm' className='gap-1'>
-                          <QrCode className='w-4 h-4' />
-                          View Ticket
-                        </Button>
-                        {ticket.transferable && (
-                          <Button variant='outline' size='sm' className='gap-1'>
-                            <Wallet className='w-4 h-4' />
-                            Transfer
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <TicketPreview key={ticket.id} ticket={ticket} />
                 ))}
               </div>
             ) : (
@@ -802,7 +718,7 @@ export function UserDashboard() {
                       Total Revenue
                     </div>
                     <div className='font-primary text-2xl font-bold'>
-                      12.5 ETH
+                      12.5 AVAX
                     </div>
                   </div>
                   <div className='space-y-1'>
@@ -810,7 +726,7 @@ export function UserDashboard() {
                       Avg. Ticket Price
                     </div>
                     <div className='font-primary text-2xl font-bold'>
-                      0.05 ETH
+                      0.05 AVAX
                     </div>
                   </div>
                   <div className='space-y-1'>
@@ -826,7 +742,7 @@ export function UserDashboard() {
                       Marketplace Sales
                     </div>
                     <div className='font-primary text-2xl font-bold'>
-                      1.2 ETH
+                      1.2 AVAX
                     </div>
                   </div>
                 </div>

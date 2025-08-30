@@ -1,7 +1,7 @@
 /**
  * IPFS Service - Media Layer
  * 
- * Handles all Filebase/IPFS operations for decentralized file storage,
+ * Handles all Pinata/IPFS operations for decentralized file storage,
  * including event banners, user avatars, and POAP metadata.
  */
 
@@ -9,31 +9,19 @@ import {
   StorageProvider, 
   HealthStatus, 
   MediaUploadResult,
-  StorageOperationResult,
-  ValidationError
+  StorageOperationResult
 } from '../core/interfaces';
-import { FilebaseClient } from '@/lib/filebase/client';
-import { appConfig } from '@/lib/config/app-config';
+import { pinataService } from '@/lib/clients/pinata-client';
 
 export class IPFSService implements StorageProvider {
-  readonly name = 'Filebase/IPFS';
+  readonly name = 'Pinata/IPFS';
   readonly type = 'ipfs' as const;
   
-  private client: FilebaseClient;
   private healthCheckCache: { status: HealthStatus; timestamp: number } | null = null;
   private readonly HEALTH_CACHE_DURATION = 60000; // 1 minute
 
   constructor() {
-    // Initialize with default config if Filebase is not configured
-    const filebaseConfig = {
-      accessKeyId: appConfig.fileStorage.accessKeyId || '',
-      secretAccessKey: appConfig.fileStorage.secretAccessKey || '',
-      endpoint: appConfig.fileStorage.endpoint || 'https://s3.filebase.com',
-      region: appConfig.fileStorage.region || 'us-east-1',
-      bucket: appConfig.fileStorage.bucket || 'festos-events'
-    };
-
-    this.client = new FilebaseClient(filebaseConfig);
+    // Pinata service is initialized in the client
   }
 
   /**
@@ -51,17 +39,12 @@ export class IPFSService implements StorageProvider {
     
     try {
       // Test IPFS connectivity by uploading a small test file
-      const testData = JSON.stringify({ test: true, timestamp: Date.now() });
-      const testKey = `health-check-${Date.now()}.json`;
+      const testData = { test: true, timestamp: Date.now() };
       
-      const result = await this.client.uploadFile(testKey, testData, 'application/json');
-      
-      // Clean up test file
-      try {
-        await this.client.deleteFile(testKey);
-      } catch (cleanupError) {
-        console.warn('Failed to cleanup health check file:', cleanupError);
-      }
+      const result = await pinataService.uploadJSON(testData, {
+        name: `Health Check - ${Date.now()}`,
+        keyValues: { type: 'health-check' }
+      });
       
       const responseTime = Date.now() - startTime;
       
@@ -69,107 +52,71 @@ export class IPFSService implements StorageProvider {
         status: 'healthy',
         responseTime,
         lastChecked: new Date(),
-              details: {
-        uploadedSize: result.size,
-        endpoint: appConfig.fileStorage.endpoint,
-        bucket: appConfig.fileStorage.bucket
-      }
+        details: {
+          ipfsHash: result.data?.hash,
+          gateway: 'https://gateway.pinata.cloud'
+        }
       };
-
+      
       // Cache the result
       this.healthCheckCache = { status, timestamp: now };
-      
       return status;
+      
     } catch (error) {
       const responseTime = Date.now() - startTime;
-      
       const status: HealthStatus = {
         status: 'unhealthy',
         responseTime,
         lastChecked: new Date(),
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
+        details: {
+          service: 'Pinata IPFS',
+          error: error
+        }
       };
-
+      
+      // Cache the result
       this.healthCheckCache = { status, timestamp: now };
       return status;
     }
   }
 
   /**
-   * Get IPFS configuration
-   */
-  getConfig(): Record<string, unknown> {
-    return {
-      endpoint: appConfig.fileStorage.endpoint,
-      region: appConfig.fileStorage.region,
-      bucket: appConfig.fileStorage.bucket,
-      hasAccessKey: !!appConfig.fileStorage.accessKeyId,
-      hasSecretKey: !!appConfig.fileStorage.secretAccessKey
-    };
-  }
-
-  /**
    * Upload event banner image
    */
-  async uploadEventBanner(
-    eventId: string,
-    imageBuffer: Buffer,
-    contentType: string = 'image/jpeg'
-  ): Promise<StorageOperationResult<MediaUploadResult>> {
-    const startTime = Date.now();
-    
+  async uploadEventBanner(eventId: string, imageBuffer: Buffer, mimeType: string = 'image/webp'): Promise<StorageOperationResult<MediaUploadResult>> {
     try {
-      // Validate input
-      if (!imageBuffer || imageBuffer.length === 0) {
-        throw new ValidationError('Image buffer is required');
+      const filename = `banner.${mimeType.split('/')[1] || 'webp'}`;
+      const result = await pinataService.uploadFile(imageBuffer, filename, mimeType, {
+        name: `Event Banner - ${eventId}`,
+        keyValues: {
+          eventId,
+          type: 'event-banner'
+        }
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || 'Upload failed');
       }
-
-      // Generate unique key for the image
-      const key = `events/${eventId}/banner-${Date.now()}.${this.getFileExtension(contentType)}`;
-      
-      // Upload image with compression
-      const result = await this.client.uploadImage(
-        key,
-        imageBuffer,
-        contentType,
-        true, // compress
-        'banner'
-      );
-
-      const responseTime = Date.now() - startTime;
 
       return {
         success: true,
         data: {
-          url: result.url,
-          hash: result.etag,
-          size: result.size,
-          contentType,
+          hash: result.data!.hash,
+          url: result.data!.url,
+          size: imageBuffer.length,
+          contentType: mimeType,
           metadata: {
             eventId,
-            type: 'banner',
-            compressed: true
+            type: 'event-banner',
+            ipfsHash: result.data!.hash
           }
-        },
-        metadata: {
-          operationId: `ipfs_banner_${eventId}`,
-          timestamp: new Date(),
-          provider: this.name,
-          responseTime
         }
       };
     } catch (error) {
-      const responseTime = Date.now() - startTime;
-      
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        metadata: {
-          operationId: `ipfs_banner_${eventId}`,
-          timestamp: new Date(),
-          provider: this.name,
-          responseTime
-        }
+        error: error instanceof Error ? error.message : 'Upload failed'
       };
     }
   }
@@ -177,66 +124,40 @@ export class IPFSService implements StorageProvider {
   /**
    * Upload event metadata
    */
-  async uploadEventMetadata(
-    eventId: string,
-    metadata: Record<string, unknown>
-  ): Promise<StorageOperationResult<MediaUploadResult>> {
-    const startTime = Date.now();
-    
+  async uploadEventMetadata(eventId: string, metadata: Record<string, unknown>): Promise<StorageOperationResult<MediaUploadResult>> {
     try {
-      // Validate input
-      if (!metadata || Object.keys(metadata).length === 0) {
-        throw new ValidationError('Metadata is required');
+      const result = await pinataService.uploadJSON(metadata, {
+        name: `Event Metadata - ${eventId}`,
+        keyValues: {
+          eventId,
+          type: 'event-metadata'
+        }
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || 'Upload failed');
       }
 
-      // Add metadata to the metadata object
-      const enrichedMetadata = {
-        ...metadata,
-        eventId,
-        uploadedAt: new Date().toISOString(),
-        version: '1.0'
-      };
-
-      // Generate unique key for the metadata
-      const key = `events/${eventId}/metadata-${Date.now()}.json`;
-      
-      // Upload metadata
-      const result = await this.client.uploadMetadata(key, enrichedMetadata);
-
-      const responseTime = Date.now() - startTime;
+      const metadataStr = JSON.stringify(metadata);
 
       return {
         success: true,
         data: {
-          url: result.url,
-          hash: result.etag,
-          size: result.size,
+          url: result.data!.url,
+          hash: result.data!.hash,
+          size: new Blob([metadataStr]).size,
           contentType: 'application/json',
           metadata: {
             eventId,
-            type: 'metadata',
-            version: '1.0'
+            type: 'event-metadata',
+            ipfsHash: result.data!.hash
           }
-        },
-        metadata: {
-          operationId: `ipfs_metadata_${eventId}`,
-          timestamp: new Date(),
-          provider: this.name,
-          responseTime
         }
       };
     } catch (error) {
-      const responseTime = Date.now() - startTime;
-      
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        metadata: {
-          operationId: `ipfs_metadata_${eventId}`,
-          timestamp: new Date(),
-          provider: this.name,
-          responseTime
-        }
+        error: error instanceof Error ? error.message : 'Upload failed'
       };
     }
   }
@@ -244,249 +165,134 @@ export class IPFSService implements StorageProvider {
   /**
    * Upload POAP metadata
    */
-  async uploadPOAPMetadata(
-    eventId: string,
-    poapData: {
-      name: string;
-      description: string;
-      image: string;
-      attributes?: Array<{ trait_type: string; value: string }>;
-    }
-  ): Promise<StorageOperationResult<MediaUploadResult>> {
-    const startTime = Date.now();
-    
+  async uploadPOAPMetadata(eventId: string, poapData: Record<string, unknown>): Promise<MediaUploadResult> {
     try {
-      // Validate input
-      if (!poapData.name || !poapData.description || !poapData.image) {
-        throw new ValidationError('POAP name, description, and image are required');
+      const result = await pinataService.uploadJSON(poapData, {
+        name: `POAP Metadata - ${eventId}`,
+        keyValues: {
+          eventId,
+          type: 'poap-metadata'
+        }
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || 'Upload failed');
       }
 
-      // Create POAP metadata in standard format
-      const poapMetadata = {
-        name: poapData.name,
-        description: poapData.description,
-        image: poapData.image,
-        attributes: poapData.attributes || [],
-        eventId,
-        created_at: new Date().toISOString(),
-        version: '1.0'
-      };
-
-      // Generate unique key for the POAP metadata
-      const key = `events/${eventId}/poap-metadata-${Date.now()}.json`;
-      
-      // Upload POAP metadata
-      const result = await this.client.uploadMetadata(key, poapMetadata);
-
-      const responseTime = Date.now() - startTime;
+      const metadataStr = JSON.stringify(poapData);
 
       return {
-        success: true,
-        data: {
-          url: result.url,
-          hash: result.etag,
-          size: result.size,
-          contentType: 'application/json',
-          metadata: {
-            eventId,
-            type: 'poap_metadata',
-            version: '1.0'
-          }
-        },
+        hash: result.data!.hash,
+        url: result.data!.url,
+        size: new Blob([metadataStr]).size,
+        contentType: 'application/json',
         metadata: {
-          operationId: `ipfs_poap_${eventId}`,
-          timestamp: new Date(),
-          provider: this.name,
-          responseTime
+          eventId,
+          type: 'poap-metadata',
+          ipfsHash: result.data!.hash
         }
       };
     } catch (error) {
-      const responseTime = Date.now() - startTime;
-      
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        metadata: {
-          operationId: `ipfs_poap_${eventId}`,
-          timestamp: new Date(),
-          provider: this.name,
-          responseTime
-        }
-      };
+      throw new Error(error instanceof Error ? error.message : 'Upload failed');
     }
   }
 
   /**
-   * Upload user avatar
+   * Upload generic file
    */
-  async uploadUserAvatar(
-    userId: string,
-    imageBuffer: Buffer,
-    contentType: string = 'image/jpeg'
-  ): Promise<StorageOperationResult<MediaUploadResult>> {
-    const startTime = Date.now();
-    
+  async uploadFile(key: string, data: Buffer | string, contentType: string, metadata?: Record<string, unknown>): Promise<StorageOperationResult> {
     try {
-      // Validate input
-      if (!imageBuffer || imageBuffer.length === 0) {
-        throw new ValidationError('Image buffer is required');
-      }
-
-      // Generate unique key for the avatar
-      const key = `users/${userId}/avatar-${Date.now()}.${this.getFileExtension(contentType)}`;
+      const buffer = Buffer.isBuffer(data) ? data : Buffer.from(data);
+      const filename = key.split('/').pop() || 'file';
       
-      // Upload image with compression
-      const result = await this.client.uploadImage(
-        key,
-        imageBuffer,
-        contentType,
-        true, // compress
-        'profile'
-      );
+      const result = await pinataService.uploadFile(buffer, filename, contentType, {
+        name: (metadata?.name as string) || filename,
+        keyValues: {
+          originalKey: key,
+          type: (metadata?.type as string) || 'file',
+          ...metadata
+        }
+      });
 
-      const responseTime = Date.now() - startTime;
+      if (!result.success) {
+        throw new Error(result.error || 'Upload failed');
+      }
 
       return {
         success: true,
         data: {
-          url: result.url,
-          hash: result.etag,
-          size: result.size,
+          hash: result.data!.hash,
+          url: result.data!.url,
+          size: buffer.length,
           contentType,
           metadata: {
-            userId,
-            type: 'avatar',
-            compressed: true
+            originalKey: key,
+            ipfsHash: result.data!.hash
           }
-        },
-        metadata: {
-          operationId: `ipfs_avatar_${userId}`,
-          timestamp: new Date(),
-          provider: this.name,
-          responseTime
         }
       };
     } catch (error) {
-      const responseTime = Date.now() - startTime;
-      
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        metadata: {
-          operationId: `ipfs_avatar_${userId}`,
-          timestamp: new Date(),
-          provider: this.name,
-          responseTime
-        }
+        error: error instanceof Error ? error.message : 'Upload failed'
       };
     }
   }
 
   /**
-   * Upload general file
+   * Generate access URL (IPFS URLs are always public)
    */
-  async uploadFile(
-    key: string,
-    data: Buffer | string,
-    contentType?: string
-  ): Promise<StorageOperationResult<MediaUploadResult>> {
-    const startTime = Date.now();
-    
-    try {
-      // Validate input
-      if (!data) {
-        throw new ValidationError('Data is required');
+  async generateAccessUrl(key: string, _expiresIn: number = 3600): Promise<string> {
+    // For IPFS, we don't need presigned URLs as they're always accessible
+    return pinataService.getFileUrl(key);
+  }
+
+  /**
+   * Delete file (Note: IPFS is immutable, so this is a no-op for compatibility)
+   */
+  async deleteFile(key: string): Promise<StorageOperationResult> {
+    // IPFS is immutable, files cannot be deleted
+    // This method exists for interface compatibility
+    return {
+      success: true,
+      data: {
+        key,
+        message: 'IPFS is immutable - files cannot be deleted'
       }
-
-      // Upload file
-      const result = await this.client.uploadFile(key, data, contentType);
-
-      const responseTime = Date.now() - startTime;
-
-      return {
-        success: true,
-        data: {
-          url: result.url,
-          hash: result.etag,
-          size: result.size,
-          contentType: contentType || 'application/octet-stream',
-          metadata: {
-            key,
-            type: 'general'
-          }
-        },
-        metadata: {
-          operationId: `ipfs_file_${key}`,
-          timestamp: new Date(),
-          provider: this.name,
-          responseTime
-        }
-      };
-    } catch (error) {
-      const responseTime = Date.now() - startTime;
-      
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        metadata: {
-          operationId: `ipfs_file_${key}`,
-          timestamp: new Date(),
-          provider: this.name,
-          responseTime
-        }
-      };
-    }
-  }
-
-  /**
-   * Delete file from IPFS
-   */
-  async deleteFile(key: string): Promise<StorageOperationResult<void>> {
-    const startTime = Date.now();
-    
-    try {
-      await this.client.deleteFile(key);
-
-      const responseTime = Date.now() - startTime;
-
-      return {
-        success: true,
-        metadata: {
-          operationId: `ipfs_delete_${key}`,
-          timestamp: new Date(),
-          provider: this.name,
-          responseTime
-        }
-      };
-    } catch (error) {
-      const responseTime = Date.now() - startTime;
-      
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        metadata: {
-          operationId: `ipfs_delete_${key}`,
-          timestamp: new Date(),
-          provider: this.name,
-          responseTime
-        }
-      };
-    }
-  }
-
-  /**
-   * Get file extension from content type
-   */
-  private getFileExtension(contentType: string): string {
-    const extensions: Record<string, string> = {
-      'image/jpeg': 'jpg',
-      'image/jpg': 'jpg',
-      'image/png': 'png',
-      'image/gif': 'gif',
-      'image/webp': 'webp',
-      'image/svg+xml': 'svg'
     };
-    
-    return extensions[contentType] || 'bin';
+  }
+
+  /**
+   * List files (basic implementation)
+   */
+  async listFiles(prefix?: string, limit?: number): Promise<StorageOperationResult> {
+    try {
+      const files = await pinataService.listFiles({ limit });
+      return {
+        success: true,
+        data: files
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'List operation failed'
+      };
+    }
+  }
+
+  /**
+   * Get IPFS service configuration
+   */
+  getConfig(): Record<string, unknown> {
+    return {
+      service: 'Pinata IPFS',
+      type: this.type,
+      name: this.name,
+      gateway: 'https://gateway.pinata.cloud',
+      hasApiKey: !!process.env.PINATA_API_KEY,
+      hasJwt: !!process.env.PINATA_JWT,
+      cacheEnabled: true,
+      cacheDuration: this.HEALTH_CACHE_DURATION
+    };
   }
 }

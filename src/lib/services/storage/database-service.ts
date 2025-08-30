@@ -42,8 +42,8 @@ interface DatabaseEvent {
   contract_address?: string;
   contract_chain_id?: number;
   transaction_hash?: string;
-  filebase_metadata_url?: string;
-  filebase_image_url?: string;
+  ipfs_metadata_url?: string;
+  ipfs_image_url?: string;
   storage_provider?: string;
   created_at: string;
   updated_at: string;
@@ -141,8 +141,8 @@ export class DatabaseService implements StorageProvider {
     slug: string,
     contractEventId?: number,
     transactionHash?: string,
-    filebaseMetadataUrl?: string,
-    filebaseImageUrl?: string,
+    ipfsMetadataUrl?: string,
+    ipfsImageUrl?: string,
     contractChainId?: number,
     contractAddress?: string
   ): Promise<StorageOperationResult<DatabaseOperationResult>> {
@@ -168,7 +168,7 @@ export class DatabaseService implements StorageProvider {
         poap_metadata: input.poapMetadata,
         visibility: input.visibility,
         timezone: input.timezone,
-        banner_image: typeof input.bannerImage === 'string' ? input.bannerImage : filebaseImageUrl,
+        banner_image: typeof input.bannerImage === 'string' ? input.bannerImage : ipfsImageUrl,
         category: input.category,
         tags: input.tags,
         creator_id: userId,
@@ -176,8 +176,8 @@ export class DatabaseService implements StorageProvider {
         contract_event_id: contractEventId,
         contract_address: contractAddress,
         contract_chain_id: contractChainId,
-        filebase_metadata_url: filebaseMetadataUrl,
-        filebase_image_url: filebaseImageUrl,
+        ipfs_metadata_url: ipfsMetadataUrl,
+        ipfs_image_url: ipfsImageUrl,
         storage_provider: 'supabase',
       };
 
@@ -647,8 +647,8 @@ export class DatabaseService implements StorageProvider {
       contractAddress: dbEvent.contract_address,
       contractChainId: dbEvent.contract_chain_id,
       transactionHash: dbEvent.transaction_hash,
-      filebaseMetadataUrl: dbEvent.filebase_metadata_url,
-      filebaseImageUrl: dbEvent.filebase_image_url,
+      ipfsMetadataUrl: dbEvent.ipfs_metadata_url,
+      ipfsImageUrl: dbEvent.ipfs_image_url,
       storageProvider: dbEvent.storage_provider,
       createdAt: dbEvent.created_at,
       updatedAt: dbEvent.updated_at

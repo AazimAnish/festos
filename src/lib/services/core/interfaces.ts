@@ -5,7 +5,7 @@
  * must implement, ensuring consistency across the three layers:
  * - Avalanche Blockchain (Immutable Layer)
  * - Supabase PostgreSQL (Performance Layer) 
- * - Filebase/IPFS (Media Layer)
+ * - Pinata IPFS (Media Layer)
  */
 
 export interface StorageProvider {
@@ -39,6 +39,7 @@ export interface EventData {
   startDate: string;
   endDate: string;
   maxCapacity: number;
+  currentAttendees?: number;
   ticketPrice: string;
   requireApproval: boolean;
   hasPOAP: boolean;
@@ -50,15 +51,47 @@ export interface EventData {
   tags?: string[];
   creatorId: string;
   status: string;
+  isActive?: boolean;
+  blockchainEventId?: number;
   contractEventId?: number;
   contractAddress?: string;
   contractChainId?: number;
   transactionHash?: string;
-  filebaseMetadataUrl?: string;
-  filebaseImageUrl?: string;
+  ipfsMetadataUrl?: string;
+  ipfsImageUrl?: string;
   storageProvider?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface TicketData {
+  id: string;
+  event_id: string;
+  attendee_id: string;
+  attendee_name: string;
+  attendee_email: string;
+  ticket_type: string;
+  price_paid: string;
+  is_used: boolean;
+  is_approved: boolean;
+  is_refunded: boolean;
+  contract_ticket_id?: number;
+  contract_address?: string;
+  contract_chain_id?: number;
+  transaction_hash?: string;
+  ticket_metadata_cid?: string;
+  purchase_time: string;
+  used_time?: string;
+  approved_time?: string;
+  refunded_time?: string;
+  created_at: string;
+  updated_at: string;
+  events?: {
+    title: string;
+    start_date: string;
+    location: string;
+    banner_image?: string;
+  };
 }
 
 export interface CreateEventInput {
@@ -116,14 +149,14 @@ export interface EventCreationResult {
   slug: string;
   contractEventId?: number;
   transactionHash?: string;
-  filebaseMetadataUrl?: string;
-  filebaseImageUrl?: string;
+  ipfsMetadataUrl?: string;
+  ipfsImageUrl?: string;
   contractChainId?: number;
   contractAddress?: string;
   createdOn: {
     blockchain: boolean;
     database: boolean;
-    filebase: boolean;
+    ipfs: boolean;
   };
   errors?: string[];
 }

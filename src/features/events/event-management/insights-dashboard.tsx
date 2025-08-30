@@ -46,8 +46,8 @@ const mockEventAnalytics = {
   registrations: 450,
   attendees: 382,
   checkInRate: 84.9,
-  revenue: '4.5 ETH',
-  averageTicketPrice: '0.01 ETH',
+          revenue: '4.5 AVAX',
+        averageTicketPrice: '0.01 AVAX',
   ticketsSold: 450,
   growth: {
     registrations: 15.2,
@@ -388,7 +388,7 @@ export function InsightsDashboard({ eventId }: InsightsDashboardProps) {
                 <p className='text-sm text-muted-foreground'>
                   Revenue per Attendee
                 </p>
-                <p className='font-semibold'>0.012 ETH</p>
+                <p className='font-semibold'>0.012 AVAX</p>
               </div>
             </div>
           </CardContent>

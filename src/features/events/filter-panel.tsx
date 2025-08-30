@@ -204,7 +204,7 @@ export function FilterPanel({
             {/* Price Range */}
             <div className='responsive-spacing'>
               <Label className='font-secondary text-sm lg:text-base font-medium text-foreground tracking-tight'>
-                💸 Price Range (ETH)
+                💸 Price Range (AVAX)
               </Label>
               <div className='bg-background/50 backdrop-blur-sm border-2 border-border rounded-xl p-4 lg:p-6'>
                 <Slider
@@ -221,10 +221,10 @@ export function FilterPanel({
                 />
                 <div className='flex justify-between text-xs lg:text-sm text-muted-foreground mt-3 lg:mt-4'>
                   <span className='font-secondary tracking-tight'>
-                    {filters.priceRange.min.toFixed(2)} ETH
+                    {filters.priceRange.min.toFixed(2)} AVAX
                   </span>
                   <span className='font-secondary tracking-tight'>
-                    {filters.priceRange.max.toFixed(2)} ETH
+                    {filters.priceRange.max.toFixed(2)} AVAX
                   </span>
                 </div>
               </div>

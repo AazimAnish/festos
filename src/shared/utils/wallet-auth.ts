@@ -10,6 +10,7 @@ import { SignJWT, jwtVerify } from 'jose';
 
 // JWT secret - in production, use environment variable
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
+const secret = new TextEncoder().encode(JWT_SECRET);
 
 /**
  * Create a JWT token for wallet authentication
@@ -24,7 +25,7 @@ export async function createWalletToken(walletAddress: string): Promise<string> 
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('24h')
-    .sign(new TextEncoder().encode(JWT_SECRET));
+    .sign(secret);
 
   return token;
 }
@@ -34,7 +35,7 @@ export async function createWalletToken(walletAddress: string): Promise<string> 
  */
 export async function verifyWalletToken(token: string): Promise<{ wallet_address: string } | null> {
   try {
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+    const { payload } = await jwtVerify(token, secret);
     return {
       wallet_address: payload.wallet_address as string
     };

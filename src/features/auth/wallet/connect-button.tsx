@@ -1,6 +1,6 @@
 'use client';
 
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { usePrivy } from '@privy-io/react-auth';
 import { Button } from '@/shared/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar';
 import { ChevronDown } from 'lucide-react';
@@ -66,107 +66,81 @@ const formatAddress = (address: string) => {
 export function CustomConnectButton() {
   const [showDropdown, setShowDropdown] = useState(false);
   const { profile } = useWalletProfile();
+  const { ready, authenticated, login, logout, user } = usePrivy();
+
+  const address = user?.wallet?.address;
+  const balance = null; // We'll implement balance fetching later if needed
+
+  const connected = ready && authenticated && address;
 
   return (
-    <ConnectButton.Custom>
-      {({
-        account,
-        chain,
-        openAccountModal,
-        openChainModal,
-        openConnectModal,
-        authenticationStatus,
-        mounted,
-      }) => {
-        // Note: If your app doesn't use authentication, you
-        // can remove all 'authenticationStatus' checks
-        const ready = mounted && authenticationStatus !== 'loading';
-        const connected =
-          ready &&
-          account &&
-          chain &&
-          (!authenticationStatus || authenticationStatus === 'authenticated');
+    <div
+      {...(!ready && {
+        'aria-hidden': true,
+        style: {
+          opacity: 0,
+          pointerEvents: 'none',
+          userSelect: 'none',
+        },
+      })}
+    >
+      {(() => {
+        if (!connected) {
+          return (
+            <Button
+              onClick={login}
+              type='button'
+              className='font-secondary rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-primary/20 px-3 sm:px-4 py-2.5 sm:py-3 h-10 sm:h-11'
+            >
+              💳 Connect Wallet
+            </Button>
+          );
+        }
 
         return (
-          <div
-            {...(!ready && {
-              'aria-hidden': true,
-              style: {
-                opacity: 0,
-                pointerEvents: 'none',
-                userSelect: 'none',
-              },
-            })}
-          >
-            {(() => {
-              if (!connected) {
-                return (
-                  <Button
-                    onClick={openConnectModal}
-                    type='button'
-                    className='font-secondary rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-primary/20 px-3 sm:px-4 py-2.5 sm:py-3 h-10 sm:h-11'
-                  >
-                    💳 Connect Wallet
-                  </Button>
-                );
-              }
+          <div className='relative'>
+            <Button
+              onClick={() => setShowDropdown(!showDropdown)}
+              type='button'
+              className='font-secondary rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg px-3 sm:px-4 py-2 sm:py-2.5 h-10 sm:h-11 flex items-center gap-2'
+            >
+              {/* User Avatar with Emoji */}
+              <Avatar className='w-7 h-7 border border-primary-foreground/20'>
+                {profile?.avatarUrl ? (
+                  <AvatarImage
+                    src={profile.avatarUrl}
+                    alt={profile.displayName || 'User'}
+                  />
+                ) : (
+                  <AvatarFallback className='avatar-fallback text-primary text-lg'>
+                    {address
+                      ? getRandomEmoji(address)
+                      : '🎭'}
+                  </AvatarFallback>
+                )}
+              </Avatar>
 
-              if (chain.unsupported) {
-                return (
-                  <Button
-                    onClick={openChainModal}
-                    type='button'
-                    className='font-secondary rounded-xl border-2 border-error text-error hover:bg-error/5 transition-all duration-200 hover:scale-105 active:scale-95 px-3 sm:px-4 py-2.5 sm:py-3 h-10 sm:h-11'
-                  >
-                    Wrong network
-                  </Button>
-                );
-              }
+              {/* Account Info */}
+              <div className='flex flex-col items-start leading-none'>
+                <span className='font-mono text-sm font-medium'>
+                  {address
+                    ? formatAddress(address)
+                    : 'Unknown'}
+                </span>
 
-              return (
-                <div className='relative'>
-                  <Button
-                    onClick={() => setShowDropdown(!showDropdown)}
-                    type='button'
-                    className='font-secondary rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg px-3 sm:px-4 py-2 sm:py-2.5 h-10 sm:h-11 flex items-center gap-2'
-                  >
-                    {/* User Avatar with Emoji */}
-                    <Avatar className='w-7 h-7 border border-primary-foreground/20'>
-                      {profile?.avatarUrl ? (
-                        <AvatarImage
-                          src={profile.avatarUrl}
-                          alt={profile.displayName || 'User'}
-                        />
-                      ) : (
-                        <AvatarFallback className='avatar-fallback text-primary text-lg'>
-                          {account.address
-                            ? getRandomEmoji(account.address)
-                            : '🎭'}
-                        </AvatarFallback>
-                      )}
-                    </Avatar>
+                {/* Balance as secondary line */}
+                {balance && (
+                  <span className='text-xs text-primary-foreground/80'>
+                    {balance}
+                  </span>
+                )}
+              </div>
 
-                    {/* Account Info */}
-                    <div className='flex flex-col items-start leading-none'>
-                      <span className='font-mono text-sm font-medium'>
-                        {account.address
-                          ? formatAddress(account.address)
-                          : 'Unknown'}
-                      </span>
-
-                      {/* Balance as secondary line */}
-                      {account.displayBalance && (
-                        <span className='text-xs text-primary-foreground/80'>
-                          {account.displayBalance}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Dropdown Arrow */}
-                    <ChevronDown
-                      className={`h-4 w-4 ml-1 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`}
-                    />
-                  </Button>
+              {/* Dropdown Arrow */}
+              <ChevronDown
+                className={`h-4 w-4 ml-1 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`}
+              />
+            </Button>
 
                   {/* Dropdown Menu */}
                   {showDropdown && (
@@ -182,18 +156,18 @@ export function CustomConnectButton() {
                               />
                             ) : (
                               <AvatarFallback className='avatar-fallback text-primary text-xl'>
-                                {account.address
-                                  ? getRandomEmoji(account.address)
+                                {address
+                                  ? getRandomEmoji(address)
                                   : '🎭'}
                               </AvatarFallback>
                             )}
                           </Avatar>
                           <div className='flex-1 min-w-0'>
                             <div className='font-mono font-medium text-sm text-foreground truncate'>
-                              {account.address || 'Unknown Address'}
+                              {address || 'Unknown Address'}
                             </div>
                             <div className='font-mono text-xs text-primary'>
-                              {account.displayBalance || '0 AVAX'}
+                              {balance || '0 AVAX'}
                             </div>
                           </div>
                         </div>
@@ -213,28 +187,16 @@ export function CustomConnectButton() {
                           </Link>
                         )}
 
-                        {/* Network Switch Option */}
+                        {/* Logout Option */}
                         <button
                           onClick={() => {
-                            openChainModal();
+                            logout();
                             setShowDropdown(false);
                           }}
                           className='w-full text-left px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors duration-200 font-secondary text-sm flex items-center gap-2 text-foreground'
                         >
                           <div className='w-3 h-3 rounded-full bg-primary/20 border border-primary/40'></div>
-                          Switch Network
-                        </button>
-
-                        {/* Account Details Option */}
-                        <button
-                          onClick={() => {
-                            openAccountModal();
-                            setShowDropdown(false);
-                          }}
-                          className='w-full text-left px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors duration-200 font-secondary text-sm flex items-center gap-2 text-foreground'
-                        >
-                          <div className='w-3 h-3 rounded-full bg-primary/20 border border-primary/40'></div>
-                          Account Details
+                          Disconnect Wallet
                         </button>
 
                         {/* Dashboard Link */}
@@ -252,10 +214,7 @@ export function CustomConnectButton() {
                   )}
                 </div>
               );
-            })()}
-          </div>
-        );
-      }}
-    </ConnectButton.Custom>
+      })()}
+    </div>
   );
 }

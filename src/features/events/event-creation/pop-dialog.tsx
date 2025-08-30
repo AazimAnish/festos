@@ -4,7 +4,6 @@ import type React from 'react';
 
 import { useEffect, useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
-import { Input } from '@/shared/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -13,21 +12,13 @@ import {
   DialogTrigger,
 } from '@/shared/components/ui/dialog';
 import { Label } from '@/shared/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/components/ui/select';
 import { Upload, ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 
 type PopConfig = {
   popImage?: string;
-  recipientsMode: 'all' | 'random' | 'top';
-  recipientsCount?: number;
-  deliveryTime: string;
+  recipientsMode: 'all';
+  deliveryTime: 'after';
 };
 
 interface POPDialogProps {
@@ -36,9 +27,6 @@ interface POPDialogProps {
   onSave?: (config: PopConfig) => void;
   trigger?: React.ReactNode | null;
   initialImage?: string;
-  initialRecipientsMode?: 'all' | 'random' | 'top';
-  initialRecipientsCount?: number;
-  initialDeliveryTime?: string;
 }
 
 export function POPDialog({
@@ -47,34 +35,14 @@ export function POPDialog({
   onSave,
   trigger,
   initialImage,
-  initialRecipientsMode = 'all',
-  initialRecipientsCount = 10,
-  initialDeliveryTime = 'registration',
 }: POPDialogProps) {
   const [popImage, setPopImage] = useState<string | undefined>(initialImage);
-  const [recipientsMode, setRecipientsMode] = useState<
-    'all' | 'random' | 'top'
-  >(initialRecipientsMode);
-  const [recipientsCount, setRecipientsCount] = useState<number>(
-    initialRecipientsCount
-  );
-  const [deliveryTime, setDeliveryTime] = useState(initialDeliveryTime);
+  const recipientsMode = 'all'; // Fixed to all participants
+  const deliveryTime = 'after'; // Fixed to after event
 
   useEffect(() => {
     setPopImage(initialImage);
   }, [initialImage]);
-
-  useEffect(() => {
-    setRecipientsMode(initialRecipientsMode);
-  }, [initialRecipientsMode]);
-
-  useEffect(() => {
-    setRecipientsCount(initialRecipientsCount);
-  }, [initialRecipientsCount]);
-
-  useEffect(() => {
-    setDeliveryTime(initialDeliveryTime);
-  }, [initialDeliveryTime]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -88,11 +56,9 @@ export function POPDialog({
   };
 
   const handleSave = () => {
-    const normalizedCount = Math.max(1, Number(recipientsCount) || 1);
     onSave?.({
       popImage,
       recipientsMode,
-      recipientsCount: recipientsMode === 'all' ? undefined : normalizedCount,
       deliveryTime,
     });
   };
@@ -157,68 +123,14 @@ export function POPDialog({
             </div>
           </div>
 
-          {/* Recipients */}
+          {/* Recipients - Fixed to all participants */}
           <div className='space-y-3'>
             <Label>Recipients</Label>
-            <div className='flex items-center gap-4'>
-              <label className='flex items-center gap-2'>
-                <input
-                  type='radio'
-                  name='pop-recipients'
-                  value='all'
-                  checked={recipientsMode === 'all'}
-                  onChange={() => setRecipientsMode('all')}
-                />
-                <span>All attendees</span>
-              </label>
-              <label className='flex items-center gap-2'>
-                <input
-                  type='radio'
-                  name='pop-recipients'
-                  value='random'
-                  checked={recipientsMode === 'random'}
-                  onChange={() => setRecipientsMode('random')}
-                />
-                <span>Random</span>
-              </label>
-              <label className='flex items-center gap-2'>
-                <input
-                  type='radio'
-                  name='pop-recipients'
-                  value='top'
-                  checked={recipientsMode === 'top'}
-                  onChange={() => setRecipientsMode('top')}
-                />
-                <span>Top</span>
-              </label>
-              {(recipientsMode === 'random' || recipientsMode === 'top') && (
-                <Input
-                  type='number'
-                  min={1}
-                  value={Number.isFinite(recipientsCount) ? recipientsCount : 1}
-                  onChange={e =>
-                    setRecipientsCount(parseInt(e.target.value || '1', 10))
-                  }
-                  className='w-24 rounded-lg'
-                  placeholder='Count'
-                />
-              )}
+            <div className='p-3 bg-muted/50 rounded-lg border'>
+              <div className='text-sm text-muted-foreground'>
+                POAP will be distributed to <strong>all registered participants</strong> automatically <strong>after the event ends</strong>.
+              </div>
             </div>
-          </div>
-
-          {/* Delivery Time */}
-          <div className='space-y-2'>
-            <Label>Delivery Time</Label>
-            <Select value={deliveryTime} onValueChange={setDeliveryTime}>
-              <SelectTrigger className='rounded-xl'>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='registration'>At registration</SelectItem>
-                <SelectItem value='after'>After event ends</SelectItem>
-                <SelectItem value='24hours'>24 hours after event</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           <Button className='w-full rounded-xl' onClick={handleSave}>

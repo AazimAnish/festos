@@ -175,7 +175,7 @@ export function MarketplacePage() {
                   <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
                     <div className='space-y-3'>
                       <h3 className='font-primary text-sm font-medium'>
-                        Price Range (ETH)
+                        Price Range (AVAX)
                       </h3>
                       <div className='px-2'>
                         <Slider
@@ -188,8 +188,8 @@ export function MarketplacePage() {
                         />
                       </div>
                       <div className='flex items-center justify-between text-sm pt-2'>
-                        <div>{priceRange[0]} ETH</div>
-                        <div>{priceRange[1]} ETH</div>
+                        <div>{priceRange[0]} AVAX</div>
+                        <div>{priceRange[1]} AVAX</div>
                       </div>
                     </div>
 

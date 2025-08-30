@@ -4,7 +4,7 @@ import './globals.css';
 import { Header } from '@/shared/components/header';
 import { Footer } from '@/shared/components/footer';
 import { ErrorBoundary } from '@/shared/components/ui/error-boundary';
-import { RainbowKitProviderWrapper } from '@/shared/components/providers/rainbowkit-provider';
+import { PrivyProviderWrapper } from '@/shared/components/providers/rainbowkit-provider';
 import { Toaster } from '@/shared/components/ui/sonner';
 import { SplashScreenProvider } from '@/shared/components/splash-screen-provider';
 
@@ -133,14 +133,13 @@ export default function RootLayout({
           content='width=device-width, initial-scale=1, maximum-scale=5'
         />
         <meta name='color-scheme' content='dark light' />
-        {/* Preload critical resources */}
-        <link rel='preload' href='/avalanche.webp' as='image' />
+        {/* DNS prefetch for external resources */}
         <link rel='dns-prefetch' href='//fonts.googleapis.com' />
         <link rel='dns-prefetch' href='//fonts.gstatic.com' />
       </head>
       <body className='antialiased bg-background text-foreground'>
         <ErrorBoundary>
-          <RainbowKitProviderWrapper>
+          <PrivyProviderWrapper>
             <SplashScreenProvider>
               <Header />
               <main id='main-content' role='main'>
@@ -149,7 +148,7 @@ export default function RootLayout({
               <Footer />
               <Toaster />
             </SplashScreenProvider>
-          </RainbowKitProviderWrapper>
+          </PrivyProviderWrapper>
         </ErrorBoundary>
       </body>
     </html>

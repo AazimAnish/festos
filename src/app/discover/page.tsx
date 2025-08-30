@@ -29,7 +29,7 @@ function convertEventDataToGridFormat(event: EventData) {
     title: event.title,
     date: event.startDate,
     location: event.location,
-    price: event.ticketPrice === '0' ? 'Free' : `${event.ticketPrice} ETH`,
+    price: event.ticketPrice === '0' ? 'Free' : `${event.ticketPrice} AVAX`,
     image: event.bannerImage || '/card1.png', // Fallback image
     category: event.category || 'General',
     joinedCount: 0, // This would come from ticket count in the future

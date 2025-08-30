@@ -30,20 +30,35 @@ import { CapacityDialog } from './capacity-dialog';
 import { POPDialog } from './pop-dialog';
 import { TicketPriceDialog } from './ticket-price-dialog';
 import { EventCreationSuccess } from './event-creation-success';
-import { useAccount, useChainId, useWalletClient, usePublicClient } from 'wagmi';
+import { useChainId, useWalletClient, usePublicClient, useSwitchChain } from 'wagmi';
 import type { Abi } from 'viem';
 import { useAuthenticatedFetch } from '@/shared/hooks/use-wallet-auth';
+import { useWallet } from '@/shared/hooks/use-wallet';
 // Removed unused import: parseEther
 import { avalanche, avalancheFuji } from '@/lib/chains';
+
+// Utility function to convert File to base64
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const result = reader.result as string;
+      // Remove the data URL prefix (e.g., "data:image/jpeg;base64,")
+      const base64 = result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = error => reject(error);
+  });
+};
 
 
 
 function EventCreationPage() {
   type PopConfig = {
     popImage?: string;
-    recipientsMode: 'all' | 'random' | 'top';
-    recipientsCount?: number;
-    deliveryTime: string;
+    recipientsMode: 'all';
+    deliveryTime: 'after';
   };
 
   const [eventName, setEventName] = useState('');
@@ -65,6 +80,7 @@ function EventCreationPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [useTestnet, setUseTestnet] = useState(true); // Default to testnet for safety
   const [mounted, setMounted] = useState(false);
+  const [bannerImage, setBannerImage] = useState<File | null>(null);
   const [createdEvent, setCreatedEvent] = useState<{
     title: string;
     date: string;
@@ -82,10 +98,11 @@ function EventCreationPage() {
   const hasInitialized = useRef(false);
 
   // Wallet and network state
-  const { address: walletAddress, isConnected } = useAccount();
+  const { address: walletAddress, isConnected } = useWallet();
   const chainId = useChainId();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
+  const { switchChain } = useSwitchChain();
   const authenticatedFetch = useAuthenticatedFetch();
 
   /**
@@ -113,22 +130,74 @@ function EventCreationPage() {
     }
 
     try {
-      // Convert string args back to BigInt for wallet client
+      console.log('🔍 Preparing transaction with Rainbow Kit...');
+      console.log('📍 Contract address:', transactionData.address);
+      console.log('📋 Function name:', transactionData.functionName);
+      console.log('🔗 Chain ID:', transactionData.chainId);
+      console.log('📝 Original args:', transactionData.args);
+
+      // Convert string args back to proper types for wallet client
       const convertedArgs = transactionData.args.map((arg: string | number, index: number) => {
-        // Convert specific BigInt arguments back to BigInt
-        if (index === 3 || index === 4 || index === 5 || index === 6) { // startTime, endTime, maxCapacity, ticketPrice
+        // Convert specific arguments to their correct types
+        // EventTicket.createEvent parameters:
+        // 0: title (string), 1: location (string), 2: startTime (uint256), 3: endTime (uint256),
+        // 4: maxCapacity (uint256), 5: ticketPrice (uint256), 6: requiresEscrow (bool), 7: baseURI (string)
+        if (index === 2 || index === 3 || index === 4 || index === 5) { // startTime, endTime, maxCapacity, ticketPrice
           return BigInt(arg);
+        }
+        if (index === 6) { // requiresEscrow - convert to boolean
+          return String(arg) === 'true' || Number(arg) === 1;
         }
         return arg;
       });
 
+      console.log('🔄 Converted args:', convertedArgs);
+
+      // Check if we're on the correct network
+      const currentChainId = await publicClient.getChainId();
+      console.log('🌐 Current chain ID:', currentChainId);
+      console.log('🎯 Target chain ID:', transactionData.chainId);
+
+      if (currentChainId !== transactionData.chainId) {
+        console.log('🔄 Switching to correct network...');
+        try {
+          await switchChain({ chainId: transactionData.chainId });
+          console.log('✅ Network switched successfully');
+          
+          // Wait a moment for the switch to complete
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Verify the switch
+          const newChainId = await publicClient.getChainId();
+          if (newChainId !== transactionData.chainId) {
+            return {
+              success: false,
+              error: `Failed to switch to correct network. Please manually switch to chain ID ${transactionData.chainId}`
+            };
+          }
+        } catch (switchError) {
+          console.error('❌ Network switch failed:', switchError);
+          return {
+            success: false,
+            error: `Please manually switch to chain ID ${transactionData.chainId}. Current chain ID: ${currentChainId}`
+          };
+        }
+      }
+
+      // Check account balance
+      const balance = await publicClient.getBalance({ address: walletAddress! as `0x${string}` });
+      console.log('💰 Account balance:', balance.toString(), 'wei');
+
       // Send transaction using Rainbow Kit
+      console.log('📤 Sending transaction...');
       const hash = await walletClient.writeContract({
         address: transactionData.address,
         abi: transactionData.abi,
         functionName: transactionData.functionName,
         args: convertedArgs,
       });
+
+      console.log('✅ Transaction hash received:', hash);
 
       // Wait for transaction confirmation
       const receipt = await publicClient.waitForTransactionReceipt({
@@ -173,9 +242,31 @@ function EventCreationPage() {
     } catch (error) {
       console.error('Rainbow Kit transaction signing failed:', error);
       
+      let errorMessage = 'Unknown error occurred';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        
+        // Provide more specific error messages
+        if (error.message.includes('insufficient funds')) {
+          errorMessage = 'Insufficient funds. Please add more AVAX to your wallet.';
+        } else if (error.message.includes('nonce')) {
+          errorMessage = 'Transaction nonce error. Please try again or refresh your wallet.';
+        } else if (error.message.includes('user rejected')) {
+          errorMessage = 'Transaction was rejected by the user.';
+        } else if (error.message.includes('network')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (error.message.includes('gas')) {
+          errorMessage = 'Transaction failed. Please try again or check your wallet settings.';
+        } else if (error.message.includes('execution reverted')) {
+          errorMessage = 'Contract execution reverted. Please check your input parameters.';
+        }
+      }
+      
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        error: errorMessage,
+        details: error instanceof Error ? error.stack : undefined,
       };
     }
   };
@@ -233,44 +324,100 @@ function EventCreationPage() {
     }
   };
 
+  /**
+   * Create escrow contract for an event
+   */
+  const createEscrowContract = async (eventId: number, ticketPrice: string, endDate: Date) => {
+    if (!walletClient || !publicClient) {
+      return {
+        success: false,
+        error: 'Wallet client not available'
+      };
+    }
+
+    try {
+      // Get escrow contract address from environment
+      const escrowAddress = process.env.NEXT_PUBLIC_AVALANCHE_FUJI_EVENT_ESCROW_ADDRESS;
+      if (!escrowAddress) {
+        throw new Error('Escrow contract address not configured');
+      }
+
+      // Convert ticket price to wei
+      const ticketPriceWei = BigInt(parseFloat(ticketPrice) * 10**18);
+      
+      // Convert end date to Unix timestamp
+      const endTimeUnix = BigInt(Math.floor(endDate.getTime() / 1000));
+
+      // Create escrow transaction
+      const escrowHash = await walletClient.writeContract({
+        address: escrowAddress as `0x${string}`,
+        abi: [
+          {
+            type: 'function',
+            name: 'createEventEscrow',
+            inputs: [
+              { type: 'uint256', name: 'eventId' },
+              { type: 'uint256', name: 'ticketPrice' },
+              { type: 'uint256', name: 'eventEndTime' },
+            ],
+            outputs: [],
+            stateMutability: 'nonpayable',
+          },
+        ],
+        functionName: 'createEventEscrow',
+        args: [BigInt(eventId), ticketPriceWei, endTimeUnix],
+      });
+
+      // Wait for escrow transaction confirmation
+      await publicClient.waitForTransactionReceipt({
+        hash: escrowHash,
+      });
+
+      return {
+        success: true,
+        escrowTransactionHash: escrowHash,
+        escrowAddress,
+      };
+
+    } catch (error) {
+      console.error('Escrow creation failed:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Escrow creation failed',
+      };
+    }
+  };
+
   // Prevent hydration errors and ensure WagmiProvider is ready
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Initialize default future-safe times on mount
+  // Initialize default future-safe times on mount - only run once
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (!mounted) return; // Wait for component to mount
     if (hasInitialized.current) return; // Prevent multiple initializations
+    if (!mounted) return; // Wait for component to be mounted
     
     hasInitialized.current = true;
     
-    if (!startDate) {
-      const now = new Date();
-      const minutes = now.getMinutes();
-      const nextQuarter = Math.ceil((minutes + 5) / 15) * 15; // small buffer then round up
-      const initStart = new Date(now);
-      initStart.setSeconds(0, 0);
-      if (nextQuarter >= 60) {
-        initStart.setHours(now.getHours() + 1, 0, 0, 0);
-      } else {
-        initStart.setMinutes(nextQuarter, 0, 0);
-      }
-      const initEnd = new Date(initStart.getTime() + 60 * 60 * 1000);
-      setStartDate(initStart);
-      setEndDate(prev => prev ?? initEnd);
-    } else if (!endDate) {
-      const initEnd = new Date(startDate.getTime() + 60 * 60 * 1000);
-      setEndDate(initEnd);
+    const now = new Date();
+    const minutes = now.getMinutes();
+    const nextQuarter = Math.ceil((minutes + 5) / 15) * 15; // small buffer then round up
+    const initStart = new Date(now);
+    initStart.setSeconds(0, 0);
+    if (nextQuarter >= 60) {
+      initStart.setHours(now.getHours() + 1, 0, 0, 0);
+    } else {
+      initStart.setMinutes(nextQuarter, 0, 0);
     }
-  }, [mounted, startDate, endDate]);
+    const initEnd = new Date(initStart.getTime() + 60 * 60 * 1000);
+    
+    setStartDate(initStart);
+    setEndDate(initEnd);
+  }, [mounted]); // Only depend on mounted state
 
-  const popSummary = popConfig
-    ? popConfig.recipientsMode === 'all'
-      ? 'All attendees'
-      : `${popConfig.recipientsMode === 'random' ? 'Random' : 'Top'} ${popConfig.recipientsCount ?? 1}`
-    : undefined;
+  const popSummary = popConfig ? 'All attendees after event' : undefined;
 
   const handlePopToggle = (enabled: boolean) => {
     if (enabled) {
@@ -374,6 +521,7 @@ function EventCreationPage() {
         poapMetadata: popConfig?.popImage || '',
         visibility: visibility,
         timezone: timezone,
+        bannerImage: bannerImage ? await fileToBase64(bannerImage) : undefined, // Convert File to base64
         category: 'General',
         tags: [],
       };
@@ -404,13 +552,29 @@ function EventCreationPage() {
         throw new Error(signedTransaction.error || 'Transaction signing failed');
       }
 
-      // Step 4: Submit signed transaction to backend
+      // Step 4: Create escrow contract for the created event (only for paid events)
+      let escrowResult = null;
+      if (parseFloat(ticketPrice) > 0 && signedTransaction.eventId) {
+        escrowResult = await createEscrowContract(signedTransaction.eventId, ticketPrice, computedEnd);
+
+        if (!escrowResult.success) {
+          throw new Error(escrowResult.error || 'Escrow creation failed');
+        }
+      } else {
+        console.log('🎫 Free event - skipping escrow creation');
+      }
+
+      // Step 5: Submit signed transaction and escrow information to backend
       const requestBody = {
         signedTransaction: {
           ...signedTransaction,
           userWalletAddress: walletAddress,
         },
         eventData: eventData,
+        escrowData: escrowResult ? {
+          transactionHash: escrowResult.escrowTransactionHash,
+          contractAddress: escrowResult.escrowAddress,
+        } : null,
       };
       
       // API request being sent
@@ -440,8 +604,8 @@ function EventCreationPage() {
         uniqueId: result.slug || result.eventId,
         contractEventId: result.contractEventId,
         transactionHash: result.transactionHash,
-        web3storageMetadataCid: result.filebaseMetadataUrl,
-        web3storageImageCid: result.filebaseImageUrl,
+        web3storageMetadataCid: result.ipfsMetadataUrl,
+        web3storageImageCid: result.ipfsImageUrl,
         contractChainId: result.contractChainId,
         contractAddress: result.contractAddress,
       };
@@ -492,17 +656,8 @@ function EventCreationPage() {
     );
   }
 
-  // Check if WagmiProvider is available
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  // Instead of conditionally rendering, we'll use CSS to hide/show content
+  // This prevents hydration mismatches
 
   return (
     <div className='min-h-screen bg-background'>
@@ -550,7 +705,7 @@ function EventCreationPage() {
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8'>
           {/* Left Column - Event Banner */}
           <div className='lg:col-span-1'>
-            <EventBanner />
+            <EventBanner onImageChange={setBannerImage} />
           </div>
 
           {/* Right Column - Event Details */}
@@ -739,32 +894,33 @@ function EventCreationPage() {
                       <Label className='text-base'>Wallet Connection</Label>
                     </div>
                     <div className='flex items-center gap-2'>
-                      {!mounted ? (
-                        <div className='flex items-center gap-2'>
-                          <div className='w-2 h-2 bg-gray-400 rounded-full'></div>
-                          <span className='text-sm text-gray-500 font-medium'>
-                            Loading...
-                          </span>
-                        </div>
-                      ) : isConnected ? (
-                        <div className='flex items-center gap-2'>
-                          <div className='w-2 h-2 bg-green-500 rounded-full'></div>
-                          <span className='text-sm text-green-600 font-medium'>
-                            Connected
-                          </span>
-                          <span className='text-xs text-muted-foreground'>
-                            {walletAddress?.slice(0, 6)}...
-                            {walletAddress?.slice(-4)}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className='flex items-center gap-2'>
-                          <div className='w-2 h-2 bg-red-500 rounded-full'></div>
-                          <span className='text-sm text-red-600 font-medium'>
-                            Not Connected
-                          </span>
-                        </div>
-                      )}
+                      {/* Loading state - shown during SSR and initial hydration */}
+                      <div className='flex items-center gap-2' style={{ display: mounted ? 'none' : 'flex' }}>
+                        <div className='w-2 h-2 bg-gray-400 rounded-full'></div>
+                        <span className='text-sm text-gray-500 font-medium'>
+                          Loading...
+                        </span>
+                      </div>
+                      
+                      {/* Connected state - hidden until mounted */}
+                      <div className='flex items-center gap-2' style={{ display: mounted && isConnected ? 'flex' : 'none' }}>
+                        <div className='w-2 h-2 bg-green-500 rounded-full'></div>
+                        <span className='text-sm text-green-600 font-medium'>
+                          Connected
+                        </span>
+                        <span className='text-xs text-muted-foreground'>
+                          {walletAddress?.slice(0, 6)}...
+                          {walletAddress?.slice(-4)}
+                        </span>
+                      </div>
+                      
+                      {/* Not connected state - hidden until mounted */}
+                      <div className='flex items-center gap-2' style={{ display: mounted && !isConnected ? 'flex' : 'none' }}>
+                        <div className='w-2 h-2 bg-red-500 rounded-full'></div>
+                        <span className='text-sm text-red-600 font-medium'>
+                          Not Connected
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -787,19 +943,17 @@ function EventCreationPage() {
                     </Select>
                   </div>
 
-                  {/* Current Chain Info */}
-                  {mounted && isConnected && (
-                    <div className='flex items-center justify-between'>
-                      <Label className='text-base'>Current Chain</Label>
-                      <span className='text-sm text-muted-foreground'>
-                        {chainId === 43113
-                          ? 'Avalanche Fuji Testnet'
-                          : chainId === 43114
-                            ? 'Avalanche Mainnet'
-                            : `Chain ID: ${chainId}`}
-                      </span>
-                    </div>
-                  )}
+                  {/* Current Chain Info - always render but conditionally show */}
+                  <div className='flex items-center justify-between' style={{ display: mounted && isConnected ? 'flex' : 'none' }}>
+                    <Label className='text-base'>Current Chain</Label>
+                    <span className='text-sm text-muted-foreground'>
+                      {chainId === 43113
+                        ? 'Avalanche Fuji Testnet'
+                        : chainId === 43114
+                          ? 'Avalanche Mainnet'
+                          : `Chain ID: ${chainId}`}
+                    </span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -811,9 +965,6 @@ function EventCreationPage() {
               onSave={handlePopSave}
               trigger={null}
               initialImage={popConfig?.popImage}
-              initialRecipientsMode={popConfig?.recipientsMode}
-              initialRecipientsCount={popConfig?.recipientsCount}
-              initialDeliveryTime={popConfig?.deliveryTime}
             />
 
             {/* Action Buttons */}

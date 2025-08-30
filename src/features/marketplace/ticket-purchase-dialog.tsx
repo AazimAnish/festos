@@ -223,14 +223,14 @@ export function TicketPurchaseDialog({
                         <span className='text-muted-foreground'>
                           Service Fee (3%)
                         </span>
-                        <span className='text-sm'>{serviceFee} ETH</span>
+                        <span className='text-sm'>{serviceFee} AVAX</span>
                       </div>
                       <div className='flex items-center justify-between pt-3 border-t border-border/50'>
                         <span className='font-primary font-semibold'>
                           Total Amount
                         </span>
                         <span className='font-primary text-xl font-bold'>
-                          {totalAmount} ETH
+                          {totalAmount} AVAX
                         </span>
                       </div>
                     </div>

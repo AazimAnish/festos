@@ -76,9 +76,9 @@ export interface Event extends BaseEntity {
   contractChainId?: number;
   transactionHash?: string;
 
-  // File storage
-  filebaseMetadataUrl?: string;
-  filebaseImageUrl?: string;
+  // IPFS storage
+  ipfsMetadataUrl?: string;
+  ipfsImageUrl?: string;
   storageProvider?: string;
 
   // Computed fields

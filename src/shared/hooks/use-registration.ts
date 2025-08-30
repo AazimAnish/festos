@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import type { FormField, RegistrationState } from '@/shared/types/registration';
 
-export function useRegistration(form: FormField[]) {
+export function useRegistration(form: FormField[], walletConnected: boolean = false) {
   const [state, setState] = useState<RegistrationState>({
     currentStep: 1,
     isSubmitting: false,
-    walletConnected: false,
+    walletConnected,
     walletAddress: '',
     gasEstimate: '0.002',
     formData: {},
@@ -83,6 +83,15 @@ export function useRegistration(form: FormField[]) {
     }));
   }, []);
 
+  // Update wallet connection status when it changes
+  useEffect(() => {
+    setState(prev => ({
+      ...prev,
+      walletConnected,
+      walletAddress: walletConnected ? 'Connected' : '',
+    }));
+  }, [walletConnected]);
+
   const connectWallet = useCallback(() => {
     setState(prev => ({
       ...prev,
@@ -95,18 +104,39 @@ export function useRegistration(form: FormField[]) {
     setState(prev => ({ ...prev, termsAccepted: accepted }));
   }, []);
 
-  const submitRegistration = useCallback(async () => {
+  const submitRegistration = useCallback(async (eventId: string, onPurchase?: (params: { eventId: string; attendeeName: string; attendeeEmail: string }) => Promise<unknown>) => {
     setState(prev => ({ ...prev, isSubmitting: true }));
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      // Extract attendee information from form data
+      const attendeeName = state.formData['Full Name'] || state.formData['Name'] || 'Anonymous';
+      const attendeeEmail = state.formData['Email'] || state.formData['Email Address'] || '';
 
-    setState(prev => ({
-      ...prev,
-      isSubmitting: false,
-      registrationComplete: true,
-    }));
-  }, []);
+      if (onPurchase) {
+        // Use the provided purchase function
+        await onPurchase({
+          eventId,
+          attendeeName,
+          attendeeEmail,
+        });
+      } else {
+        // Simulate API call for backward compatibility
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+
+      setState(prev => ({
+        ...prev,
+        isSubmitting: false,
+        registrationComplete: true,
+      }));
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        isSubmitting: false,
+      }));
+      throw error;
+    }
+  }, [state.formData]);
 
   const resetRegistration = useCallback(() => {
     setState({

@@ -15,7 +15,7 @@ export const PaymentDetails = memo(function PaymentDetails({
   gasEstimate,
 }: PaymentDetailsProps) {
   const total = useMemo(() => {
-    return eventPrice === 'Free' ? gasEstimate + ' ETH' : eventPrice;
+    return eventPrice === 'Free' ? gasEstimate + ' AVAX' : eventPrice;
   }, [eventPrice, gasEstimate]);
 
   return (
@@ -39,7 +39,7 @@ export const PaymentDetails = memo(function PaymentDetails({
               Gas Fee (estimated)
             </span>
             <span className='font-medium text-foreground font-secondary'>
-              {gasEstimate} ETH
+              {gasEstimate} AVAX
             </span>
           </div>
         </div>

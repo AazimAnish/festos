@@ -335,7 +335,7 @@ export function TicketListingDialog({
 
             {/* Listing Price */}
             <div className='space-y-3'>
-              <Label htmlFor='price'>Listing Price (ETH)</Label>
+                              <Label htmlFor='price'>Listing Price (AVAX)</Label>
               <div className='flex items-center gap-3'>
                 <Input
                   id='price'
@@ -416,7 +416,7 @@ export function TicketListingDialog({
               {autoAcceptEnabled && (
                 <div className='space-y-2 pl-6'>
                   <Label htmlFor='auto-accept-price'>
-                    Auto-accept price (ETH)
+                    Auto-accept price (AVAX)
                   </Label>
                   <Input
                     id='auto-accept-price'
@@ -444,11 +444,11 @@ export function TicketListingDialog({
                     <span className='text-muted-foreground'>
                       Platform Fee (2.5%)
                     </span>
-                    <span>{platformFee} ETH</span>
+                    <span>{platformFee} AVAX</span>
                   </div>
                   <div className='flex items-center justify-between font-medium'>
                     <span>You&apos;ll Receive</span>
-                    <span className='text-success'>{netAmount} ETH</span>
+                    <span className='text-success'>{netAmount} AVAX</span>
                   </div>
                 </div>
               </CardContent>
@@ -507,7 +507,7 @@ export function TicketListingDialog({
                       Listing Price
                     </span>
                     <div className='font-primary text-xl font-bold'>
-                      {listingPrice} ETH
+                      {listingPrice} AVAX
                     </div>
                   </div>
                   <div>
@@ -520,14 +520,14 @@ export function TicketListingDialog({
                     <span className='text-sm text-muted-foreground'>
                       Platform Fee
                     </span>
-                    <div className='font-medium'>{platformFee} ETH</div>
+                    <div className='font-medium'>{platformFee} AVAX</div>
                   </div>
                   <div>
                     <span className='text-sm text-muted-foreground'>
                       You&apos;ll Receive
                     </span>
                     <div className='font-medium text-success'>
-                      {netAmount} ETH
+                      {netAmount} AVAX
                     </div>
                   </div>
                 </div>
@@ -536,7 +536,7 @@ export function TicketListingDialog({
                   <div className='pt-4 border-t border-border/50'>
                     <div className='flex items-center gap-2 text-sm'>
                       <CheckCircle className='w-4 h-4 text-success' />
-                      <span>Auto-accept enabled at {autoAcceptPrice} ETH</span>
+                      <span>Auto-accept enabled at {autoAcceptPrice} AVAX</span>
                     </div>
                   </div>
                 )}

@@ -31,6 +31,7 @@ export function Footer() {
                     src='/ticket.png'
                     alt='Festos'
                     fill
+                    sizes='32px'
                     className='object-contain transition-transform duration-200 group-hover:scale-110'
                   />
                 </div>

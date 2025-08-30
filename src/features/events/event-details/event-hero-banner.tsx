@@ -31,7 +31,7 @@ export function EventHeroBanner({ event }: EventHeroBannerProps) {
     <div className='relative w-full h-[70vh] min-h-[500px] overflow-hidden'>
       {/* Background Image */}
       <Image
-        src={event.image}
+        src={event.image || '/card1.png'}
         alt={event.title}
         fill
         className='object-cover'
@@ -39,6 +39,13 @@ export function EventHeroBanner({ event }: EventHeroBannerProps) {
         sizes='100vw'
         placeholder='blur'
         blurDataURL='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k='
+        onError={(e) => {
+          // Fallback to default image if the provided image fails to load
+          const target = e.target as HTMLImageElement;
+          console.warn('Image failed to load:', event.image, 'falling back to default');
+          target.src = '/card1.png';
+        }}
+        unoptimized={event.image?.includes('gateway.pinata.cloud')}
       />
 
       {/* Enhanced Gradient Overlay */}

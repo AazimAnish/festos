@@ -1,0 +1,14 @@
+{
+  "network": "Avalanche Fuji Testnet",
+  "chainId": 43113,
+  "deployer": "0xF3cf367f215Ec50f424A95dB5a700E87272B18B6",
+  "contracts": {
+    "EventEscrow": "0x1a7FBf1f6C61b6D0a697cC126c9C85cf67FbFE1D",
+    "EventTicket": "0xE82c9698096ac954C1506EeDDc7FFc66Cb9eC049"
+  },
+  "testEvents": {
+    "freeEventId": "1",
+    "paidEventId": "2"
+  },
+  "timestamp": "2025-08-28T07:41:42.971Z"
+}

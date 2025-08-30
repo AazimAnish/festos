@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useWallet } from '@/shared/hooks/use-wallet';
 import { RegistrationFormPreview } from '../registration-form-preview';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { usePrivy } from '@privy-io/react-auth';
 import type { FormField, EventData } from '@/shared/types/registration';
 
 interface WalletConnectionDialogProps {
@@ -33,6 +33,7 @@ export const WalletConnectionDialog = memo(function WalletConnectionDialog({
   registrationForm,
 }: WalletConnectionDialogProps) {
   const { isConnected, isAvalanche, address } = useWallet();
+  const { login } = usePrivy();
   const [showRegistration, setShowRegistration] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -161,17 +162,13 @@ export const WalletConnectionDialog = memo(function WalletConnectionDialog({
           {/* Action Buttons */}
           <div className='space-y-3'>
             {!isConnected ? (
-              <ConnectButton.Custom>
-                {({ openConnectModal }) => (
-                  <Button
-                    onClick={openConnectModal}
-                    className='w-full font-secondary bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-primary/20 rounded-xl px-6 py-4 h-auto text-base'
-                  >
-                    💳 Connect Wallet
-                    <ArrowRight className='h-5 w-5 ml-2' />
-                  </Button>
-                )}
-              </ConnectButton.Custom>
+              <Button
+                onClick={login}
+                className='w-full font-secondary bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-primary/20 rounded-xl px-6 py-4 h-auto text-base'
+              >
+                💳 Connect Wallet
+                <ArrowRight className='h-5 w-5 ml-2' />
+              </Button>
             ) : !isAvalanche ? (
               <div className='space-y-3'>
                 <div className='text-sm text-warning bg-warning/5 p-3 rounded-xl border border-warning/20'>
@@ -184,18 +181,14 @@ export const WalletConnectionDialog = memo(function WalletConnectionDialog({
                     <span>Please switch to Avalanche network to continue</span>
                   </div>
                 </div>
-                <ConnectButton.Custom>
-                  {({ openChainModal }) => (
-                    <Button
-                      onClick={openChainModal}
-                      variant='outline'
-                      className='w-full font-secondary border-2 border-warning text-warning hover:bg-warning/5 transition-all duration-200 hover:scale-105 active:scale-95 rounded-xl px-6 py-4 h-auto text-base'
-                    >
-                      🔄 Switch Network
-                      <ArrowRight className='h-5 w-5 ml-2' />
-                    </Button>
-                  )}
-                </ConnectButton.Custom>
+                <Button
+                  onClick={() => console.log('Network switching not needed with embedded wallets')}
+                  variant='outline'
+                  className='w-full font-secondary border-2 border-warning text-warning hover:bg-warning/5 transition-all duration-200 hover:scale-105 active:scale-95 rounded-xl px-6 py-4 h-auto text-base'
+                >
+                  🔄 Switch Network
+                  <ArrowRight className='h-5 w-5 ml-2' />
+                </Button>
               </div>
             ) : (
               <Button

@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useCallback, useEffect, useRef } from 'react';
+import { memo, useCallback } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import { ArrowRight, CheckCircle } from 'lucide-react';
 
@@ -14,6 +14,7 @@ import { RegistrationSuccess } from './registration-success';
 
 // Import custom hook and utilities
 import { useRegistration } from '@/shared/hooks/use-registration';
+import { usePurchaseTicket } from '@/shared/hooks/use-ticket-purchase';
 import { useWallet } from '@/shared/hooks/use-wallet';
 import {
   generateCalendarEvent,
@@ -32,19 +33,9 @@ export const RegistrationForm = memo(function RegistrationForm({
   eventData,
   onClose,
 }: RegistrationFormProps) {
-  const { state, canProceed, actions } = useRegistration(form);
   const { isConnected, address } = useWallet();
-
-  // Use ref to store the connectWallet function to avoid dependency issues
-  const connectWalletRef = useRef(actions.connectWallet);
-  connectWalletRef.current = actions.connectWallet;
-
-  // Update wallet state when wallet connects
-  useEffect(() => {
-    if (isConnected && address && !state.walletConnected) {
-      connectWalletRef.current();
-    }
-  }, [isConnected, address, state.walletConnected]);
+  const { state, canProceed, actions } = useRegistration(form, isConnected);
+  const purchaseTicketMutation = usePurchaseTicket();
 
   const handleDownloadCalendar = useCallback(() => {
     const calendarData = generateCalendarEvent(eventData);
@@ -150,11 +141,14 @@ export const RegistrationForm = memo(function RegistrationForm({
             />
 
             <Button
-              onClick={actions.submitRegistration}
-              disabled={state.isSubmitting || !canProceed}
+              onClick={() => actions.submitRegistration(
+                eventData.id,
+                purchaseTicketMutation.mutateAsync
+              )}
+              disabled={state.isSubmitting || !canProceed || purchaseTicketMutation.isPending}
               className='w-full font-secondary bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-primary/20 rounded-xl px-6 py-4 h-auto text-base relative overflow-hidden'
             >
-              {state.isSubmitting ? (
+              {state.isSubmitting || purchaseTicketMutation.isPending ? (
                 <div className='flex items-center space-x-2'>
                   <div className='animate-spin rounded-full h-5 w-5 border-b-2 border-white'></div>
                   <span>Processing...</span>

@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env tsx
 
 /**
  * Database Setup Script
@@ -10,8 +10,11 @@
 import { createClient } from '@supabase/supabase-js';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { config } from 'dotenv';
 
 // Load environment variables
+config({ path: '.env.local' });
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 

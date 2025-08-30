@@ -185,15 +185,25 @@ export function useTickets() {
     setError(null);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Fetch tickets from API
+      const response = await fetch('/api/tickets/user', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-      // Filter tickets by current user's address
-      const userTickets = mockOwnedTickets.filter(
-        ticket => ticket.ownerAddress === address
-      );
+      if (!response.ok) {
+        throw new Error('Failed to fetch tickets');
+      }
 
-      setOwnedTickets(userTickets);
+      const result = await response.json();
+      
+      if (result.success) {
+        setOwnedTickets(result.data.tickets);
+      } else {
+        throw new Error(result.message || 'Failed to fetch tickets');
+      }
     } catch (err) {
       setError('Failed to fetch tickets');
       console.error('Error fetching tickets:', err);

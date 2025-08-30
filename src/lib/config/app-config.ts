@@ -27,12 +27,11 @@ export const env = {
   SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
 
-  // Filebase
-  FILEBASE_ACCESS_KEY_ID: process.env.FILEBASE_ACCESS_KEY_ID,
-  FILEBASE_SECRET_ACCESS_KEY: process.env.FILEBASE_SECRET_ACCESS_KEY,
-  FILEBASE_BUCKET: process.env.FILEBASE_BUCKET,
-  FILEBASE_ENDPOINT: process.env.FILEBASE_ENDPOINT || 'https://s3.filebase.com',
-  FILEBASE_REGION: process.env.FILEBASE_REGION || 'us-east-1',
+  // Pinata IPFS
+  PINATA_API_KEY: process.env.PINATA_API_KEY,
+  PINATA_API_SECRET: process.env.PINATA_API_SECRET,
+  PINATA_JWT: process.env.PINATA_JWT,
+  PINATA_GATEWAY_URL: process.env.PINATA_GATEWAY_URL || 'https://gateway.pinata.cloud',
 
   // Blockchain
   AVALANCHE_RPC_URL: process.env.AVALANCHE_RPC_URL,
@@ -73,19 +72,14 @@ export const appConfig = {
     serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY,
   },
 
-  // File storage
+  // File storage (IPFS via Pinata)
   fileStorage: {
-    enabled: !!(
-      env.FILEBASE_ACCESS_KEY_ID &&
-      env.FILEBASE_SECRET_ACCESS_KEY &&
-      env.FILEBASE_BUCKET
-    ),
-    provider: 'filebase',
-    accessKeyId: env.FILEBASE_ACCESS_KEY_ID,
-    secretAccessKey: env.FILEBASE_SECRET_ACCESS_KEY,
-    bucket: env.FILEBASE_BUCKET,
-    endpoint: env.FILEBASE_ENDPOINT,
-    region: env.FILEBASE_REGION,
+    enabled: !!(env.PINATA_JWT || (env.PINATA_API_KEY && env.PINATA_API_SECRET)),
+    provider: 'pinata',
+    apiKey: env.PINATA_API_KEY,
+    apiSecret: env.PINATA_API_SECRET,
+    jwt: env.PINATA_JWT,
+    gatewayUrl: env.PINATA_GATEWAY_URL,
   },
 
   // Blockchain
@@ -158,21 +152,11 @@ export function validateConfig(): { isValid: boolean; errors: string[] } {
     errors.push('NEXT_PUBLIC_SUPABASE_ANON_KEY is required');
   }
 
-  // Optional but recommended
-  if (!env.FILEBASE_ACCESS_KEY_ID) {
+  // Optional but recommended for Pinata IPFS
+  if (!env.PINATA_JWT && !(env.PINATA_API_KEY && env.PINATA_API_SECRET)) {
     console.warn(
-      'FILEBASE_ACCESS_KEY_ID not set - file storage will be disabled'
+      'Pinata configuration missing - file storage will be disabled'
     );
-  }
-
-  if (!env.FILEBASE_SECRET_ACCESS_KEY) {
-    console.warn(
-      'FILEBASE_SECRET_ACCESS_KEY not set - file storage will be disabled'
-    );
-  }
-
-  if (!env.FILEBASE_BUCKET) {
-    console.warn('FILEBASE_BUCKET not set - file storage will be disabled');
   }
 
   if (!env.AVALANCHE_RPC_URL && !env.AVALANCHE_TESTNET_RPC_URL) {

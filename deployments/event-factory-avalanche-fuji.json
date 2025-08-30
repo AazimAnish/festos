@@ -1,0 +1,9 @@
+{
+  "contract": "EventFactory",
+  "address": "0x8f0ffd0c3e30df302d3e41a18c06eed5e3a40557",
+  "network": "avalancheFuji",
+  "deployedAt": "2025-08-27T15:03:05.152Z",
+  "deployer": "0xF3cf367f215Ec50f424A95dB5a700E87272B18B6",
+  "transactionHash": "0x9d7a4e0621836c2626cf178d37d8f39970f69a550dad2316bd17a9bdfdd988e6",
+  "blockNumber": "45307508"
+}

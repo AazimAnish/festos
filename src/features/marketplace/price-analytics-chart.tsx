@@ -71,7 +71,7 @@ export function PriceAnalyticsChart({
     const priceData: PriceDataPoint[] = [];
 
     // Base price and some volatility
-    let basePrice = 0.15; // ETH
+    let basePrice = 0.15; // AVAX
 
     // For each day
     for (let i = 0; i < numberOfDays; i++) {
@@ -79,7 +79,7 @@ export function PriceAnalyticsChart({
       currentDate.setDate(startDate.getDate() + i);
 
       // Add some random variation to price
-      const dailyVariation = (Math.random() - 0.5) * 0.01; // ±0.005 ETH
+      const dailyVariation = (Math.random() - 0.5) * 0.01; // ±0.005 AVAX
       const trendFactor = Math.sin(i / (numberOfDays / 3)) * 0.02; // Sinusoidal trend
 
       // Calculate price with trend and random variation
@@ -140,7 +140,7 @@ export function PriceAnalyticsChart({
     }),
     datasets: [
       {
-        label: 'Average Price (ETH)',
+        label: 'Average Price (AVAX)',
         data: data.map(point => point.avgPrice),
         borderColor: 'rgba(99, 102, 241, 1)',
         backgroundColor: 'rgba(99, 102, 241, 0.1)',
@@ -167,7 +167,7 @@ export function PriceAnalyticsChart({
         intersect: false,
         callbacks: {
           label: function (context: { raw: unknown }) {
-            return `Price: ${context.raw as number} ETH`;
+            return `Price: ${context.raw as number} AVAX`;
           },
           title: function (tooltipItems: Array<{ label: string }>) {
             return tooltipItems[0].label;
@@ -180,7 +180,7 @@ export function PriceAnalyticsChart({
         beginAtZero: false,
         ticks: {
           callback: function (value: unknown) {
-            return `${value as number} ETH`;
+            return `${value as number} AVAX`;
           },
           color: 'rgba(156, 163, 175, 0.8)',
         },
@@ -301,7 +301,7 @@ export function PriceAnalyticsChart({
         <div className='space-y-1'>
           <span className='text-sm text-muted-foreground'>Avg. Price</span>
           <div className='font-primary text-lg font-bold'>
-            {stats.avgPrice} ETH
+                            {stats.avgPrice} AVAX
           </div>
         </div>
         <div className='space-y-1'>
@@ -316,7 +316,7 @@ export function PriceAnalyticsChart({
             className={`font-primary text-lg font-bold ${stats.priceChange >= 0 ? 'text-success' : 'text-destructive'}`}
           >
             {stats.priceChange >= 0 ? '+' : ''}
-            {stats.priceChange} ETH
+                            {stats.priceChange} AVAX
           </div>
         </div>
         <div className='space-y-1'>

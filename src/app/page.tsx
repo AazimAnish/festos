@@ -4,10 +4,10 @@ import WhyFestos from '@/shared/components/why-festos';
 
 export default function Home() {
   return (
-    <>
+    <div>
       <HeroSection />
       <FeaturedEvents />
       <WhyFestos />
-    </>
+    </div>
   );
 }

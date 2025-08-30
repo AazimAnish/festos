@@ -5,7 +5,8 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAccount, useDisconnect } from 'wagmi';
+import { usePrivy } from '@privy-io/react-auth';
+import { useWallets } from '@privy-io/react-auth';
 
 interface AuthUser {
   id: string;
@@ -29,55 +30,45 @@ export function useWalletAuth(): UseWalletAuthReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { address, isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
+  const { ready, authenticated, login, logout: privyLogout, getAccessToken } = usePrivy();
+  const { wallets } = useWallets();
+  
+  const address = wallets.length > 0 ? wallets[0].address : null;
+  // const isConnected = authenticated && !!address; // Temporarily unused
 
-  // Load authentication state from localStorage on mount
+  // Load authentication state when Privy is ready
   useEffect(() => {
-    const savedToken = localStorage.getItem('festos_wallet_token');
-    const savedUser = localStorage.getItem('festos_wallet_user');
-    
-    if (savedToken && savedUser) {
-      try {
-        setToken(savedToken);
-        setUser(JSON.parse(savedUser));
-      } catch (err) {
-        console.error('Failed to load saved auth state:', err);
-        localStorage.removeItem('festos_wallet_token');
-        localStorage.removeItem('festos_wallet_user');
-      }
+    if (ready && authenticated && address) {
+      // Create or load user data
+      const userData = {
+        id: address.toLowerCase(),
+        wallet_address: address,
+        display_name: `${address.slice(0, 6)}...${address.slice(-4)}`
+      };
+      setUser(userData);
+      
+      // Get Privy access token
+      getAccessToken().then((accessToken) => {
+        if (accessToken) {
+          setToken(accessToken);
+        }
+      }).catch(console.error);
+    } else if (!authenticated) {
+      setUser(null);
+      setToken(null);
     }
-  }, []);
+  }, [ready, authenticated, address, getAccessToken]);
 
-  // Authenticate wallet address
-  const authenticate = useCallback(async (walletAddress: string) => {
+  // Authenticate wallet address using Privy
+  const authenticate = useCallback(async (_walletAddress?: string) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch('/api/auth/wallet', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          walletAddress,
-          // TODO: Add signature verification
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Authentication failed');
+      if (!authenticated) {
+        await login();
       }
-
-      // Save to state and localStorage
-      setToken(data.token);
-      setUser(data.user);
-      localStorage.setItem('festos_wallet_token', data.token);
-      localStorage.setItem('festos_wallet_user', JSON.stringify(data.user));
-
+      // Privy handles authentication automatically
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
       setError(errorMessage);
@@ -85,31 +76,15 @@ export function useWalletAuth(): UseWalletAuthReturn {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [authenticated, login]);
 
-  // Logout
+  // Logout using Privy
   const logout = useCallback(() => {
     setUser(null);
     setToken(null);
     setError(null);
-    localStorage.removeItem('festos_wallet_token');
-    localStorage.removeItem('festos_wallet_user');
-    disconnect();
-  }, [disconnect]);
-
-  // Auto-authenticate when wallet connects
-  useEffect(() => {
-    if (isConnected && address && !user) {
-      authenticate(address);
-    }
-  }, [isConnected, address, user, authenticate]);
-
-  // Clear auth when wallet disconnects
-  useEffect(() => {
-    if (!isConnected && user) {
-      logout();
-    }
-  }, [isConnected, user, logout]);
+    privyLogout();
+  }, [privyLogout]);
 
   return {
     user,

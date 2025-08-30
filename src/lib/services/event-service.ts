@@ -1,11 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 import { appConfig } from '@/lib/config/app-config';
-import { getFilebaseClient } from '@/lib/filebase/client';
+import { pinataService } from '@/lib/clients/pinata-client';
 import { 
   getActiveEventsFromAvalanche,
   getEventsByCreatorFromAvalanche
 } from '@/lib/contracts/avalanche-client';
-import type { EventData, CreateEventInput, EventSearchInput } from '@/lib/services/core/interfaces';
+import type { EventData, CreateEventInput, EventSearchInput, TicketData } from '@/lib/services/core/interfaces';
 
 // Extended filter interface for internal use
 interface ExtendedEventFilters extends EventSearchInput {
@@ -41,8 +41,8 @@ interface DatabaseEventRow {
   contract_address?: string;
   contract_chain_id?: number;
   transaction_hash?: string;
-  filebase_metadata_url?: string;
-  filebase_image_url?: string;
+  ipfs_metadata_url?: string;
+  ipfs_image_url?: string;
   storage_provider?: string;
   created_at: string;
   updated_at: string;
@@ -70,8 +70,8 @@ export class EventService {
       // Generate unique slug
       const slug = this.generateSlug(input.title);
 
-      // Upload metadata and image to Filebase
-      const { metadataUrl, imageUrl } = await this.uploadToFilebase(eventId, input);
+      // Upload metadata and image to IPFS (Pinata)
+      const { metadataUrl, imageUrl } = await this.uploadToIPFS(eventId, input);
 
       // Store event in database
       await this.storeInDatabase(eventId, slug, input, metadataUrl, imageUrl);
@@ -99,8 +99,8 @@ export class EventService {
         contractEventId: undefined,
         contractAddress: undefined,
         contractChainId: undefined,
-        filebaseMetadataUrl: metadataUrl,
-        filebaseImageUrl: imageUrl,
+        ipfsMetadataUrl: metadataUrl,
+        ipfsImageUrl: imageUrl,
         storageProvider: 'database',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -154,6 +154,209 @@ export class EventService {
   }
 
   /**
+   * Get event by ID
+   */
+  async getEventById(eventId: string): Promise<EventData | null> {
+    try {
+      // Get event from database
+      const { data: event, error } = await this.supabase
+        .from('events')
+        .select(`
+          *,
+          users!events_creator_id_fkey (
+            wallet_address,
+            display_name,
+            avatar_url
+          )
+        `)
+        .eq('id', eventId)
+        .single();
+
+      if (error || !event) {
+        return null;
+      }
+
+      // Convert to EventData format
+      const eventData: EventData = {
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        location: event.location,
+        startDate: event.start_date,
+        endDate: event.end_date,
+        maxCapacity: event.max_capacity,
+        currentAttendees: event.current_attendees || 0,
+        ticketPrice: event.ticket_price,
+        requireApproval: event.require_approval,
+        hasPOAP: event.has_poap,
+        poapMetadata: event.poap_metadata || '',
+        visibility: event.visibility,
+        timezone: event.timezone,
+        bannerImage: await this.generateImageUrl(event.ipfs_image_url || event.banner_image) || undefined,
+        category: event.category,
+        tags: event.tags?.filter(Boolean) || [],
+        creatorId: event.creator_id,
+        status: event.status,
+        contractEventId: event.contract_event_id,
+        contractAddress: event.contract_address,
+        contractChainId: event.contract_chain_id,
+        ipfsMetadataUrl: event.ipfs_metadata_url,
+        ipfsImageUrl: event.ipfs_image_url,
+        storageProvider: event.storage_provider || 'database',
+        createdAt: event.created_at,
+        updatedAt: event.updated_at,
+      };
+
+      return eventData;
+    } catch (error) {
+      console.error('Failed to get event by ID:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Generate IPFS URL for image access
+   */
+  private async generateImageUrl(imageUrl: string | null | undefined): Promise<string | null | undefined> {
+    if (!imageUrl) return imageUrl;
+    
+    // If it's already an IPFS gateway URL, return as is
+    if (imageUrl.includes('gateway.pinata.cloud') || imageUrl.includes('ipfs.io') || imageUrl.includes('ipfs://')) {
+      return imageUrl;
+    }
+
+    // If it looks like an IPFS hash, convert to gateway URL
+    if (imageUrl.match(/^Qm[a-zA-Z0-9]{44}$/) || imageUrl.match(/^[a-zA-Z0-9]{46,59}$/)) {
+      return pinataService.getFileUrl(imageUrl);
+    }
+
+    // Otherwise return as is (could be a traditional URL)
+    return imageUrl;
+  }
+
+  /**
+   * Get user ticket for event
+   */
+  async getUserTicketForEvent(eventId: string, walletAddress: string): Promise<TicketData | null> {
+    try {
+      // First get the user ID for the wallet address
+      const { data: user, error: userError } = await this.supabase
+        .from('users')
+        .select('id')
+        .eq('wallet_address', walletAddress)
+        .single();
+
+      if (userError || !user) {
+        return null;
+      }
+
+      // Then check for existing ticket using the user ID
+      const { data: ticket, error } = await this.supabase
+        .from('tickets')
+        .select('*')
+        .eq('event_id', eventId)
+        .eq('attendee_id', user.id)
+        .single();
+
+      if (error || !ticket) {
+        return null;
+      }
+
+      return ticket;
+    } catch (error) {
+      console.error('Failed to get user ticket for event:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create ticket
+   */
+  async createTicket(ticketData: {
+    eventId: string;
+    attendeeId: string;
+    attendeeName: string;
+    attendeeEmail: string;
+    pricePaid: string;
+    ticketType: string;
+    contractTicketId?: number;
+    contractAddress?: string;
+    contractChainId?: number;
+    transactionHash?: string;
+  }): Promise<TicketData> {
+    try {
+      const { data: ticket, error } = await this.supabase
+        .from('tickets')
+        .insert({
+          event_id: ticketData.eventId,
+          attendee_id: ticketData.attendeeId,
+          // Note: attendee_name and attendee_email columns don't exist in current schema
+          // These will be stored in the users table or as metadata
+          price_paid: ticketData.pricePaid,
+          ticket_type: ticketData.ticketType,
+          contract_ticket_id: ticketData.contractTicketId,
+          contract_address: ticketData.contractAddress,
+          contract_chain_id: ticketData.contractChainId,
+          transaction_hash: ticketData.transactionHash,
+          is_approved: true,
+          purchase_time: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      // Return ticket data with attendee info from the request
+      return {
+        ...ticket,
+        attendee_name: ticketData.attendeeName,
+        attendee_email: ticketData.attendeeEmail,
+      };
+    } catch (error) {
+      console.error('Failed to create ticket:', error);
+      
+      // Handle specific database constraint violations
+      if (error && typeof error === 'object' && 'code' in error) {
+        const dbError = error as { code: string; message: string };
+        
+        if (dbError.code === '23505' && dbError.message.includes('tickets_event_id_attendee_id_key')) {
+          throw new Error('You already have a ticket for this event');
+        }
+      }
+      
+      // Handle other constraint violations
+      if (error instanceof Error) {
+        if (error.message.includes('duplicate key value violates unique constraint')) {
+          throw new Error('You already have a ticket for this event');
+        }
+      }
+      
+      throw error;
+    }
+  }
+
+  /**
+   * Update event attendee count
+   */
+  async updateEventAttendeeCount(eventId: string, newCount: number): Promise<void> {
+    try {
+      const { error } = await this.supabase
+        .from('events')
+        .update({ current_attendees: newCount })
+        .eq('id', eventId);
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Failed to update event attendee count:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get events by creator
    */
   async getEventsByCreator(creatorId: string): Promise<EventData[]> {
@@ -187,8 +390,8 @@ export class EventService {
           contractEventId: Number(event.eventId),
           contractAddress: event.creator,
           contractChainId: 43113, // Fuji testnet
-          filebaseMetadataUrl: undefined,
-          filebaseImageUrl: undefined,
+          ipfsMetadataUrl: undefined,
+          ipfsImageUrl: undefined,
           storageProvider: 'blockchain',
           createdAt: new Date(Number(event.createdAt) * 1000).toISOString(),
           updatedAt: new Date(Number(event.updatedAt) * 1000).toISOString(),
@@ -208,15 +411,13 @@ export class EventService {
   }
 
   /**
-   * Upload event data to Filebase
+   * Upload event data to IPFS (Pinata)
    */
-  private async uploadToFilebase(
+  private async uploadToIPFS(
     eventId: string,
     input: CreateEventInput
   ): Promise<{ metadataUrl: string; imageUrl?: string }> {
     try {
-      const filebaseClient = getFilebaseClient();
-
       // Prepare metadata
       const metadata = {
         eventId,
@@ -238,37 +439,49 @@ export class EventService {
         createdAt: new Date().toISOString(),
       };
 
-      // Upload metadata
-      const metadataKey = this.generateEventMetadataKey(eventId);
-      const metadataBuffer = Buffer.from(JSON.stringify(metadata, null, 2));
-      const metadataResult = await filebaseClient.uploadFile(
-        metadataKey,
-        metadataBuffer,
-        'application/json'
-      );
-      const metadataUrl = metadataResult.url;
+      // Upload metadata to IPFS
+      const metadataResult = await pinataService.uploadEventMetadata(eventId, metadata);
+      if (!metadataResult.success) {
+        throw new Error(metadataResult.error || 'Failed to upload metadata to IPFS');
+      }
+      const metadataUrl = metadataResult.data!.url;
 
       // Upload image if provided
       let imageUrl: string | undefined;
-      if (input.bannerImage && typeof input.bannerImage === 'string') {
+      if (input.bannerImage) {
         try {
-          const imageKey = this.generateEventImageKey(eventId, 'banner.jpg');
-          const imageBuffer = Buffer.from(input.bannerImage as string, 'base64');
-          const imageResult = await filebaseClient.uploadImage(
-            imageKey,
-            imageBuffer,
-            'image/jpeg'
-          );
-          imageUrl = imageResult.url;
+          if (typeof input.bannerImage === 'string') {
+            // Handle base64 string (compressed image from client)
+            const imageBuffer = Buffer.from(input.bannerImage, 'base64');
+            const imageResult = await pinataService.uploadEventBanner(
+              eventId,
+              imageBuffer,
+              'image/webp' // Assume compressed images are webp
+            );
+            if (imageResult.success) {
+              imageUrl = imageResult.data!.url;
+            }
+          } else if (input.bannerImage instanceof File) {
+            // Handle File object (compressed image from client)
+            const imageBuffer = Buffer.from(await input.bannerImage.arrayBuffer());
+            const imageResult = await pinataService.uploadEventBanner(
+              eventId,
+              imageBuffer,
+              input.bannerImage.type || 'image/webp'
+            );
+            if (imageResult.success) {
+              imageUrl = imageResult.data!.url;
+            }
+          }
         } catch (error) {
-          console.error('Failed to upload image to Filebase:', error);
+          console.error('Failed to upload image to IPFS:', error);
         }
       }
 
       return { metadataUrl, imageUrl };
     } catch (error) {
-      console.error('Failed to upload to Filebase:', error);
-      throw new Error(`Failed to upload to Filebase: ${error}`);
+      console.error('Failed to upload to IPFS:', error);
+      throw new Error(`Failed to upload to IPFS: ${error}`);
     }
   }
 
@@ -308,8 +521,8 @@ export class EventService {
           tags: input.tags || [],
           creator_id: userId,
           status: 'active',
-          filebase_metadata_url: metadataUrl,
-          filebase_image_url: imageUrl,
+          ipfs_metadata_url: metadataUrl,
+          ipfs_image_url: imageUrl,
         });
 
       if (error) {
@@ -326,7 +539,7 @@ export class EventService {
   /**
    * Get or create user in database
    */
-  private async getOrCreateUser(walletAddress: string): Promise<string> {
+  async getOrCreateUser(walletAddress: string): Promise<string> {
     try {
       // Check if user exists
       const { data: existingUser } = await this.supabase
@@ -405,9 +618,17 @@ export class EventService {
       }
 
       const mappedEvents = events?.map(event => this.mapDatabaseEventToEventData(event)) || [];
+      
+      // Generate presigned URLs for images
+      const processedEvents = await Promise.all(
+        mappedEvents.map(async (event) => ({
+          ...event,
+          bannerImage: await this.generateImageUrl(event.bannerImage) || undefined,
+        }))
+      );
 
       return {
-        events: mappedEvents,
+        events: processedEvents,
         total: count || 0,
       };
     } catch (error) {
@@ -438,7 +659,17 @@ export class EventService {
         throw new Error(`Database query failed: ${error.message}`);
       }
 
-      return events?.map(event => this.mapDatabaseEventToEventData(event)) || [];
+      const mappedEvents = events?.map(event => this.mapDatabaseEventToEventData(event)) || [];
+      
+      // Generate presigned URLs for images
+      const processedEvents = await Promise.all(
+        mappedEvents.map(async (event) => ({
+          ...event,
+          bannerImage: await this.generateImageUrl(event.bannerImage) || undefined,
+        }))
+      );
+
+      return processedEvents;
     } catch (error) {
       console.error('Failed to get events by creator from database:', error);
       return [];
@@ -480,8 +711,8 @@ export class EventService {
           contractEventId: Number(event.eventId),
           contractAddress: event.creator,
           contractChainId: 43113, // Fuji testnet
-          filebaseMetadataUrl: undefined,
-          filebaseImageUrl: undefined,
+          ipfsMetadataUrl: undefined,
+          ipfsImageUrl: undefined,
           storageProvider: 'blockchain',
           createdAt: new Date(Number(event.createdAt) * 1000).toISOString(),
           updatedAt: new Date(Number(event.updatedAt) * 1000).toISOString(),
@@ -512,7 +743,7 @@ export class EventService {
       poapMetadata: event.poap_metadata,
       visibility: event.visibility,
       timezone: event.timezone,
-      bannerImage: event.banner_image,
+      bannerImage: event.ipfs_image_url || event.banner_image,
       category: event.category,
       tags: (event.tags || []).filter((tag): tag is string => tag !== null),
       creatorId: event.users?.wallet_address || event.creator_id,
@@ -521,8 +752,8 @@ export class EventService {
       contractAddress: event.contract_address,
       contractChainId: event.contract_chain_id,
       transactionHash: event.transaction_hash,
-      filebaseMetadataUrl: event.filebase_metadata_url,
-      filebaseImageUrl: event.filebase_image_url,
+      ipfsMetadataUrl: event.ipfs_metadata_url,
+      ipfsImageUrl: event.ipfs_image_url,
       storageProvider: 'database',
       createdAt: event.created_at,
       updatedAt: event.updated_at,
@@ -603,16 +834,243 @@ export class EventService {
   }
 
   /**
-   * Generate Filebase metadata key
+   * Generate IPFS metadata key
    */
   private generateEventMetadataKey(eventId: string): string {
     return `events/${eventId}/metadata.json`;
   }
 
   /**
-   * Generate Filebase image key
+   * Generate IPFS image key
    */
   private generateEventImageKey(eventId: string, filename: string): string {
     return `events/${eventId}/${filename}`;
+  }
+
+
+  /**
+   * Update event with blockchain data
+   */
+  async updateEventWithBlockchainData(
+    eventId: string,
+    contractEventId: number,
+    transactionHash: string,
+    contractAddress: string,
+    contractChainId: number
+  ): Promise<void> {
+    try {
+      const { error } = await this.supabase
+        .from('events')
+        .update({
+          contract_event_id: contractEventId,
+          transaction_hash: transactionHash,
+          contract_address: contractAddress,
+          contract_chain_id: contractChainId,
+          status: 'active',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', eventId);
+
+      if (error) {
+        throw new Error(`Failed to update event with blockchain data: ${error.message}`);
+      }
+    } catch (error) {
+      console.error('Failed to update event with blockchain data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update event with POAP information
+   */
+  async updateEventPOAPInfo(eventId: string, poapInfo: {
+    poapEventId: number;
+    poapSecretCode: string;
+    poapDropCreated: boolean;
+    poapDropCreatedAt: string;
+  }): Promise<void> {
+    try {
+      const { error } = await this.supabase
+        .from('events')
+        .update({
+          poap_event_id: poapInfo.poapEventId,
+          poap_secret_code: poapInfo.poapSecretCode,
+          poap_drop_created: poapInfo.poapDropCreated,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', eventId);
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Failed to update event POAP info:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get user registration for an event
+   */
+  async getUserRegistration(eventId: string, userAddress: string): Promise<any | null> {
+    try {
+      const { data, error } = await this.supabase
+        .from('registrations')
+        .select('*')
+        .eq('event_id', eventId)
+        .eq('attendee_address', userAddress.toLowerCase())
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // Not found error is OK
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Failed to get user registration:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get user POAP for an event
+   */
+  async getUserPOAPForEvent(eventId: string, userAddress: string): Promise<any | null> {
+    try {
+      const { data, error } = await this.supabase
+        .from('poap_claims')
+        .select('*')
+        .eq('event_id', eventId)
+        .eq('attendee_address', userAddress.toLowerCase())
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // Not found error is OK
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Failed to get user POAP:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create POAP claim record
+   */
+  async createPOAPClaim(claimData: {
+    eventId: string;
+    attendeeAddress: string;
+    poapTokenId: number;
+    poapEventId: number;
+    transactionHash?: string;
+    claimedAt: string;
+  }): Promise<any> {
+    try {
+      const { data, error } = await this.supabase
+        .from('poap_claims')
+        .insert({
+          event_id: claimData.eventId,
+          attendee_address: claimData.attendeeAddress.toLowerCase(),
+          poap_token_id: claimData.poapTokenId,
+          poap_event_id: claimData.poapEventId,
+          transaction_hash: claimData.transactionHash,
+          claimed_at: claimData.claimedAt,
+          poap_url: `https://app.poap.xyz/token/${claimData.poapTokenId}`
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Failed to create POAP claim:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create registration record
+   */
+  async createRegistration(registrationData: {
+    eventId: string;
+    attendeeAddress: string;
+    attendeeName: string;
+    attendeeEmail: string;
+    transactionHash: string;
+    ticketTokenId?: number | null;
+    amountPaid: string;
+    registrationDate: string;
+  }): Promise<any> {
+    try {
+      const { data, error } = await this.supabase
+        .from('registrations')
+        .insert({
+          event_id: registrationData.eventId,
+          attendee_address: registrationData.attendeeAddress.toLowerCase(),
+          attendee_name: registrationData.attendeeName,
+          attendee_email: registrationData.attendeeEmail,
+          transaction_hash: registrationData.transactionHash,
+          ticket_token_id: registrationData.ticketTokenId,
+          amount_paid: parseFloat(registrationData.amountPaid),
+          registration_date: registrationData.registrationDate,
+          is_verified: true // Auto-verify for now
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Failed to create registration:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get user tickets
+   */
+  async getUserTickets(userAddress: string, options?: { 
+    includeMetadata?: boolean; 
+    status?: string; 
+  }): Promise<any[]> {
+    try {
+      let query = this.supabase
+        .from('tickets')
+        .select(`
+          *,
+          events (
+            id,
+            title,
+            start_date,
+            end_date,
+            location
+          )
+        `)
+        .eq('owner_address', userAddress.toLowerCase());
+
+      if (options?.status === 'active') {
+        query = query.eq('is_used', false);
+      } else if (options?.status === 'used') {
+        query = query.eq('is_used', true);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        throw error;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Failed to get user tickets:', error);
+      return [];
+    }
   }
 }
